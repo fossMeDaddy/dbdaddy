@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	GET_EXISTING_DBS = `select datname from pg_database where datname != '{{ self_db_name }}' order by datname`
+	GET_EXISTING_DBS = `select datname from pg_database where datistemplate = false and datname != '{{ self_db_name }}' order by datname`
 
 	CHECK_DB_EXISTS = `select exists(select 1 from pg_database where datname = '{{ db_name }}')`
 
