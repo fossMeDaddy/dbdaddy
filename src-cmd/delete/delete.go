@@ -3,7 +3,6 @@ package deleteCmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/pg"
-	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -43,7 +42,6 @@ func run(cmd *cobra.Command, args []string) {
 			panic("Something went wrong!\n" + err.Error())
 		}
 
-		fmt.Println(existingDbs)
 		newBranchName := existingDbs[0]
 		viper.Set(constants.DbConfigCurrentBranchKey, newBranchName)
 		viper.WriteConfig()
