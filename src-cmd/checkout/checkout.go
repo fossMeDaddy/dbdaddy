@@ -2,7 +2,7 @@ package checkoutCmd
 
 import (
 	constants "dbdaddy/const"
-	"dbdaddy/db/pg"
+	db_lib "dbdaddy/db/lib"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -32,7 +32,7 @@ func run(cmd *cobra.Command, args []string) {
 	branchname := args[0]
 
 	if shouldCreateNewBranch {
-		err := pg.NewDbFromOriginal(viper.GetString(constants.DbConfigCurrentBranchKey), branchname)
+		err := db_lib.NewDbFromOriginal(viper.GetString(constants.DbConfigCurrentBranchKey), branchname)
 		if err != nil {
 			if strings.Contains(err.Error(), "already exists") {
 				cmd.PrintErrf("Could not create a new database branch with name '%s' because it already exists.\n", branchname)
@@ -42,7 +42,7 @@ func run(cmd *cobra.Command, args []string) {
 			panic(err)
 		}
 	} else {
-		if pg.DbExists(branchname) {
+		if db_lib.DbExists(branchname) {
 			viper.Set(constants.DbConfigCurrentBranchKey, branchname)
 			viper.WriteConfig()
 		} else {

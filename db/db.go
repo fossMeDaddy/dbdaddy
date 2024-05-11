@@ -12,8 +12,6 @@ import (
 
 var DB *sql.DB
 
-var SupportedDrivers = []string{"postgres"}
-
 func getPgConnUriFromViper(dbname string) string {
 	// EXAMPLE URI:
 	// postgresql://sally:sallyspassword@dbserver.example:5555/userdata?connect_timeout=10&sslmode=require&target_session_attrs=primary
@@ -69,5 +67,5 @@ func ConnectDB() (*sql.DB, error) {
 		return DB, nil
 	}
 
-	panic(fmt.Sprintf("'%s' driver is not supported, as of now, the supported drivers are: %v", viper.Get(constants.DbConfigDriverKey), SupportedDrivers))
+	panic(fmt.Sprintf("'%s' driver is not supported, as of now, the supported drivers are: %v", viper.Get(constants.DbConfigDriverKey), constants.SupportedDrivers))
 }
