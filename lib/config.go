@@ -4,49 +4,60 @@ import (
 	constants "dbdaddy/const"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
-func InitConfigFile(v *viper.Viper) {
-	localViper := v
-	if localViper == nil {
-		localViper = viper.GetViper()
-	}
+func OpenConfigFileAt(configFilePath string) {
+	vimOsCmd := exec.Command("vim", configFilePath)
+	vimOsCmd.Stdin = os.Stdin
+	vimOsCmd.Stdout = os.Stdout
+	vimOsCmd.Stderr = os.Stderr
 
-	configPath, err := GetConfigFilePath()
-	if err != nil {
-		configPath = constants.GetGlobalConfigPath()
-		EnsureDirExists(constants.GetGlobalDirPath())
-	}
+	vimErr := vimOsCmd.Run()
+	if vimErr != nil {
+		fmt.Println("Failed to open vim, trying nano...")
 
+		nanoOsCmd := exec.Command("nano", configFilePath)
+		nanoOsCmd.Stdin = os.Stdin
+		nanoOsCmd.Stdout = os.Stdout
+		nanoOsCmd.Stderr = os.Stderr
+
+		nanoErr := nanoOsCmd.Run()
+		if nanoErr != nil {
+			fmt.Println("Holy shit bro?! wtf are you using for an OS? no vim, no nano, is this what, an alpine docker container?")
+			fmt.Println("nano command gave the error:\n" + nanoErr.Error())
+			fmt.Println("vim command gave the error:\n" + vimErr.Error())
+			os.Exit(1)
+		}
+	}
+}
+
+func IsFirstTimeUser() bool {
+	_, err := FindConfigFilePath()
+	return err != nil
+}
+
+func InitConfigFile(v *viper.Viper, configPath string, safeWrite bool) {
 	tmp := strings.Split(configPath, "/")
 	viperConfigPath := strings.Join(tmp[:len(tmp)-1], "/")
 
-	localViper.SetConfigName("dbdaddy.config")
-	localViper.SetConfigType("json")
-	localViper.AddConfigPath(viperConfigPath)
+	v.SetConfigName("dbdaddy.config")
+	v.SetConfigType("json")
+	v.AddConfigPath(viperConfigPath)
 
 	// setup default values for PG connection
-	localViper.SetDefault(constants.DbConfigHostKey, "localhost")
-	localViper.SetDefault(constants.DbConfigPortKey, 5432)
-	localViper.SetDefault(constants.DbConfigUserKey, "postgres")
-	localViper.SetDefault(constants.DbConfigPassKey, "postgres")
-	localViper.SetDefault(constants.DbConfigDriverKey, constants.DbDriverPostgres)
-	localViper.SetDefault(constants.DbConfigDbNameKey, "postgres")
-	localViper.SetDefault(constants.DbConfigCurrentBranchKey, "postgres")
+	v.SetDefault(constants.DbConfigHostKey, "localhost")
+	v.SetDefault(constants.DbConfigPortKey, 5432)
+	v.SetDefault(constants.DbConfigUserKey, "postgres")
+	v.SetDefault(constants.DbConfigPassKey, "postgres")
+	v.SetDefault(constants.DbConfigDriverKey, constants.DbDriverPostgres)
+	v.SetDefault(constants.DbConfigDbNameKey, "postgres")
+	v.SetDefault(constants.DbConfigCurrentBranchKey, "postgres")
 
-	configNotFoundErr := localViper.ReadInConfig()
-	if configNotFoundErr != nil {
-		// NOT SURE ABOUT THIS ONE
-		// FindCwdDBCreds()
-
-		writeErr := localViper.SafeWriteConfig()
-		if writeErr != nil {
-			fmt.Println("Terribly sorry, this is probably a skill issue!\nI can't generate your dbdaddy.config.json")
-			fmt.Println(writeErr)
-			os.Exit(1)
-		}
+	if safeWrite {
+		v.SafeWriteConfig()
 	}
 }

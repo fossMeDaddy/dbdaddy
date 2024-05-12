@@ -28,7 +28,7 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	if overrideExisting {
-		lib.InitConfigFile(viper.New())
+		lib.InitConfigFile(viper.New(), configWritePath, false)
 
 		if err := viper.WriteConfigAs(configWritePath); err != nil {
 			cmd.PrintErrln("Error occured while writing config file!\n" + err.Error())

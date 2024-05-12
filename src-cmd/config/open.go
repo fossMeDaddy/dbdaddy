@@ -4,8 +4,6 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
 	"fmt"
-	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -27,7 +25,7 @@ func openCmdRun(cmd *cobra.Command, args []string) {
 			return
 		}
 	} else {
-		tmpConfigFilePath, err := lib.GetConfigFilePath()
+		tmpConfigFilePath, err := lib.FindConfigFilePath()
 		if err != nil {
 			cmd.PrintErrln("Could not find a config file! please create one. run 'config -h' for more info")
 			return
@@ -37,28 +35,7 @@ func openCmdRun(cmd *cobra.Command, args []string) {
 	}
 	cmd.Println(fmt.Sprintf("Config file found at: %s, opening via vim...", configFilePath))
 
-	vimOsCmd := exec.Command("vim", configFilePath)
-	vimOsCmd.Stdin = os.Stdin
-	vimOsCmd.Stdout = os.Stdout
-	vimOsCmd.Stderr = os.Stderr
-
-	vimErr := vimOsCmd.Run()
-	if vimErr != nil {
-		cmd.PrintErrln("Failed to open vim, trying nano...")
-
-		nanoOsCmd := exec.Command("nano", configFilePath)
-		nanoOsCmd.Stdin = os.Stdin
-		nanoOsCmd.Stdout = os.Stdout
-		nanoOsCmd.Stderr = os.Stderr
-
-		nanoErr := nanoOsCmd.Run()
-		if nanoErr != nil {
-			cmd.PrintErrln("Holy shit bro?! wtf are you using for an OS? no vim, no nano, is this what, an alpine docker container?")
-			cmd.PrintErr("nano command gave the error:\n" + nanoErr.Error())
-			cmd.PrintErr("vim command gave the error:\n" + vimErr.Error())
-			os.Exit(1)
-		}
-	}
+	lib.OpenConfigFileAt(configFilePath)
 }
 
 func InitOpenCmd() *cobra.Command {

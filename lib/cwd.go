@@ -19,7 +19,7 @@ func FindCwdDBCreds() {
 	// }
 }
 
-func GetConfigFilePath() (string, error) {
+func FindConfigFilePath() (string, error) {
 	_, cwdFileErr := os.Stat(constants.GetLocalConfigPath())
 	_, globalFileErr := os.Stat(constants.GetGlobalConfigPath())
 

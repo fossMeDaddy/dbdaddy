@@ -67,5 +67,6 @@ func ConnectDB() (*sql.DB, error) {
 		return DB, nil
 	}
 
+	fmt.Println(viper.Get(constants.DbConfigDriverKey), constants.SupportedDrivers)
 	panic(fmt.Sprintf("'%s' driver is not supported, as of now, the supported drivers are: %v", viper.Get(constants.DbConfigDriverKey), constants.SupportedDrivers))
 }

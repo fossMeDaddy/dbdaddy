@@ -3,6 +3,7 @@ package checkoutCmd
 import (
 	constants "dbdaddy/const"
 	db_lib "dbdaddy/db/lib"
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -53,4 +54,6 @@ func run(cmd *cobra.Command, args []string) {
 
 	viper.Set(constants.DbConfigCurrentBranchKey, branchname)
 	viper.WriteConfig()
+
+	cmd.Println(fmt.Sprintf("Switched to branch: %s", branchname))
 }
