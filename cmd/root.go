@@ -10,6 +10,7 @@ import (
 	listCmd "dbdaddy/src-cmd/list"
 	seedMeCmd "dbdaddy/src-cmd/seedmedaddy"
 	statusCmd "dbdaddy/src-cmd/status"
+	"fmt"
 	"os"
 
 	_ "github.com/jackc/pgx"
@@ -51,6 +52,9 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 }
 
 func Execute() {
+	// args := os.Args[1:]
+
+	// shouldContinueExec := false
 	if !lib.IsFirstTimeUser() {
 		configFilePath, _ := lib.FindConfigFilePath()
 		lib.InitConfigFile(viper.GetViper(), configFilePath, false)
@@ -61,6 +65,26 @@ func Execute() {
 			rootCmd.Println("\nTry reviewing your database credentials in the config file, if not present, try creating one. (hint: 'config -h')")
 			return
 		}
+	} else {
+		fmt.Println("Daddy's home baby.")
+		fmt.Println("I'll create a global config for ya, let me know your database url here")
+
+		configFilePath := constants.GetGlobalConfigPath()
+		lib.EnsureDirExists(constants.GetGlobalDirPath())
+		lib.InitConfigFile(viper.GetViper(), configFilePath, true)
+
+		dbUrlPrompt := promptui.Prompt{
+			Label: "Press enter to open the config file in a CLI-based text editor",
+		}
+
+		_, err := dbUrlPrompt.Run()
+		if err != nil {
+			fmt.Println("Cancelling initialization...")
+			os.Exit(1)
+		}
+		lib.OpenConfigFileAt(configFilePath)
+
+		return
 	}
 
 	rootCmd.AddCommand(checkoutCmd.Init())
