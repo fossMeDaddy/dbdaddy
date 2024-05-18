@@ -2,15 +2,18 @@ package listCmd
 
 import (
 	db_lib "dbdaddy/db/lib"
+	"dbdaddy/middlewares"
 	"fmt"
 
 	"github.com/spf13/cobra"
 )
 
+var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
+
 var cmd = &cobra.Command{
 	Use:   "list",
 	Short: "Lists available databases on the server",
-	Run:   run,
+	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {

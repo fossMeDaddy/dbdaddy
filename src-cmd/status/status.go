@@ -2,15 +2,18 @@ package statusCmd
 
 import (
 	constants "dbdaddy/const"
+	"dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
+
 var cmd = &cobra.Command{
 	Use:   "status",
 	Short: "Check status of the current database branch",
-	Run:   run,
+	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {

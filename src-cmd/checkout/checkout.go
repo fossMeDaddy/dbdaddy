@@ -3,6 +3,7 @@ package checkoutCmd
 import (
 	constants "dbdaddy/const"
 	db_lib "dbdaddy/db/lib"
+	"dbdaddy/middlewares"
 	"fmt"
 	"strings"
 
@@ -15,11 +16,13 @@ var (
 	shouldCreateNewBranch bool
 )
 
+var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
+
 var cmd = &cobra.Command{
 	Use:   "checkout <branchname>",
 	Short: "checkout into a new/existing branch in the database",
 	Args:  cobra.ExactArgs(1),
-	Run:   run,
+	Run:   cmdRunFn,
 }
 
 func Init() *cobra.Command {

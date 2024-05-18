@@ -3,16 +3,19 @@ package deleteCmd
 import (
 	constants "dbdaddy/const"
 	db_lib "dbdaddy/db/lib"
+	"dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
+
 var cmd = &cobra.Command{
 	Use:   "delete <branchname>",
 	Short: "Deletes a database branch, this action can not be undone",
 	Args:  cobra.ExactArgs(1),
-	Run:   run,
+	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {

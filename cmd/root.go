@@ -2,7 +2,6 @@ package cmd
 
 import (
 	constants "dbdaddy/const"
-	"dbdaddy/db"
 	"dbdaddy/lib"
 	checkoutCmd "dbdaddy/src-cmd/checkout"
 	configCmd "dbdaddy/src-cmd/config"
@@ -26,46 +25,11 @@ var rootCmd = &cobra.Command{
 }
 
 func rootCmdRun(cmd *cobra.Command, args []string) {
-	if lib.IsFirstTimeUser() {
-		cmd.Println("Daddy's home baby.")
-		cmd.Println("I'll create a global config for ya, let me know your database url here")
-
-		configFilePath := constants.GetGlobalConfigPath()
-		lib.EnsureDirExists(constants.GetGlobalDirPath())
-		lib.InitConfigFile(viper.GetViper(), configFilePath, true)
-
-		dbUrlPrompt := promptui.Prompt{
-			Label: "Press enter to open the config file in a CLI-based text editor",
-		}
-
-		_, err := dbUrlPrompt.Run()
-		if err != nil {
-			cmd.Println("Cancelling initialization...")
-			os.Exit(1)
-		}
-		lib.OpenConfigFileAt(configFilePath)
-
-		return
-	}
-
 	cmd.Help()
 }
 
 func Execute() {
-	// args := os.Args[1:]
-
-	// shouldContinueExec := false
-	if !lib.IsFirstTimeUser() {
-		configFilePath, _ := lib.FindConfigFilePath()
-		lib.InitConfigFile(viper.GetViper(), configFilePath, false)
-
-		_, err := db.ConnectDB()
-		if err != nil {
-			rootCmd.Println("Error occured while connecting to db!\n", err.Error())
-			rootCmd.Println("\nTry reviewing your database credentials in the config file, if not present, try creating one. (hint: 'config -h')")
-			return
-		}
-	} else {
+	if lib.IsFirstTimeUser() {
 		fmt.Println("Daddy's home baby.")
 		fmt.Println("I'll create a global config for ya, let me know your database url here")
 
@@ -85,6 +49,9 @@ func Execute() {
 		lib.OpenConfigFileAt(configFilePath)
 
 		return
+	} else {
+		configFilePath, _ := lib.FindConfigFilePath()
+		lib.InitConfigFile(viper.GetViper(), configFilePath, false)
 	}
 
 	rootCmd.AddCommand(checkoutCmd.Init())

@@ -60,4 +60,6 @@ func InitConfigFile(v *viper.Viper, configPath string, safeWrite bool) {
 	if safeWrite {
 		v.SafeWriteConfig()
 	}
+
+	v.ReadInConfig()
 }

@@ -1,11 +1,17 @@
 package seedMeCmd
 
-import "github.com/spf13/cobra"
+import (
+	"dbdaddy/middlewares"
+
+	"github.com/spf13/cobra"
+)
+
+var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
 	Use:   "seedmedaddy",
 	Short: "Seeds the current selected database branch with sample data and relations",
-	Run:   run,
+	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
