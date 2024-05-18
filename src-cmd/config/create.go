@@ -22,7 +22,7 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 	configWritePath := constants.GetLocalConfigPath()
 	if createInGlobalNamespace {
 		configWritePath = constants.GetGlobalConfigPath()
-		if err := lib.EnsureDirExists(configWritePath); err != nil {
+		if err := lib.DirExists(configWritePath); err != nil {
 			panic("Unexpected error occured!\n" + err.Error())
 		}
 	}

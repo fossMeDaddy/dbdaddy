@@ -2,7 +2,7 @@ package deleteCmd
 
 import (
 	constants "dbdaddy/const"
-	db_lib "dbdaddy/db/lib"
+	"dbdaddy/db/db_int"
 	"dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
@@ -26,12 +26,12 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if !db_lib.DbExists(branchname) {
+	if !db_int.DbExists(branchname) {
 		cmd.PrintErrf("Database branch '%s' does not exist\n", branchname)
 		return
 	}
 
-	err := db_lib.DeleteDb(branchname)
+	err := db_int.DeleteDb(branchname)
 	if err != nil {
 		cmd.PrintErrln("Error deleting database\n" + err.Error())
 		return
@@ -40,7 +40,7 @@ func run(cmd *cobra.Command, args []string) {
 	cmd.Printf("Successfully deleted db '%s'\n", branchname)
 
 	if viper.GetString(constants.DbConfigCurrentBranchKey) == branchname {
-		existingDbs, err := db_lib.GetExistingDbs()
+		existingDbs, err := db_int.GetExistingDbs()
 		if err != nil {
 			panic("Something went wrong!\n" + err.Error())
 		}

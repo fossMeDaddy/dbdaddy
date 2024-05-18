@@ -1,7 +1,7 @@
 package listCmd
 
 import (
-	db_lib "dbdaddy/db/lib"
+	"dbdaddy/db/db_int"
 	"dbdaddy/middlewares"
 	"fmt"
 
@@ -17,7 +17,7 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	dbs, err := db_lib.GetExistingDbs()
+	dbs, err := db_int.GetExistingDbs()
 	if err != nil {
 		cmd.PrintErrln("Unexpected error occured!\n" + err.Error())
 	}

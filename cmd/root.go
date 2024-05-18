@@ -34,7 +34,7 @@ func Execute() {
 		fmt.Println("I'll create a global config for ya, let me know your database url here")
 
 		configFilePath := constants.GetGlobalConfigPath()
-		lib.EnsureDirExists(constants.GetGlobalDirPath())
+		lib.DirExists(constants.GetGlobalDirPath())
 		lib.InitConfigFile(viper.GetViper(), configFilePath, true)
 
 		dbUrlPrompt := promptui.Prompt{
@@ -52,6 +52,7 @@ func Execute() {
 	} else {
 		configFilePath, _ := lib.FindConfigFilePath()
 		lib.InitConfigFile(viper.GetViper(), configFilePath, false)
+		lib.EnsureSupportedDbDriver()
 	}
 
 	rootCmd.AddCommand(checkoutCmd.Init())

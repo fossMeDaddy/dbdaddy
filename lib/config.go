@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -62,4 +63,12 @@ func InitConfigFile(v *viper.Viper, configPath string, safeWrite bool) {
 	}
 
 	v.ReadInConfig()
+}
+
+func EnsureSupportedDbDriver() {
+	driver := viper.GetString(constants.DbConfigDriverKey)
+
+	if !slices.Contains(constants.SupportedDrivers, driver) {
+		panic(fmt.Sprintf("Unsupported database driver '%s'", driver))
+	}
 }

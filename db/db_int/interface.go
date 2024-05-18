@@ -1,27 +1,15 @@
-package db_lib
+package db_int
 
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/pg"
-	"fmt"
-	"slices"
 
 	"github.com/spf13/viper"
 )
 
 // this is a central place for calling driver-specific internal functions
 
-func EnsureSupportedDbDriver() {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-
-	if !slices.Contains(constants.SupportedDrivers, driver) {
-		panic(fmt.Sprintf("Unsupported database driver '%s'", driver))
-	}
-}
-
 func GetExistingDbs() ([]string, error) {
-	EnsureSupportedDbDriver()
-
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
 		return pg.GetExistingDbs()
@@ -31,8 +19,6 @@ func GetExistingDbs() ([]string, error) {
 }
 
 func DisconnectAllUsers(dbname string) error {
-	EnsureSupportedDbDriver()
-
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
 		return pg.DisconnectAllUsers(dbname)
@@ -42,8 +28,6 @@ func DisconnectAllUsers(dbname string) error {
 }
 
 func DbExists(dbname string) bool {
-	EnsureSupportedDbDriver()
-
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
 		return pg.DbExists(dbname)
@@ -53,8 +37,6 @@ func DbExists(dbname string) bool {
 }
 
 func NewDbFromOriginal(originalDbName string, newDbName string) error {
-	EnsureSupportedDbDriver()
-
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
 		return pg.NewDbFromOriginal(originalDbName, newDbName)
@@ -64,8 +46,6 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 }
 
 func DeleteDb(dbname string) error {
-	EnsureSupportedDbDriver()
-
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
 		return pg.DeleteDb(dbname)

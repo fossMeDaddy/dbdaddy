@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func EnsureDirExists(dirName string) error {
+func DirExists(dirName string) error {
 	// Stat the directory to check if it exists
 	if _, err := os.Stat(dirName); os.IsNotExist(err) {
 		// Directory does not exist, so create it
