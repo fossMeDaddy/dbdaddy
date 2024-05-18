@@ -20,7 +20,7 @@ func GetLocalConfigPath() string {
 		panic(err)
 	}
 
-	return filepath.Join(cwd, "dbdaddy.config.json")
+	return filepath.Join(cwd, SelfGlobalDirName, "dbdaddy.config.json")
 }
 
 func GetGlobalDirPath() string {
@@ -52,6 +52,17 @@ const (
 	DbDriverPostgres = "postgres"
 	DbDriverMySQL    = "mysql"
 	DbDriverSqlite   = "sqlite"
+
+	// dumps
+	PgDumpDir     = "pg_dumps"
+	MySqlDumpDir  = "mysql_dumps"
+	SqliteDumpDir = "sqlite_dumps"
 )
+
+var DriverDumpDirNames = map[string]string{
+	DbDriverPostgres: PgDumpDir,
+	DbDriverMySQL:    MySqlDumpDir,
+	DbDriverSqlite:   SqliteDumpDir,
+}
 
 var SupportedDrivers = []string{DbDriverPostgres}

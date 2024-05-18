@@ -4,6 +4,7 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
 	"fmt"
+	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -22,15 +23,18 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 	configWritePath := constants.GetLocalConfigPath()
 	if createInGlobalNamespace {
 		configWritePath = constants.GetGlobalConfigPath()
-		if err := lib.DirExists(configWritePath); err != nil {
-			panic("Unexpected error occured!\n" + err.Error())
-		}
+	}
+
+	dir, _ := path.Split(configWritePath)
+	if err := lib.DirExistsCreate(dir); err != nil {
+		panic("Unexpected error occured!\n" + err.Error())
 	}
 
 	if overrideExisting {
-		lib.InitConfigFile(viper.New(), configWritePath, false)
+		v := viper.New()
+		lib.InitConfigFile(v, configWritePath, false)
 
-		if err := viper.WriteConfigAs(configWritePath); err != nil {
+		if err := v.WriteConfigAs(configWritePath); err != nil {
 			cmd.PrintErrln("Error occured while writing config file!\n" + err.Error())
 			return
 		}
@@ -40,6 +44,8 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
+
+	lib.OpenConfigFileAt(configWritePath)
 }
 
 func InitCreateCmd() *cobra.Command {

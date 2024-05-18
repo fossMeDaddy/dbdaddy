@@ -41,7 +41,7 @@ func IsFirstTimeUser() bool {
 	return err != nil
 }
 
-func InitConfigFile(v *viper.Viper, configPath string, safeWrite bool) {
+func InitConfigFile(v *viper.Viper, configPath string, write bool) {
 	tmp := strings.Split(configPath, "/")
 	viperConfigPath := strings.Join(tmp[:len(tmp)-1], "/")
 
@@ -58,11 +58,21 @@ func InitConfigFile(v *viper.Viper, configPath string, safeWrite bool) {
 	v.SetDefault(constants.DbConfigDbNameKey, "postgres")
 	v.SetDefault(constants.DbConfigCurrentBranchKey, "postgres")
 
-	if safeWrite {
-		v.SafeWriteConfig()
+	// setup default values for PG connection
+	if write {
+		v.WriteConfigAs(configPath)
 	}
+}
 
-	v.ReadInConfig()
+func ReadConfig(v *viper.Viper, configPath string) error {
+	tmp := strings.Split(configPath, "/")
+	viperConfigPath := strings.Join(tmp[:len(tmp)-1], "/")
+
+	v.SetConfigName("dbdaddy.config")
+	v.SetConfigType("json")
+	v.AddConfigPath(viperConfigPath)
+
+	return v.ReadInConfig()
 }
 
 func EnsureSupportedDbDriver() {

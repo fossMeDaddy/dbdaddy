@@ -4,20 +4,8 @@ import (
 	constants "dbdaddy/const"
 	"fmt"
 	"os"
+	"path"
 )
-
-func FindCwdDBCreds() {
-	// will only run when initializing
-
-	// dirEntries, err := os.ReadDir(".")
-	// if err != nil {
-	// 	panic("Unexpected error occured!\n" + err.Error())
-	// }
-
-	// for _, dirEntry := range dirEntries {
-	// 	fmt.Println(dirEntry.Name())
-	// }
-}
 
 func FindConfigFilePath() (string, error) {
 	_, cwdFileErr := os.Stat(constants.GetLocalConfigPath())
@@ -32,4 +20,13 @@ func FindConfigFilePath() (string, error) {
 	} else {
 		return constants.GetLocalConfigPath(), nil
 	}
+}
+
+func GetAbsolutePathFor(relativePath string) (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(cwd, relativePath), err
 }

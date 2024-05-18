@@ -12,7 +12,7 @@ import (
 func CheckConnection(fn types.CobraCmdFn) types.CobraCmdFn {
 	return func(cmd *cobra.Command, args []string) {
 		configFilePath, _ := lib.FindConfigFilePath()
-		lib.InitConfigFile(viper.GetViper(), configFilePath, false)
+		lib.ReadConfig(viper.GetViper(), configFilePath)
 
 		_, err := db.ConnectDB()
 		if err != nil {

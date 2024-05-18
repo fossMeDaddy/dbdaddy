@@ -6,6 +6,7 @@ import (
 	checkoutCmd "dbdaddy/src-cmd/checkout"
 	configCmd "dbdaddy/src-cmd/config"
 	deleteCmd "dbdaddy/src-cmd/delete"
+	dumpMeCmd "dbdaddy/src-cmd/dumpmedaddy"
 	listCmd "dbdaddy/src-cmd/list"
 	seedMeCmd "dbdaddy/src-cmd/seedmedaddy"
 	statusCmd "dbdaddy/src-cmd/status"
@@ -34,7 +35,7 @@ func Execute() {
 		fmt.Println("I'll create a global config for ya, let me know your database url here")
 
 		configFilePath := constants.GetGlobalConfigPath()
-		lib.DirExists(constants.GetGlobalDirPath())
+		lib.DirExistsCreate(constants.GetGlobalDirPath())
 		lib.InitConfigFile(viper.GetViper(), configFilePath, true)
 
 		dbUrlPrompt := promptui.Prompt{
@@ -51,7 +52,7 @@ func Execute() {
 		return
 	} else {
 		configFilePath, _ := lib.FindConfigFilePath()
-		lib.InitConfigFile(viper.GetViper(), configFilePath, false)
+		lib.ReadConfig(viper.GetViper(), configFilePath)
 		lib.EnsureSupportedDbDriver()
 	}
 
@@ -60,6 +61,7 @@ func Execute() {
 	rootCmd.AddCommand(deleteCmd.Init())
 	rootCmd.AddCommand(configCmd.Init())
 	rootCmd.AddCommand(seedMeCmd.Init())
+	rootCmd.AddCommand(dumpMeCmd.Init())
 	rootCmd.AddCommand(listCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {

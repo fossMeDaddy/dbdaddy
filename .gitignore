@@ -1,4 +1,5 @@
 .env
 .env.*
 
+.dbdaddy/
 dbdaddy.config.json
