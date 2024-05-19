@@ -23,7 +23,7 @@ func TakeADump(outputFilePath string, v *viper.Viper) error {
 	osCmd := exec.Command("pg_dump",
 		"--clean",
 		"--file="+outputFilePath,
-		"--format=plain",
+		"--format=directory",
 		"--verbose",
 		"--username="+v.GetString(constants.DbConfigUserKey),
 		"--host="+v.GetString(constants.DbConfigHostKey),
@@ -37,9 +37,5 @@ func TakeADump(outputFilePath string, v *viper.Viper) error {
 	osCmd.Stderr = os.Stderr
 
 	err := osCmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

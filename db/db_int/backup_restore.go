@@ -8,9 +8,18 @@ import (
 )
 
 func TakeADump(outputFilePath string, v *viper.Viper) error {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == viper.GetString(constants.DbConfigDriverKey) {
+	driver := v.GetString(constants.DbConfigDriverKey)
+	if driver == constants.DbDriverPostgres {
 		return pg.TakeADump(outputFilePath, v)
+	} else {
+		panic("")
+	}
+}
+
+func RestoreDb(dbname string, v *viper.Viper, dumpFilePath string, override bool) error {
+	driver := v.GetString(constants.DbConfigDriverKey)
+	if driver == constants.DbDriverPostgres {
+		return pg.RestoreDb(dbname, v, dumpFilePath, override)
 	} else {
 		panic("")
 	}

@@ -16,7 +16,7 @@ import (
 
 var (
 	useGlobalFile = false
-	outputPathArg = ""
+	// outputPathArg = ""
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -36,12 +36,7 @@ func run(cmd *cobra.Command, args []string) {
 	v := viper.New()
 	lib.ReadConfig(v, configFilePath)
 
-	outputDirPath := lib.GetDriverDumpDir(configFilePath)
-	if outputPathArg != "" {
-		outputDirPath, _ = lib.GetAbsolutePathFor(outputPathArg)
-		lib.DirExistsCreate(outputDirPath)
-	}
-	outputFilePath := path.Join(outputDirPath, fmt.Sprintf("%s__%s", time.Now().Local().Format("2006-01-02_15:04:05"), v.GetString(constants.DbConfigCurrentBranchKey)))
+	outputFilePath := path.Join(lib.GetDriverDumpDir(configFilePath), fmt.Sprintf("%s__%s", time.Now().Local().Format("2006-01-02_15:04:05"), v.GetString(constants.DbConfigCurrentBranchKey)))
 
 	if err := db_int.TakeADump(outputFilePath, v); err != nil {
 		if err.Error() == errs.PG_DUMP_NOT_FOUND {
@@ -58,7 +53,7 @@ func run(cmd *cobra.Command, args []string) {
 
 func Init() *cobra.Command {
 	cmd.Flags().BoolVarP(&useGlobalFile, "global", "g", false, "explicitly use global config file creds to connect to db")
-	cmd.Flags().StringVarP(&outputPathArg, "output", "o", "", "define output dump file path explicitly, by default i'll store it with me at your nearest '.dbdaddy' directory")
+	// cmd.Flags().StringVarP(&outputPathArg, "output", "o", "", "define output dump file path explicitly, by default i'll store it with me at your nearest '.dbdaddy' directory")
 
 	return cmd
 }

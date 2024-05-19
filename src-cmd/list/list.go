@@ -12,7 +12,7 @@ var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
 	Use:   "list",
-	Short: "Lists available databases on the server",
+	Short: "Lists available resources e.g. dumps, database branches, etc. on the db server (defaults to database branches)",
 	Run:   cmdRunFn,
 }
 
@@ -22,7 +22,7 @@ func run(cmd *cobra.Command, args []string) {
 		cmd.PrintErrln("Unexpected error occured!\n" + err.Error())
 	}
 
-	cmd.Println("Available databases:")
+	cmd.Println("Available database branches:")
 	for i, db := range dbs {
 		cmd.Println(fmt.Sprintf("%d. %s", i+1, db))
 	}

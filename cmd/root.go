@@ -6,8 +6,10 @@ import (
 	checkoutCmd "dbdaddy/src-cmd/checkout"
 	configCmd "dbdaddy/src-cmd/config"
 	deleteCmd "dbdaddy/src-cmd/delete"
+	"dbdaddy/src-cmd/dumpCmd"
 	dumpMeCmd "dbdaddy/src-cmd/dumpmedaddy"
 	listCmd "dbdaddy/src-cmd/list"
+	restoreCmd "dbdaddy/src-cmd/restore"
 	seedMeCmd "dbdaddy/src-cmd/seedmedaddy"
 	statusCmd "dbdaddy/src-cmd/status"
 	"fmt"
@@ -62,7 +64,9 @@ func Execute() {
 	rootCmd.AddCommand(configCmd.Init())
 	rootCmd.AddCommand(seedMeCmd.Init())
 	rootCmd.AddCommand(dumpMeCmd.Init())
+	rootCmd.AddCommand(dumpCmd.Init())
 	rootCmd.AddCommand(listCmd.Init())
+	rootCmd.AddCommand(restoreCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

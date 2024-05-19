@@ -14,6 +14,8 @@ var (
 
 	CREATE_NEW_DB_FROM_OLD_TEMPLATE = `CREATE DATABASE {{ new_db_name }} TEMPLATE {{ db_name }}`
 
+	CREATE_NEW_DB = `CREATE DATABASE {{ db_name }}`
+
 	DISCONNECT_ALL_USERS_FROM_DB = `
 		SELECT pg_terminate_backend(pg_stat_activity.pid)
 		FROM pg_stat_activity
@@ -73,6 +75,12 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 	}
 
 	return nil
+}
+
+func CreateDb(dbname string) error {
+	createQueryStr := mustache.Render(CREATE_NEW_DB, map[string]string{"db_name": dbname})
+	_, err := db.DB.Query(createQueryStr)
+	return err
 }
 
 func DeleteDb(dbname string) error {

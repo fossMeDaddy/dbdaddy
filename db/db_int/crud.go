@@ -45,6 +45,15 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 	}
 }
 
+func CreateDb(dbname string) error {
+	driver := viper.GetString(constants.DbConfigDriverKey)
+	if driver == constants.DbDriverPostgres {
+		return pg.CreateDb(dbname)
+	} else {
+		panic("")
+	}
+}
+
 func DeleteDb(dbname string) error {
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {

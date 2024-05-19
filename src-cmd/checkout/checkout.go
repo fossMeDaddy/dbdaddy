@@ -14,6 +14,7 @@ import (
 // flags
 var (
 	shouldCreateNewBranch bool
+	shouldKeepItClean     bool
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -26,8 +27,8 @@ var cmd = &cobra.Command{
 }
 
 func Init() *cobra.Command {
-	// '-b' creates a new branch with a unique name
-	cmd.Flags().BoolVarP(&shouldCreateNewBranch, "new", "n", false, "create a new branch with given branch name")
+	cmd.Flags().BoolVarP(&shouldCreateNewBranch, "new", "n", false, "create a new branch with given branch name, the contents of the current branch will be copied over (tables, columns, column properties, data, etc.)")
+	cmd.Flags().BoolVarP(&shouldKeepItClean, "clean", "c", false, "the new branch created by '-n' will be independent of the current branch i.e. nothing will be copied over")
 
 	return cmd
 }
@@ -35,8 +36,19 @@ func Init() *cobra.Command {
 func run(cmd *cobra.Command, args []string) {
 	branchname := args[0]
 
+	// flags validation
+	if shouldKeepItClean && !shouldCreateNewBranch {
+		cmd.PrintErrln("'--clean, -c' option can only be provided when creating new branches i.e. with '-n, --new' option")
+		return
+	}
+
 	if shouldCreateNewBranch {
-		err := db_int.NewDbFromOriginal(viper.GetString(constants.DbConfigCurrentBranchKey), branchname)
+		var err error
+		if shouldKeepItClean {
+			err = db_int.CreateDb(branchname)
+		} else {
+			err = db_int.NewDbFromOriginal(viper.GetString(constants.DbConfigCurrentBranchKey), branchname)
+		}
 		if err != nil {
 			if strings.Contains(err.Error(), "already exists") {
 				cmd.PrintErrf("Could not create a new database branch with name '%s' because it already exists.\n", branchname)

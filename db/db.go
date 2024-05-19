@@ -12,7 +12,7 @@ import (
 
 var DB *sql.DB
 
-func getPgConnUriFromViper(dbname string) string {
+func GetPgConnUriFromViper(dbname string) string {
 	// EXAMPLE URI:
 	// postgresql://sally:sallyspassword@dbserver.example:5555/userdata?connect_timeout=10&sslmode=require&target_session_attrs=primary
 
@@ -39,9 +39,9 @@ func OpenConnection(driverName string, dataSourceName string) (*sql.DB, error) {
 
 func ConnectDB() (*sql.DB, error) {
 	if viper.Get(constants.DbConfigDriverKey) == constants.DbDriverPostgres {
-		db, err := OpenConnection("pgx", getPgConnUriFromViper(constants.SelfDbName))
+		db, err := OpenConnection("pgx", GetPgConnUriFromViper(constants.SelfDbName))
 		if err != nil {
-			userDb, userErr := OpenConnection("pgx", getPgConnUriFromViper(viper.GetString(constants.DbConfigDbNameKey)))
+			userDb, userErr := OpenConnection("pgx", GetPgConnUriFromViper(viper.GetString(constants.DbConfigDbNameKey)))
 			if userErr != nil {
 				return nil, fmt.Errorf("error connecting to your database!\n" + err.Error())
 			}
@@ -52,7 +52,7 @@ func ConnectDB() (*sql.DB, error) {
 				}
 			}
 
-			db, err := OpenConnection("pgx", getPgConnUriFromViper(constants.SelfDbName))
+			db, err := OpenConnection("pgx", GetPgConnUriFromViper(constants.SelfDbName))
 			if err != nil {
 				return nil, fmt.Errorf("unexpected error occured!\n" + err.Error())
 			}
