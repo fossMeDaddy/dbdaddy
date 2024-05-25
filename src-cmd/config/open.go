@@ -20,7 +20,7 @@ func openCmdRun(cmd *cobra.Command, args []string) {
 	var configFilePath string
 	if openGlobalConfig {
 		configFilePath = constants.GetGlobalConfigPath()
-		if !lib.FileExists(configFilePath) {
+		if !lib.Exists(configFilePath) {
 			cmd.PrintErrln("File in the global context doesn't exist. please create one, run 'config -h' for more info")
 			return
 		}

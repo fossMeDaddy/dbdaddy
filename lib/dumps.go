@@ -1,23 +1,21 @@
-package dumpCmdLib
+package lib
 
 import (
-	"dbdaddy/lib"
+	"dbdaddy/types"
 	"os"
 	"path"
 	"slices"
 	"strings"
 )
 
-type DbDumpFilesMap = map[string][]string
-
-func GetDbGroupedDumpFiles(configPath string) (DbDumpFilesMap, error) {
-	dumpDirPath := lib.GetDriverDumpDir(configPath)
+func GetDbGroupedDumpFiles(configPath string) (types.DbDumpFilesMap, error) {
+	dumpDirPath := GetDriverDumpDir(configPath)
 	files, err := os.ReadDir(dumpDirPath)
 	if err != nil {
 		return nil, err
 	}
 
-	dumpDbGroups := DbDumpFilesMap{}
+	dumpDbGroups := types.DbDumpFilesMap{}
 	for _, entry := range files {
 		fileFullPath := path.Join(dumpDirPath, entry.Name())
 

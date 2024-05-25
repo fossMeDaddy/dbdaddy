@@ -20,7 +20,7 @@ func DirExistsCreate(dirName string) error {
 	return nil
 }
 
-func FileExists(path string) bool {
+func Exists(path string) bool {
 	info, _ := os.Stat(path)
 	return info != nil
 }

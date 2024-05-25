@@ -4,7 +4,6 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
 	"dbdaddy/middlewares"
-	"dbdaddy/src-cmd/dumpCmd/dumpCmdLib"
 	"path"
 
 	"github.com/spf13/cobra"
@@ -28,7 +27,7 @@ func run(cmd *cobra.Command, args []string) {
 		configFilePath = constants.GetGlobalConfigPath()
 	}
 
-	dumpDbGroups, err := dumpCmdLib.GetDbGroupedDumpFiles(configFilePath)
+	dumpDbGroups, err := lib.GetDbGroupedDumpFiles(configFilePath)
 	if err != nil {
 		panic("Unexpected error occured!\n" + err.Error())
 	}
