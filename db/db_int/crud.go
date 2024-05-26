@@ -3,6 +3,7 @@ package db_int
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/pg"
+	"dbdaddy/types"
 
 	"github.com/spf13/viper"
 )
@@ -58,6 +59,24 @@ func DeleteDb(dbname string) error {
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
 		return pg.DeleteDb(dbname)
+	} else {
+		panic("")
+	}
+}
+
+func ListTablesInDb(dbname string) ([]types.Table, error) {
+	driver := viper.GetString(constants.DbConfigDriverKey)
+	if driver == constants.DbDriverPostgres {
+		return pg.ListTablesInDb(dbname)
+	} else {
+		panic("")
+	}
+}
+
+func GetTableSchema(dbname string, schema string, tablename string) (types.TableSchema, error) {
+	driver := viper.GetString(constants.DbConfigDriverKey)
+	if driver == constants.DbDriverPostgres {
+		return pg.GetTableSchema(dbname, schema, tablename)
 	} else {
 		panic("")
 	}

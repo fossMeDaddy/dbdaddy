@@ -1,14 +1,13 @@
 package pg
 
 import (
-	constants "dbdaddy/const"
 	"dbdaddy/db"
 
 	"github.com/hoisie/mustache"
 )
 
 var (
-	GET_EXISTING_DBS = `select datname from pg_database where datistemplate = false and datname != '{{ self_db_name }}' order by datname`
+	GET_EXISTING_DBS = `select datname from pg_database where datistemplate = false order by datname`
 
 	CHECK_DB_EXISTS = `select exists(select 1 from pg_database where datname = '{{ db_name }}')`
 
@@ -27,7 +26,7 @@ var (
 )
 
 func GetExistingDbs() ([]string, error) {
-	getExistingDbsQueryStr := mustache.Render(GET_EXISTING_DBS, map[string]string{"self_db_name": constants.SelfDbName})
+	getExistingDbsQueryStr := mustache.Render(GET_EXISTING_DBS)
 	rows, err := db.DB.Query(getExistingDbsQueryStr)
 	if err != nil {
 		return nil, err

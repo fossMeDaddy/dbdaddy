@@ -8,6 +8,7 @@ import (
 	deleteCmd "dbdaddy/src-cmd/delete"
 	"dbdaddy/src-cmd/dumpCmd"
 	dumpMeCmd "dbdaddy/src-cmd/dumpmedaddy"
+	inspectMeCmd "dbdaddy/src-cmd/inspectme"
 	listCmd "dbdaddy/src-cmd/list"
 	restoreCmd "dbdaddy/src-cmd/restore"
 	seedMeCmd "dbdaddy/src-cmd/seedmedaddy"
@@ -67,6 +68,7 @@ func Execute() {
 	rootCmd.AddCommand(dumpCmd.Init())
 	rootCmd.AddCommand(listCmd.Init())
 	rootCmd.AddCommand(restoreCmd.Init())
+	rootCmd.AddCommand(inspectMeCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

@@ -21,11 +21,6 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	branchname := args[0]
 
-	if branchname == constants.SelfDbName {
-		cmd.PrintErrf("Error deleting database branch '%s', bro seriously... why'd you do that?\n", branchname)
-		return
-	}
-
 	if !db_int.DbExists(branchname) {
 		cmd.PrintErrf("Database branch '%s' does not exist\n", branchname)
 		return
