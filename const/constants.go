@@ -37,6 +37,7 @@ const (
 
 	// Self
 	SelfGlobalDirName = ".dbdaddy"
+	SelfDbName        = "__daddys_home"
 
 	//  Config keys
 	DbConfigDriverKey        = "connection.driver"

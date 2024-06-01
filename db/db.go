@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	constants "dbdaddy/const"
 	"fmt"
+	"strings"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/spf13/viper"
@@ -11,19 +12,19 @@ import (
 
 var DB *sql.DB
 
-func GetPgConnUriFromViper(dbname string) string {
+func GetPgConnUriFromViper(v *viper.Viper, dbname string) string {
 	// EXAMPLE URI:
 	// postgresql://sally:sallyspassword@dbserver.example:5555/userdata?connect_timeout=10&sslmode=require&target_session_attrs=primary
 
-	host := viper.GetString(constants.DbConfigHostKey)
-	port := viper.GetUint16(constants.DbConfigPortKey)
-	user := viper.GetString(constants.DbConfigUserKey)
-	password := viper.GetString(constants.DbConfigPassKey)
+	host := v.GetString(constants.DbConfigHostKey)
+	port := v.GetUint16(constants.DbConfigPortKey)
+	user := v.GetString(constants.DbConfigUserKey)
+	password := v.GetString(constants.DbConfigPassKey)
 
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, fmt.Sprint(port), dbname)
 }
 
-func OpenConnection(driverName string, dataSourceName string) (*sql.DB, error) {
+func openConn(driverName string, dataSourceName string) (*sql.DB, error) {
 	db, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
@@ -36,15 +37,51 @@ func OpenConnection(driverName string, dataSourceName string) (*sql.DB, error) {
 	return db, nil
 }
 
-func ConnectDB() (*sql.DB, error) {
+func ConnectSelfDb(v *viper.Viper, dbname string) (*sql.DB, error) {
+	var fnLocalDb *sql.DB
 	if viper.Get(constants.DbConfigDriverKey) == constants.DbDriverPostgres {
-		currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
-		db, err := OpenConnection("pgx", GetPgConnUriFromViper(currBranch))
+		db, err := openConn("pgx", GetPgConnUriFromViper(v, constants.SelfDbName))
 		if err != nil {
-			return nil, fmt.Errorf("error connecting to your database!\n" + err.Error())
+			userDb, userErr := openConn("pgx", GetPgConnUriFromViper(v, v.GetString(constants.DbConfigDbNameKey)))
+			if userErr != nil {
+				return nil, fmt.Errorf("error connecting to your database!\n" + err.Error())
+			}
+
+			if _, err := userDb.Query(fmt.Sprintf("CREATE DATABASE %s", constants.SelfDbName)); err != nil {
+				if !strings.Contains(err.Error(), "already exists") {
+					return nil, fmt.Errorf("could not create database, please check your connection!\n" + err.Error())
+				}
+			}
+
+			db, err := openConn("pgx", GetPgConnUriFromViper(v, constants.SelfDbName))
+			if err != nil {
+				return nil, fmt.Errorf("unexpected error occured!\n" + err.Error())
+			}
+
+			userDb.Close()
+
+			fnLocalDb = db
 		} else {
-			DB = db
+			fnLocalDb = db
 		}
+
+		DB = fnLocalDb
+
+		return DB, nil
+	}
+
+	fmt.Println(viper.Get(constants.DbConfigDriverKey), constants.SupportedDrivers)
+	panic(fmt.Sprintf("'%s' driver is not supported, as of now, the supported drivers are: %v", viper.Get(constants.DbConfigDriverKey), constants.SupportedDrivers))
+}
+
+func ConnectDb(v *viper.Viper, dbname string) (*sql.DB, error) {
+	if viper.GetString(constants.DbConfigDriverKey) == constants.DbDriverPostgres {
+		db, err := openConn("pgx", GetPgConnUriFromViper(v, dbname))
+		if err != nil {
+			return nil, fmt.Errorf("unexpected error occured!\n" + err.Error())
+		}
+
+		DB = db
 
 		return DB, nil
 	}

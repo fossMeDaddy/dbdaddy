@@ -15,7 +15,7 @@ func PgDumpExists() bool {
 	return err == nil
 }
 
-func TakeADump(outputFilePath string, v *viper.Viper) error {
+func DumpDb(outputFilePath string, v *viper.Viper) error {
 	if !PgDumpExists() {
 		return fmt.Errorf(errs.PG_DUMP_NOT_FOUND)
 	}

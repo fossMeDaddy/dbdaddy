@@ -32,7 +32,7 @@ func RestoreDb(dbname string, v *viper.Viper, dumpFilePath string, override bool
 		"--verbose",
 		"--clean",
 		"--if-exists",
-		fmt.Sprintf("--dbname=%s", db.GetPgConnUriFromViper(dbname)),
+		fmt.Sprintf("--dbname=%s", db.GetPgConnUriFromViper(v, dbname)),
 		dumpFilePath,
 	)
 

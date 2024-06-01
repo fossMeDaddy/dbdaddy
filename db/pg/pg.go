@@ -1,6 +1,7 @@
 package pg
 
 import (
+	constants "dbdaddy/const"
 	"dbdaddy/db"
 
 	"github.com/hoisie/mustache"
@@ -36,6 +37,9 @@ func GetExistingDbs() ([]string, error) {
 	for rows.Next() {
 		existingDb := ""
 		_ = rows.Scan(&existingDb)
+		if existingDb == constants.SelfDbName {
+			continue
+		}
 
 		existingDbs = append(existingDbs, existingDb)
 	}

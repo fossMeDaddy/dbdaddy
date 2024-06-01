@@ -64,10 +64,10 @@ func DeleteDb(dbname string) error {
 	}
 }
 
-func ListTablesInDb(dbname string) ([]types.Table, error) {
+func ListTablesInDb() ([]types.Table, error) {
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
-		return pg.ListTablesInDb(dbname)
+		return pg.ListTablesInDb()
 	} else {
 		panic("")
 	}

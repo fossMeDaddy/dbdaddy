@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-func TakeADump(outputFilePath string, v *viper.Viper) error {
+func DumpDb(outputFilePath string, v *viper.Viper) error {
 	driver := v.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
-		return pg.TakeADump(outputFilePath, v)
+		return pg.DumpDb(outputFilePath, v)
 	} else {
 		panic("")
 	}

@@ -5,50 +5,68 @@ import (
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
 	"dbdaddy/middlewares"
+	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var (
+	userDumpFilePath string
+)
+
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "restore <dbname>",
-	Short: "restores the given database with a database dump",
-	Long:  "restoration defaults to restoring the db with the latest dump taken. if no dumps are present with me & i'll require you to provide a path to the backed up dump",
-	Run:   cmdRunFn,
-}
-
-func getAllDumps() {
-
+	Use:     "revivemedaddy",
+	Aliases: []string{"restoreme", "restoremedaddy", "reviveme"},
+	Short:   "restores the current database branch with a given database dump file, does so by OVER-WRITING THE EXISTING CONTENTS.",
+	Run:     cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
-	configFilePath, _ := lib.FindConfigFilePath()
-	dbGroupedDumpFiles, err := lib.GetDbGroupedDumpFiles(configFilePath)
-	if err != nil {
-		cmd.PrintErrln("Error occured while fetching available dump files!\n", err)
-		return
-	}
-	allDumps := []string{}
-	for _, dumpFiles := range dbGroupedDumpFiles {
-		allDumps = slices.Concat(allDumps, dumpFiles)
-	}
+	var dumpFilePath string
+	if len(userDumpFilePath) == 0 {
+		configFilePath, _ := lib.FindConfigFilePath()
+		dbGroupedDumpFiles, err := lib.GetDbGroupedDumpFiles(configFilePath)
+		if err != nil {
+			cmd.PrintErrln("Error occured while fetching available dump files!\n", err)
+			return
+		}
+		allDumps := []string{}
+		for _, dumpFiles := range dbGroupedDumpFiles {
+			allDumps = slices.Concat(allDumps, dumpFiles)
+		}
 
-	prompt := promptui.Select{
-		Label:             "Available dumps to restore from",
-		Items:             allDumps,
-		StartInSearchMode: true,
-	}
+		prompt := promptui.Select{
+			Label:             "Available dumps to restore from",
+			Items:             allDumps,
+			StartInSearchMode: true,
+			Searcher: func(input string, index int) bool {
+				return strings.Contains(allDumps[index], input)
+			},
+		}
 
-	_, dumpFilePath, err := prompt.Run()
-	if err != nil {
-		cmd.PrintErrln(err)
-		return
+		_, promptDumpFilePath, err := prompt.Run()
+		if err != nil {
+			cmd.PrintErrln(err)
+			return
+		}
+
+		dumpFilePath = promptDumpFilePath
+	} else {
+		path, err := filepath.Abs(userDumpFilePath)
+		if err != nil {
+			cmd.PrintErrln("Unexpected error occured!\n" + err.Error())
+			return
+		}
+
+		dumpFilePath = path
 	}
 
 	cmd.Printf("Attempting restore on db: '%s' using backup dump file: '%s' ...\n", currBranch, dumpFilePath)
@@ -61,5 +79,7 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func Init() *cobra.Command {
+	cmd.Flags().StringVar(&userDumpFilePath, "file", "", "provide a dump file path to restore the current db branch from")
+
 	return cmd
 }

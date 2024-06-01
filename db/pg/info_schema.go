@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func ListTablesInDb(dbname string) ([]types.Table, error) {
+func ListTablesInDb() ([]types.Table, error) {
 	tables := []types.Table{}
 	rows, err := db.DB.Query(`
 		select distinct table_name as name, table_schema as schema from information_schema.tables
