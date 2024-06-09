@@ -20,10 +20,11 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "checkout <branchname>",
-	Short: "checkout into a new/existing branch in the database",
-	Args:  cobra.ExactArgs(1),
-	Run:   cmdRunFn,
+	Use:     "checkout <branchname>",
+	Aliases: []string{"checkoutmedaddy"},
+	Short:   "checkout into a new/existing branch in the database",
+	Args:    cobra.ExactArgs(1),
+	Run:     cmdRunFn,
 }
 
 func Init() *cobra.Command {

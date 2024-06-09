@@ -11,7 +11,8 @@ import (
 	inspectMeCmd "dbdaddy/src-cmd/inspectme"
 	listCmd "dbdaddy/src-cmd/list"
 	restoreCmd "dbdaddy/src-cmd/restore"
-	seedMeCmd "dbdaddy/src-cmd/seedmedaddy"
+	seedMeCmd "dbdaddy/src-cmd/seedme"
+	soyMeCmd "dbdaddy/src-cmd/soyme"
 	statusCmd "dbdaddy/src-cmd/status"
 	"fmt"
 	"os"
@@ -69,6 +70,7 @@ func Execute() {
 	rootCmd.AddCommand(listCmd.Init())
 	rootCmd.AddCommand(restoreCmd.Init())
 	rootCmd.AddCommand(inspectMeCmd.Init())
+	rootCmd.AddCommand(soyMeCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

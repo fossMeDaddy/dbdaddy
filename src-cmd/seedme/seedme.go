@@ -9,14 +9,16 @@ import (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "seedmedaddy",
-	Short: "Seeds the current selected database branch with sample data and relations",
-	Run:   cmdRunFn,
+	Use:     "seed",
+	Aliases: []string{"seedmedaddy"},
+	Short:   "Seeds the current selected database branch with sample data and relations",
+	Run:     cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
-	// TODO: do this later
-	cmd.Println("cumming soon, uwu")
+	// get all tables
+	// get all columns
+	// get all column relations
 }
 
 func Init() *cobra.Command {

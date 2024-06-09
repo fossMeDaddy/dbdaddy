@@ -1,0 +1,41 @@
+package soyMeCmd
+
+import (
+	constants "dbdaddy/const"
+	"dbdaddy/lib"
+	libServer "dbdaddy/lib/server"
+	"dbdaddy/middlewares"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
+
+var cmd = &cobra.Command{
+	Use:     "studio",
+	Aliases: []string{"soymedaddy"},
+	Short:   "opens up a UI to manage your data & run queries",
+	Run:     cmdRunFn,
+}
+
+func run(cmd *cobra.Command, args []string) {
+	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
+
+	lib.SwitchDB(viper.GetViper(), currBranch, func() error {
+		cmd.Println("Starting webserver at: http://127.0.0.1:42069")
+		cmd.Println("Once, server is up, head towards: https://dbdaddy.hackerrizz.com")
+		if err := libServer.StartServer(); err != nil {
+			cmd.Println("Could not start server!", err.Error())
+			return nil
+		}
+
+		return nil
+	})
+}
+
+func Init() *cobra.Command {
+	// add flags
+
+	return cmd
+}

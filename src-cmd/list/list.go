@@ -20,6 +20,7 @@ func run(cmd *cobra.Command, args []string) {
 	dbs, err := db_int.GetExistingDbs()
 	if err != nil {
 		cmd.PrintErrln("Unexpected error occured!\n" + err.Error())
+		return
 	}
 
 	cmd.Println("Available database branches:")
