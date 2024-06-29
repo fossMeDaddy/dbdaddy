@@ -51,9 +51,8 @@ func Execute() {
 			fmt.Println("Cancelling initialization...")
 			os.Exit(1)
 		}
-		lib.OpenConfigFileAt(configFilePath)
 
-		return
+		lib.OpenConfigFileAt(configFilePath)
 	} else {
 		configFilePath, _ := lib.FindConfigFilePath()
 		lib.ReadConfig(viper.GetViper(), configFilePath)

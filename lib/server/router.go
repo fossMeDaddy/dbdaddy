@@ -10,7 +10,7 @@ func defineHandlers(app *fiber.App) {
 	app.Get("/branches", serverHandlers.HandleGetBranches)
 
 	app.Get("/current-branch", serverHandlers.HandleGetCurrentBranch)
-	app.Put("/current-branch", serverHandlers.HandlePutBranch)
+	app.Put("/current-branch", serverHandlers.HandlePutCurrentBranch)
 
 	app.Get("/tables", serverHandlers.HandleGetTables)
 

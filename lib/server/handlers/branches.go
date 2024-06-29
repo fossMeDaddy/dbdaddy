@@ -31,7 +31,7 @@ func HandleGetCurrentBranch(c *fiber.Ctx) error {
 	})
 }
 
-func HandlePutBranch(c *fiber.Ctx) error {
+func HandlePutCurrentBranch(c *fiber.Ctx) error {
 	type reqSchema struct {
 		BranchName string
 	}
