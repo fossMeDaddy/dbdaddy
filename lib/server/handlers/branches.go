@@ -2,6 +2,7 @@ package serverHandlers
 
 import (
 	constants "dbdaddy/const"
+	"dbdaddy/db"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
 	"dbdaddy/types"
@@ -48,6 +49,11 @@ func HandlePutBranch(c *fiber.Ctx) error {
 			Message: err.Error(),
 			Data:    nil,
 		})
+	}
+
+	_, err := db.ConnectDb(viper.GetViper(), reqBody.BranchName)
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(types.Response{

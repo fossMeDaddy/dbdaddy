@@ -1,14 +1,16 @@
 package serverHandlers
 
 import (
+	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
 	"dbdaddy/types"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/viper"
 )
 
-func HandleGetTable(c *fiber.Ctx) error {
+func HandleGetTableRows(c *fiber.Ctx) error {
 	tableName := c.Params("name")
 	schemaName := c.Params("schema")
 
@@ -27,9 +29,7 @@ func HandleGetTable(c *fiber.Ctx) error {
 		}
 	}
 	if !isFound {
-		return c.Status(fiber.StatusNotFound).JSON(types.Response{
-			Message: fmt.Sprintf("table '%s.%s' could not be found", schemaName, tableName),
-		})
+		return fmt.Errorf("table '%s.%s' could not be found", schemaName, tableName)
 	}
 
 	dbRows, err := db_int.GetRows(fmt.Sprintf("select * from %s.%s", dbTable.Schema, dbTable.Name))
@@ -40,5 +40,22 @@ func HandleGetTable(c *fiber.Ctx) error {
 	return c.JSON(types.Response{
 		Message: "success",
 		Data:    dbRows,
+	})
+}
+
+func HandleGetTableSchema(c *fiber.Ctx) error {
+	tableName := c.Params("name")
+	schemaName := c.Params("schema")
+
+	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
+
+	schema, err := db_int.GetTableSchema(currBranch, schemaName, tableName)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(types.Response{
+		Message: "success",
+		Data:    schema,
 	})
 }

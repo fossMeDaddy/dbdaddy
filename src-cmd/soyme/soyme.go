@@ -22,9 +22,12 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
-	lib.SwitchDB(viper.GetViper(), currBranch, func() error {
+	v := viper.New()
+	configFile, _ := lib.FindConfigFilePath()
+	lib.ReadConfig(v, configFile)
+	lib.SwitchDB(v, currBranch, func() error {
 		cmd.Println("Starting webserver at: http://127.0.0.1:42069")
-		cmd.Println("Once, server is up, head towards: https://dbdaddy.hackerrizz.com")
+		cmd.Println("Once, server is up, head towards: https://dbdaddy.hackerrizz.com/studio")
 		if err := libServer.StartServer(); err != nil {
 			cmd.Println("Could not start server!", err.Error())
 			return nil

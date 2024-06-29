@@ -36,23 +36,23 @@ func GetTableSchema(dbname string, schema string, tablename string) (types.Table
 	}
 
 	rows, err := db.DB.Query(fmt.Sprintf(`
-	select
-		column_name as name,
-		CASE
-			WHEN column_default IS NULL then '<null>'
-			ELSE column_default
-		END as default_value,
-		CASE
-			WHEN is_nullable = 'YES' THEN TRUE
-			ELSE FALSE
-		END AS nullable,
-		udt_name as datatype
-	from information_schema.columns
-		where
-			table_schema != 'information_schema' and
-			table_schema != 'pg_catalog' and
-			table_schema = '%s' and
-			table_name = '%s'
+		select
+			column_name as name,
+			CASE
+				WHEN column_default IS NULL then '<null>'
+				ELSE column_default
+			END as default_value,
+			CASE
+				WHEN is_nullable = 'YES' THEN TRUE
+				ELSE FALSE
+			END AS nullable,
+			udt_name as datatype
+		from information_schema.columns
+			where
+				table_schema != 'information_schema' and
+				table_schema != 'pg_catalog' and
+				table_schema = '%s' and
+				table_name = '%s'
 	`, schema, tablename))
 	if err != nil {
 		return table, err

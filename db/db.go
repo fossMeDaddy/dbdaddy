@@ -75,7 +75,7 @@ func ConnectSelfDb(v *viper.Viper, dbname string) (*sql.DB, error) {
 }
 
 func ConnectDb(v *viper.Viper, dbname string) (*sql.DB, error) {
-	if viper.GetString(constants.DbConfigDriverKey) == constants.DbDriverPostgres {
+	if v.GetString(constants.DbConfigDriverKey) == constants.DbDriverPostgres {
 		db, err := openConn("pgx", GetPgConnUriFromViper(v, dbname))
 		if err != nil {
 			return nil, fmt.Errorf("unexpected error occured!\n" + err.Error())
@@ -86,6 +86,6 @@ func ConnectDb(v *viper.Viper, dbname string) (*sql.DB, error) {
 		return DB, nil
 	}
 
-	fmt.Println(viper.Get(constants.DbConfigDriverKey), constants.SupportedDrivers)
-	panic(fmt.Sprintf("'%s' driver is not supported, as of now, the supported drivers are: %v", viper.Get(constants.DbConfigDriverKey), constants.SupportedDrivers))
+	fmt.Println(v.Get(constants.DbConfigDriverKey), constants.SupportedDrivers)
+	panic(fmt.Sprintf("'%s' driver is not supported, as of now, the supported drivers are: %v", v.Get(constants.DbConfigDriverKey), constants.SupportedDrivers))
 }

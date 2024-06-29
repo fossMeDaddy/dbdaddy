@@ -14,5 +14,6 @@ func defineHandlers(app *fiber.App) {
 
 	app.Get("/tables", serverHandlers.HandleGetTables)
 
-	app.Get("/table/:schema/:name", serverHandlers.HandleGetTable)
+	app.Get("/table/:schema/:name/rows", serverHandlers.HandleGetTableRows)
+	app.Get("/table/:schema/:name/schema", serverHandlers.HandleGetTableSchema)
 }
