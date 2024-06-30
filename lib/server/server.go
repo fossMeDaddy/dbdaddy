@@ -8,6 +8,7 @@ import (
 func StartServer() error {
 	app := fiber.New()
 
+	// define global middlewares
 	app.Use(cors.New())
 
 	defineHandlers(app)
