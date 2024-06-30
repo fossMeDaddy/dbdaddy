@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	constants "dbdaddy/const"
 	"dbdaddy/db"
 	"dbdaddy/lib"
 	"dbdaddy/types"
@@ -15,7 +14,7 @@ func CheckConnection(fn types.CobraCmdFn) types.CobraCmdFn {
 		configFilePath, _ := lib.FindConfigFilePath()
 		lib.ReadConfig(viper.GetViper(), configFilePath)
 
-		_, err := db.ConnectSelfDb(viper.GetViper(), constants.SelfDbName)
+		_, err := db.ConnectSelfDb(viper.GetViper())
 		if err != nil {
 			cmd.PrintErrln(err.Error())
 			cmd.PrintErrln("\nTry reviewing your database credentials in the config file, if not present, try creating one. (hint: 'config -h')")

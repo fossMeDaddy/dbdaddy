@@ -10,7 +10,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-var DB *sql.DB
+// global DB related vars (please dont fuck with them)
+var (
+	DB *sql.DB
+
+	ConnDbName string
+)
 
 func GetPgConnUriFromViper(v *viper.Viper, dbname string) string {
 	// EXAMPLE URI:
@@ -37,7 +42,7 @@ func openConn(driverName string, dataSourceName string) (*sql.DB, error) {
 	return db, nil
 }
 
-func ConnectSelfDb(v *viper.Viper, dbname string) (*sql.DB, error) {
+func ConnectSelfDb(v *viper.Viper) (*sql.DB, error) {
 	var fnLocalDb *sql.DB
 	if viper.Get(constants.DbConfigDriverKey) == constants.DbDriverPostgres {
 		db, err := openConn("pgx", GetPgConnUriFromViper(v, constants.SelfDbName))
@@ -65,6 +70,7 @@ func ConnectSelfDb(v *viper.Viper, dbname string) (*sql.DB, error) {
 			fnLocalDb = db
 		}
 
+		ConnDbName = constants.SelfDbName
 		DB = fnLocalDb
 
 		return DB, nil
@@ -81,6 +87,7 @@ func ConnectDb(v *viper.Viper, dbname string) (*sql.DB, error) {
 			return nil, fmt.Errorf("unexpected error occured!\n" + err.Error())
 		}
 
+		ConnDbName = dbname
 		DB = db
 
 		return DB, nil
