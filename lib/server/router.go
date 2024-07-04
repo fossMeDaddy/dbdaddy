@@ -16,4 +16,6 @@ func defineHandlers(app *fiber.App) {
 
 	app.Get("/table/:schema/:name/rows", serverHandlers.HandleGetTableRows)
 	app.Get("/table/:schema/:name/schema", serverHandlers.HandleGetTableSchema)
+
+	app.Post("/exec", serverHandlers.HandlePostExec)
 }

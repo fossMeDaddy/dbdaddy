@@ -1,7 +1,6 @@
 package lib
 
 import (
-	constants "dbdaddy/const"
 	"dbdaddy/db"
 	"fmt"
 
@@ -22,7 +21,7 @@ func PingDB() error {
 }
 
 func SwitchDB(v *viper.Viper, dbname string, fn func() error) error {
-	defer db.ConnectDb(viper.GetViper(), constants.SelfDbName)
+	defer db.ConnectDb(viper.GetViper(), db.ConnDbName)
 
 	_, err := db.ConnectDb(v, dbname)
 	if err != nil {

@@ -59,3 +59,26 @@ func HandleGetTableSchema(c *fiber.Ctx) error {
 		Data:    schema,
 	})
 }
+
+func HandlePostExec(c *fiber.Ctx) error {
+	type ReqSchema struct {
+		Query string
+	}
+	var reqBody ReqSchema
+	if err := c.BodyParser(&reqBody); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(types.Response{
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	data, err := db_int.GetRows(reqBody.Query)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(types.Response{
+		Message: "success",
+		Data:    data,
+	})
+}
