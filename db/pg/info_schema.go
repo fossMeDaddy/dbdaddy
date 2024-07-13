@@ -37,22 +37,36 @@ func GetTableSchema(dbname string, schema string, tablename string) (types.Table
 
 	rows, err := db.DB.Query(fmt.Sprintf(`
 		select
-			column_name as name,
+			infcol.column_name as name,
 			CASE
-				WHEN column_default IS NULL then '<null>'
-				ELSE column_default
+				WHEN infcol.column_default IS NULL then '<null>'
+				ELSE infcol.column_default
 			END as default_value,
 			CASE
-				WHEN is_nullable = 'YES' THEN TRUE
+				WHEN infcol.is_nullable = 'YES' THEN TRUE
 				ELSE FALSE
 			END AS nullable,
-			udt_name as datatype
-		from information_schema.columns
-			where
-				table_schema != 'information_schema' and
-				table_schema != 'pg_catalog' and
-				table_schema = '%s' and
-				table_name = '%s'
+			infcol.udt_name as datatype,
+			CASE
+				WHEN relcon.oid IS NULL then false
+				ELSE true
+			END as is_primary_key
+		from information_schema.columns infcol
+
+		inner join pg_namespace as relnsp on infcol.table_schema = relnsp.nspname
+		inner join pg_class as relcls on
+			relcls.relname = infcol.table_name and
+			relcls.relnamespace = relnsp.oid
+		left join pg_constraint as relcon on
+			relcon.conrelid = relcls.oid and
+			relcon.connamespace = relnsp.oid and
+			relcon.conkey[1] = infcol.ordinal_position and
+			relcon.contype = 'p'
+
+		where
+			infcol.table_schema not in ('pg_catalog', 'information_schema') and
+			infcol.table_schema = '%s' and
+			infcol.table_name = '%s'
 	`, schema, tablename))
 	if err != nil {
 		return table, err
@@ -60,7 +74,7 @@ func GetTableSchema(dbname string, schema string, tablename string) (types.Table
 
 	for rows.Next() {
 		column := types.Column{}
-		if err := rows.Scan(&column.Name, &column.Default, &column.Nullable, &column.DataType); err != nil {
+		if err := rows.Scan(&column.Name, &column.Default, &column.Nullable, &column.DataType, &column.IsPrimaryKey); err != nil {
 			return table, err
 		}
 

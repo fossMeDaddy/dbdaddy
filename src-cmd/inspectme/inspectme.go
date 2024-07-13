@@ -27,6 +27,14 @@ var cmd = &cobra.Command{
 	Run:     cmdRunFn,
 }
 
+func getColName(name string, pk bool) string {
+	if pk {
+		return fmt.Sprintf("%s (Primary Key)", name)
+	}
+
+	return name
+}
+
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
@@ -77,7 +85,7 @@ func run(cmd *cobra.Command, args []string) {
 			colDefaultPadding := 0
 			colDataTypePadding := 0
 			for _, col := range tableSchema.Columns {
-				colNamePadding = max(colNamePadding, len(col.Name))
+				colNamePadding = max(colNamePadding, len(getColName(col.Name, col.IsPrimaryKey)))
 				colDefaultPadding = max(colDefaultPadding, len(col.Default))
 				colDataTypePadding = max(colDataTypePadding, len(col.DataType))
 			}
@@ -88,7 +96,7 @@ func run(cmd *cobra.Command, args []string) {
 				cmd.Printf(
 					"%0*d - %-*s %-*s DEFAULT %-*s NULLABLE %t\n",
 					nColPadding, i+1,
-					colNamePadding, col.Name,
+					colNamePadding, getColName(col.Name, col.IsPrimaryKey),
 					colDataTypePadding, col.DataType,
 					colDefaultPadding, col.Default,
 					col.Nullable,
