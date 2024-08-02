@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 )
 
 func GetCurrentVersion() string {
@@ -18,10 +17,7 @@ func GetCurrentVersion() string {
 }
 
 func GetOutFilePath() string {
-	v := GetCurrentVersion()
-	fileFriendlyV := strings.ReplaceAll(v, ".", "-")
-
-	outFile := path.Join("bin", fmt.Sprintf("dbdaddy-%s", fileFriendlyV))
+	outFile := path.Join("bin", "dbdaddy")
 
 	return outFile
 }
