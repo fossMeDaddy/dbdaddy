@@ -3,21 +3,41 @@
 # RUNS STANDALONE
 
 pkg_bin_dir="$HOME/.dbdaddy/bin"
-pkg_bin="$pkg_bin_dir/dbdaddy"
+pkg_bin="$pkg_bin_dir/dbdaddy" # IMPORTANT: FILE PATH NOT TO BE CHANGED IN FUTURE
 
 pkg_version="$(curl --silent https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/version)"
 
 mkdir $HOME/.dbdaddy
 mkdir $HOME/.dbdaddy/bin
 
-# get os & arch here
+os="$(echo "$(uname -s)" | tr '[:upper:]' '[:lower:]')"
 
-# get os & arch specific release
-# exc: aarch64 can appear in uname (map to arm64)
-# exc: x86_64 can appear in uname (map to amd64)
+arch="$(uname -m)"
+if [[ "$arch" == "aarch64" || "$arch" == "arm64" ]]; then
+    target_arch="arm64"
+elif [[ "$arch" == "x86_64" || "$arch" == "amd64" ]]; then
+    target_arch="amd64"
+elif [[ "$arch" == "i386" || "$arch" == "i486" || "$arch" == "i586" || "$arch" == "i686" ]]; then
+    target_arch="386"
+else
+    echo "Unsupported architecture: $arch"
+    exit 1
+fi
 
-curl https://github.com/fossMeDaddy/dbdaddy/releases/download/$pkg_version/dbdaddy -L -o $pkg_bin
+target_bin_name="dbdaddy-$os-$target_arch"
+echo "Fetching '$target_bin_name' release..."
+
+curl -# -f -L -o $pkg_bin https://github.com/fossMeDaddy/dbdaddy/releases/download/$pkg_version/$target_bin_name
+curl_exit_code=$?
+
+if [ $curl_exit_code != 0 ]; then
+    echo "Error: curl command failed with code ($curl_exit_code)"
+    exit 1
+fi
+
 chmod +x $pkg_bin
+
+echo "alias dbdaddy=$pkg_bin"
 
 for file in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile" "$HOME/.zshenv"; do
     if [ -f "$file" ]; then
