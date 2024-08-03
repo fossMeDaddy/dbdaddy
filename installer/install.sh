@@ -7,7 +7,8 @@ pkg_bin="$pkg_bin_dir/dbdaddy"
 
 pkg_version="$(curl --silent https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/version)"
 
-mkdir $pkg_bin_dir
+mkdir $HOME/.dbdaddy
+mkdir $HOME/.dbdaddy/bin
 
 curl https://github.com/fossMeDaddy/dbdaddy/releases/download/$pkg_version/dbdaddy -L -o $pkg_bin
 chmod +x $pkg_bin
