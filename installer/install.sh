@@ -10,6 +10,12 @@ pkg_version="$(curl --silent https://raw.githubusercontent.com/fossMeDaddy/dbdad
 mkdir $HOME/.dbdaddy
 mkdir $HOME/.dbdaddy/bin
 
+# get os & arch here
+
+# get os & arch specific release
+# exc: aarch64 can appear in uname (map to arm64)
+# exc: x86_64 can appear in uname (map to amd64)
+
 curl https://github.com/fossMeDaddy/dbdaddy/releases/download/$pkg_version/dbdaddy -L -o $pkg_bin
 chmod +x $pkg_bin
 
