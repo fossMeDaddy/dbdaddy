@@ -17,6 +17,10 @@ func GetCurrentVersion() string {
 	return string(r)
 }
 
+func GetOutDir() string {
+	return path.Join("bin")
+}
+
 func GetOutFilePath(goos string, goarch string) string {
 	outFile := path.Join("bin", fmt.Sprintf("dbdaddy-%s-%s", goos, goarch))
 
@@ -43,14 +47,29 @@ func Build(goos string, goarch string) {
 	fmt.Println()
 }
 
-func Release(version string, dir string) {
-	ghCmd := exec.Command("gh", "release", "create", version, dir)
+func Release(version string) {
+	binDirEntry, err := os.ReadDir(GetOutDir())
+	if err != nil {
+		fmt.Println(err)
+		panic(fmt.Sprint("error occured while reading ", GetOutDir()))
+	}
+
+	binFiles := []string{}
+	for _, dirEntry := range binDirEntry {
+		binFiles = append(binFiles, path.Join(GetOutDir(), dirEntry.Name()))
+	}
+
+	args := []string{"release", "create", version}
+	args = append(args, binFiles...)
+
+	ghCmd := exec.Command("gh", args...)
 	ghCmd.Stdout = os.Stdout
 	ghCmd.Stdin = os.Stdin
 	ghCmd.Stderr = os.Stderr
 
 	ghCmdErr := ghCmd.Run()
 	if ghCmdErr != nil {
+		fmt.Println(ghCmdErr)
 		panic("error occured while running 'gh release command'")
 	}
 }
