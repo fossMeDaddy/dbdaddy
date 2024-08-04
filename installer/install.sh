@@ -44,7 +44,7 @@ for file in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile" "$HOME/.zshenv"; do
         if grep -q "alias dbdaddy=" "$file"; then
             echo "Alias 'dbdaddy' already exists in $file. Skipping."
         else
-            echo "\nalias dbdaddy=$pkg_bin" >> "$file"
+            printf "\nalias dbdaddy=%s\n" "$pkg_bin" >> "$file"
             echo "Appended alias to $file"
         fi
     fi
