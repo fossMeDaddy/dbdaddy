@@ -1,11 +1,15 @@
 package types
 
 type Column struct {
-	Name         string
-	Default      string
-	Nullable     bool
-	DataType     string
-	IsPrimaryKey bool
+	Name               string
+	Default            string
+	Nullable           bool
+	DataType           string
+	IsPrimaryKey       bool
+	IsRelation         bool
+	ForeignTableSchema string
+	ForeignTableName   string
+	ForeignColumnName  string
 }
 
 type TableSchema struct {

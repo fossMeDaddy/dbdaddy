@@ -5,6 +5,7 @@ import (
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
 	"dbdaddy/middlewares"
+	"dbdaddy/types"
 	"fmt"
 	"slices"
 	"strings"
@@ -33,6 +34,14 @@ func getColName(name string, pk bool) string {
 	}
 
 	return name
+}
+
+func getRelString(col types.Column) string {
+	if col.IsRelation {
+		return fmt.Sprintf("Ref: %s.%s.%s", col.ForeignTableSchema, col.ForeignTableName, col.ForeignColumnName)
+	} else {
+		return ""
+	}
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -84,6 +93,7 @@ func run(cmd *cobra.Command, args []string) {
 			colNamePadding := 0
 			colDefaultPadding := 0
 			colDataTypePadding := 0
+			colNullablePadding := 5
 			for _, col := range tableSchema.Columns {
 				colNamePadding = max(colNamePadding, len(getColName(col.Name, col.IsPrimaryKey)))
 				colDefaultPadding = max(colDefaultPadding, len(col.Default))
@@ -94,12 +104,13 @@ func run(cmd *cobra.Command, args []string) {
 			cmd.Printf("TABLE: %s\n", tablename)
 			for i, col := range tableSchema.Columns {
 				cmd.Printf(
-					"%0*d - %-*s %-*s DEFAULT %-*s NULLABLE %t\n",
+					"%0*d - %-*s %-*s DEFAULT %-*s NULLABLE %-*t %s\n",
 					nColPadding, i+1,
 					colNamePadding, getColName(col.Name, col.IsPrimaryKey),
 					colDataTypePadding, col.DataType,
 					colDefaultPadding, col.Default,
-					col.Nullable,
+					colNullablePadding, col.Nullable,
+					getRelString(col),
 				)
 			}
 		}

@@ -42,7 +42,7 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 
 	rows, err := db.DB.Query(fmt.Sprintf(`
 		select
-			infcol.column_name as name,
+			infcol.column_name as column_name,
 			CASE
 				WHEN infcol.column_default IS NULL then '<null>'
 				ELSE infcol.column_default
@@ -53,9 +53,25 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 			END AS nullable,
 			infcol.udt_name as datatype,
 			CASE
-				WHEN relcon.oid IS NULL then false
-				ELSE true
-			END as is_primary_key
+				WHEN relcon.contype = 'p' then true
+				ELSE false
+			END as is_primary_key,
+			CASE
+				WHEN relcon.contype = 'f' then true
+				ELSE false
+			END as is_relation,
+			CASE
+				WHEN f_relfcol.table_schema IS NULL then ''
+				ELSE f_relfcol.table_schema
+			END as foreign_table_schema,
+			CASE
+				WHEN f_relfcol.table_name IS NULL then ''
+				ELSE f_relfcol.table_name
+			END as foreign_table_name,
+			CASE
+				WHEN f_relfcol.column_name IS NULL then ''
+				ELSE f_relfcol.column_name
+			END as foreign_column_name
 		from information_schema.columns infcol
 
 		inner join pg_namespace as relnsp on infcol.table_schema = relnsp.nspname
@@ -66,10 +82,28 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 			relcon.conrelid = relcls.oid and
 			relcon.connamespace = relnsp.oid and
 			relcon.conkey[1] = infcol.ordinal_position and
-			relcon.contype = 'p'
+			(relcon.contype = 'p' OR relcon.contype = 'f')
+
+
+		-- FOREIGN KEYS START --
+		left join pg_class as f_relcls on relcon.conrelid = f_relcls.oid
+		left join pg_namespace as f_relnsp on relcon.connamespace = f_relnsp.oid
+
+		left join pg_class as f_relfcls on relcon.confrelid = f_relfcls.oid
+		left join pg_namespace as f_relfnsp on relcon.connamespace = f_relfnsp.oid
+
+		left join information_schema.columns as f_relcol on
+			f_relcol.table_schema = f_relnsp.nspname and
+			f_relcol.table_name = f_relcls.relname and
+			f_relcol.ordinal_position = relcon.conkey[1]
+		left join information_schema.columns as f_relfcol on
+			f_relfcol.table_schema = f_relfnsp.nspname and
+			f_relfcol.table_name = f_relfcls.relname and
+			f_relfcol.ordinal_position = relcon.confkey[1]
+		-- FOREIGN KEYS END --
 
 		where
-			infcol.table_schema not in ('pg_catalog', 'information_schema') and
+			infcol.table_schema not in ('pg_catalog', 'information_schema')	and
 			infcol.table_schema = '%s' and
 			infcol.table_name = '%s'
 	`, schema, tablename))
@@ -79,7 +113,17 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 
 	for rows.Next() {
 		column := types.Column{}
-		if err := rows.Scan(&column.Name, &column.Default, &column.Nullable, &column.DataType, &column.IsPrimaryKey); err != nil {
+		if err := rows.Scan(
+			&column.Name,
+			&column.Default,
+			&column.Nullable,
+			&column.DataType,
+			&column.IsPrimaryKey,
+			&column.IsRelation,
+			&column.ForeignTableSchema,
+			&column.ForeignTableName,
+			&column.ForeignColumnName,
+		); err != nil {
 			return table, err
 		}
 
