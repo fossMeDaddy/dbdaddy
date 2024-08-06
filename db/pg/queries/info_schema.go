@@ -8,7 +8,7 @@ var QGetTableSchema = func(schema string, table string) string {
         select
             infcol.column_name as column_name,
             CASE
-                WHEN infcol.column_default IS NULL then '<null>'
+                WHEN infcol.column_default IS NULL then ''
                 ELSE infcol.column_default
             END as default_value,
             CASE
