@@ -35,7 +35,7 @@ func openCmdRun(cmd *cobra.Command, args []string) {
 	}
 	cmd.Println(fmt.Sprintf("Config file found at: %s, opening via vim...", configFilePath))
 
-	lib.OpenConfigFileAt(configFilePath)
+	lib.OpenFileInEditor(configFilePath)
 }
 
 func InitOpenCmd() *cobra.Command {

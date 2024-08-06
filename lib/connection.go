@@ -20,6 +20,7 @@ func PingDB() error {
 	return nil
 }
 
+// error can be returned if callback function errors or there is a connection error to the DB
 func SwitchDB(v *viper.Viper, dbname string, fn func() error) error {
 	defer db.ConnectDb(viper.GetViper(), db.ConnDbName)
 

@@ -10,7 +10,13 @@ type DbDumpFilesMap = map[string][]string
 
 type DbRow struct {
 	DataType string
-	StrValue string
+	Value    interface{}
 }
 
 type DbRows = map[string][]DbRow
+
+type QueryResult struct {
+	RowCount uint
+	Data     DbRows
+	Columns  []string
+}

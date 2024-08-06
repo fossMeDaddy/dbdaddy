@@ -5,7 +5,6 @@ import (
 	"dbdaddy/db"
 	pg_queries "dbdaddy/db/pg/queries"
 	"dbdaddy/types"
-	"fmt"
 
 	"github.com/spf13/viper"
 )
@@ -64,8 +63,6 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 
 		table.Columns = append(table.Columns, column)
 	}
-
-	fmt.Println(table)
 
 	return table, nil
 }

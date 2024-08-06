@@ -1,37 +1,5 @@
 package constants
 
-import (
-	"os"
-	"path/filepath"
-)
-
-func GetGlobalConfigPath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	return filepath.Join(homeDir, SelfGlobalDirName, "dbdaddy.config.json")
-}
-
-func GetLocalConfigPath() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	return filepath.Join(cwd, SelfGlobalDirName, "dbdaddy.config.json")
-}
-
-func GetGlobalDirPath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	return filepath.Join(homeDir, SelfGlobalDirName)
-}
-
 const (
 	DbConfigDefaultPostgresUrl = "postgresql://postgres:postgres@localhost:5342/postgres"
 
@@ -57,6 +25,11 @@ const (
 	PgDumpDir     = "pg_dumps"
 	MySqlDumpDir  = "mysql_dumps"
 	SqliteDumpDir = "sqlite_dumps"
+
+	// tmp
+	TmpDir          = "tmp"
+	TextQueryOutput = "query.out"
+	CSVQueryOutput  = "query.csv"
 )
 
 var DriverDumpDirNames = map[string]string{

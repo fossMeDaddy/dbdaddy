@@ -3,28 +3,30 @@ package db_int
 import (
 	"dbdaddy/db"
 	"dbdaddy/types"
-	"fmt"
 	"strings"
 )
 
 // i dont like this
-func GetRows(queryStr string) (types.DbRows, error) {
+func GetRows(queryStr string) (types.QueryResult, error) {
+	queryResult := types.QueryResult{
+		Data: types.DbRows{},
+	}
+
 	q, err := db.DB.Query(queryStr)
 	if err != nil {
-		return types.DbRows{}, err
+		return queryResult, err
 	}
 
 	cols, err := q.Columns()
 	if err != nil {
-		return types.DbRows{}, err
+		return queryResult, err
 	}
+	queryResult.Columns = cols
 
 	colTypes, err := q.ColumnTypes()
 	if err != nil {
-		return types.DbRows{}, err
+		return queryResult, err
 	}
-
-	data := types.DbRows{}
 
 	vals := make([]interface{}, len(cols))
 	for i := range cols {
@@ -32,12 +34,13 @@ func GetRows(queryStr string) (types.DbRows, error) {
 		vals[i] = &ii
 
 		// initialize db rows
-		data[cols[i]] = []types.DbRow{}
+		queryResult.Data[cols[i]] = []types.DbRow{}
 	}
+
 	for q.Next() {
 		err := q.Scan(vals...)
 		if err != nil {
-			return types.DbRows{}, err
+			return queryResult, err
 		}
 
 		for i := range vals {
@@ -45,26 +48,28 @@ func GetRows(queryStr string) (types.DbRows, error) {
 			val := *valPtr
 
 			if val == nil {
-				data[cols[i]] = append(data[cols[i]], types.DbRow{
+				queryResult.Data[cols[i]] = append(queryResult.Data[cols[i]], types.DbRow{
 					DataType: colTypes[i].DatabaseTypeName(),
-					StrValue: "",
+					Value:    val,
 				})
 			} else if strings.Contains(strings.ToLower(colTypes[i].DatabaseTypeName()), "json") {
 				jsonBytesVal := val.([]byte)
 				dbRow := types.DbRow{
 					DataType: colTypes[i].DatabaseTypeName(),
-					StrValue: string(jsonBytesVal),
+					Value:    string(jsonBytesVal),
 				}
-				data[cols[i]] = append(data[cols[i]], dbRow)
+				queryResult.Data[cols[i]] = append(queryResult.Data[cols[i]], dbRow)
 			} else {
 				dbRow := types.DbRow{
 					DataType: colTypes[i].DatabaseTypeName(),
-					StrValue: fmt.Sprint(val),
+					Value:    val,
 				}
-				data[cols[i]] = append(data[cols[i]], dbRow)
+				queryResult.Data[cols[i]] = append(queryResult.Data[cols[i]], dbRow)
 			}
 		}
+
+		queryResult.RowCount++
 	}
 
-	return data, nil
+	return queryResult, nil
 }

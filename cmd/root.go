@@ -8,6 +8,7 @@ import (
 	deleteCmd "dbdaddy/src-cmd/delete"
 	"dbdaddy/src-cmd/dumpCmd"
 	dumpMeCmd "dbdaddy/src-cmd/dumpmedaddy"
+	execCmd "dbdaddy/src-cmd/exec"
 	inspectMeCmd "dbdaddy/src-cmd/inspectme"
 	listCmd "dbdaddy/src-cmd/list"
 	restoreCmd "dbdaddy/src-cmd/restore"
@@ -52,7 +53,7 @@ func Execute() {
 			os.Exit(1)
 		}
 
-		lib.OpenConfigFileAt(configFilePath)
+		lib.OpenFileInEditor(configFilePath)
 	} else {
 		configFilePath, _ := lib.FindConfigFilePath()
 		lib.ReadConfig(viper.GetViper(), configFilePath)
@@ -70,6 +71,7 @@ func Execute() {
 	rootCmd.AddCommand(restoreCmd.Init())
 	rootCmd.AddCommand(inspectMeCmd.Init())
 	rootCmd.AddCommand(soyMeCmd.Init())
+	rootCmd.AddCommand(execCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

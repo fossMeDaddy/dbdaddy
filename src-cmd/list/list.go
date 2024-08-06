@@ -12,7 +12,7 @@ var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
 	Use:   "list",
-	Short: "Lists available resources e.g. dumps, database branches, etc. on the db server (defaults to database branches)",
+	Short: "Lists available database branches, etc. on the db server (defaults to database branches)",
 	Run:   cmdRunFn,
 }
 

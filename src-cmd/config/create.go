@@ -45,7 +45,7 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	lib.OpenConfigFileAt(configWritePath)
+	lib.OpenFileInEditor(configWritePath)
 }
 
 func InitCreateCmd() *cobra.Command {
