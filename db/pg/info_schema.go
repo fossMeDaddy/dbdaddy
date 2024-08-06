@@ -36,7 +36,9 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
 	table := types.TableSchema{
-		Db: currBranch,
+		Db:     currBranch,
+		Schema: schema,
+		Name:   tablename,
 	}
 
 	rows, err := db.DB.Query(pg_queries.QGetTableSchema(schema, tablename))
@@ -47,8 +49,6 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 	for rows.Next() {
 		column := types.Column{}
 		if err := rows.Scan(
-			&table.Schema,
-			&table.Name,
 			&column.Name,
 			&column.Default,
 			&column.Nullable,
