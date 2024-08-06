@@ -6,8 +6,6 @@ import "fmt"
 var QGetTableSchema = func(schema string, table string) string {
 	return fmt.Sprintf(`
         select
-            infcol.table_schema,
-            infcol.table_name,
             infcol.column_name as column_name,
             CASE
                 WHEN infcol.column_default IS NULL then '<null>'
@@ -53,10 +51,10 @@ var QGetTableSchema = func(schema string, table string) string {
 
         -- FOREIGN KEYS START --
         left join pg_class as f_relcls on relcon.conrelid = f_relcls.oid
-        left join pg_namespace as f_relnsp on relcon.connamespace = f_relnsp.oid
+        left join pg_namespace as f_relnsp on f_relcls.relnamespace = f_relnsp.oid
 
         left join pg_class as f_relfcls on relcon.confrelid = f_relfcls.oid
-        left join pg_namespace as f_relfnsp on relcon.connamespace = f_relfnsp.oid
+        left join pg_namespace as f_relfnsp on f_relfcls.relnamespace = f_relfnsp.oid
 
         left join information_schema.columns as f_relcol on
             f_relcol.table_schema = f_relnsp.nspname and
