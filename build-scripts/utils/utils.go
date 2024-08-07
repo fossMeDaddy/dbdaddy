@@ -59,8 +59,9 @@ func Release(version string) {
 		binFiles = append(binFiles, path.Join(GetOutDir(), dirEntry.Name()))
 	}
 
-	args := []string{"release", "create", "--generate-notes", version}
+	args := []string{"release", "create", version}
 	args = append(args, binFiles...)
+	args = append(args, "--generate-notes")
 
 	ghCmd := exec.Command("gh", args...)
 	ghCmd.Stdout = os.Stdout
