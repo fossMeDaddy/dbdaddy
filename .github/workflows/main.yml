@@ -8,7 +8,6 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: ./script
 
 env:
   GH_TOKEN: ${{ github.token }}
