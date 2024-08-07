@@ -2,10 +2,6 @@ run-name: Build & Release
 
 on: [push]
 
-defaults:
-  run:
-    shell: bash
-
 env:
   GH_TOKEN: ${{ github.token }}
 
