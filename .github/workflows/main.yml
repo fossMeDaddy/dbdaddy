@@ -13,6 +13,9 @@ jobs:
   deploy_release:
     runs-on: ubuntu-latest
     steps:
+      - name: "gh-cli auth login"
+        run: gh auth login --with-token <<< "${{ github.token }}"
+
       - name: "Checkout repo code"
         uses: actions/checkout@v4
         
