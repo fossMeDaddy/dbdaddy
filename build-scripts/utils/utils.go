@@ -52,7 +52,7 @@ func Release(version string) {
 	tagCmd := exec.Command("git", "tag", version)
 	tagErr := tagCmd.Run()
 	if tagErr != nil {
-		fmt.Println("ERROR:", tagErr)
+		fmt.Println("ERROR creating new tag:", tagErr)
 		return
 	}
 
@@ -60,7 +60,7 @@ func Release(version string) {
 	pushCmd := exec.Command("git", "push", "origin", version)
 	pushErr := pushCmd.Run()
 	if pushErr != nil {
-		fmt.Println("ERROR pushing:", pushErr)
+		fmt.Println("ERROR pushing tag:", pushErr)
 		return
 	}
 
