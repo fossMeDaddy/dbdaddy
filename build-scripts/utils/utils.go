@@ -14,7 +14,12 @@ func GetCurrentVersion() string {
 		panic("couldn't read file 'version'")
 	}
 
-	return string(r)
+	v := string(r)
+	v = strings.ToLower(v)
+	v = strings.Trim(v, " ")
+	v = strings.Trim(v, fmt.Sprintln())
+
+	return v
 }
 
 func GetOutDir() string {
@@ -47,7 +52,7 @@ func Build(goos string, goarch string) {
 	fmt.Println()
 }
 
-func Release(version string) {
+func CreateTag(version string) {
 	// create git tag
 	tagCmd := exec.Command("git", "tag", version)
 	tagErr := tagCmd.Run()

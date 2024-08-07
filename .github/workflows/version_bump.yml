@@ -1,0 +1,22 @@
+run-name: Create & Push New Tag
+
+on:
+  push:
+    branches:
+      main
+    paths: version
+
+permissions:
+  contents: write
+
+jobs:
+  version_bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "gh-cli auth login"
+        run: gh auth login --with-token <<< "${{ github.token }}"
+
+      - uses: actions/checkout@v4
+       
+      - name: "new tag"
+        run: make release
