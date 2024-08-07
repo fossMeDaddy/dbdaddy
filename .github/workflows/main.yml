@@ -22,11 +22,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dbdaddy-darwin-amd64
-            dbdaddy-darwin-arm64
-            dbdaddy-freebsd-amd64
-            dbdaddy-linux-386
-            dbdaddy-linux-amd64
-            dbdaddy-linux-arm64
-            dbdaddy-windows-386
-            dbdaddy-windows-amd64
+            bin/dbdaddy-darwin-amd64
+            bin/dbdaddy-darwin-arm64
+            bin/dbdaddy-freebsd-amd64
+            bin/dbdaddy-linux-386
+            bin/dbdaddy-linux-amd64
+            bin/dbdaddy-linux-arm64
+            bin/dbdaddy-windows-386
+            bin/dbdaddy-windows-amd64
