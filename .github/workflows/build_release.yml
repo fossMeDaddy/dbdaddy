@@ -1,8 +1,9 @@
 run-name: Build & Release
+name: build_release
 
 on:
   workflow_run:
-    workflows: ["Create & Push New Tag"]
+    workflows: ["new_tag"]
     types: [completed]
     branches: main
 

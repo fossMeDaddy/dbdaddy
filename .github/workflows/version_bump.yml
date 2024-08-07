@@ -1,4 +1,5 @@
 run-name: Create & Push New Tag
+name: new_tag
 
 on:
   push:
