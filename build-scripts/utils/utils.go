@@ -48,28 +48,21 @@ func Build(goos string, goarch string) {
 }
 
 func Release(version string) {
-	binDirEntry, err := os.ReadDir(GetOutDir())
-	if err != nil {
-		fmt.Println(err)
-		panic(fmt.Sprint("error occured while reading ", GetOutDir()))
+	// create git tag
+	tagCmd := exec.Command("git", "tag", version)
+	tagErr := tagCmd.Run()
+	if tagErr != nil {
+		fmt.Println("ERROR:", tagErr)
+		return
 	}
 
-	binFiles := []string{}
-	for _, dirEntry := range binDirEntry {
-		binFiles = append(binFiles, path.Join(GetOutDir(), dirEntry.Name()))
+	// push git tag
+	pushCmd := exec.Command("git", "push", "origin", version)
+	pushErr := pushCmd.Run()
+	if pushErr != nil {
+		fmt.Println("ERROR pushing:", pushErr)
+		return
 	}
 
-	args := []string{"release", "create", version, "--generate-notes"}
-	args = append(args, binFiles...)
-
-	ghCmd := exec.Command("gh", args...)
-	ghCmd.Stdout = os.Stdout
-	ghCmd.Stdin = os.Stdin
-	ghCmd.Stderr = os.Stderr
-
-	ghCmdErr := ghCmd.Run()
-	if ghCmdErr != nil {
-		fmt.Println(ghCmdErr)
-		panic("error occured while running 'gh release command'")
-	}
+	// after pushing tag, GH action will build & publish the release for the tag
 }
