@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "LS"
-        run: ls -la /home/runner/work/dbdaddy
+        run: ls -la /home/runner/work/dbdaddy/dbdaddy
       - name: "Build binaries"
         run: make build
 
