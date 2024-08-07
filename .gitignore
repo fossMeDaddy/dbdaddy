@@ -5,3 +5,5 @@ bin/
 
 .dbdaddy/
 dbdaddy.config.json
+
+ignore/
