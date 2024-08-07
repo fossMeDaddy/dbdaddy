@@ -1,9 +1,6 @@
 run-name: Build & Release
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 defaults:
   run:
