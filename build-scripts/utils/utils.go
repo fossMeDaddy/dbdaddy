@@ -59,20 +59,6 @@ func Release(version string) {
 		binFiles = append(binFiles, path.Join(GetOutDir(), dirEntry.Name()))
 	}
 
-	// git tag vX.Y.Z
-	gitTagCmd := exec.Command("git", "tag", version)
-	tagErr := gitTagCmd.Run()
-	if tagErr != nil {
-		fmt.Println("error creating tag in git", tagErr)
-	}
-
-	// git push origin vX.Y.Z
-	gitPushCmd := exec.Command("git", "push", "origin", version)
-	pushErr := gitPushCmd.Run()
-	if pushErr != nil {
-		fmt.Println("error pushing to tag branch in git", pushErr)
-	}
-
 	args := []string{"release", "create", version, "--generate-notes"}
 	args = append(args, binFiles...)
 

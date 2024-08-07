@@ -1,6 +1,6 @@
 run-name: Build & Release
 
-on: [push]
+on: []
 
 permissions:
   contents: write
