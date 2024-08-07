@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "LS"
-        run: ls -la
+        run: ls -la /home/runner/work
       - name: "Build binaries"
         run: make build
 
