@@ -3,7 +3,7 @@ run-name: Build & Release
 on: [push]
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 env:
