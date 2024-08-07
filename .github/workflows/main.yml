@@ -12,7 +12,6 @@ jobs:
       - name: "gh-cli auth login"
         run: gh auth login --with-token <<< "${{ github.token }}"
 
-      - uses: actions/setup-go@v5
       - uses: actions/checkout@v4
         
       - name: "Build binaries"
