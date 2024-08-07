@@ -16,6 +16,8 @@ jobs:
   deploy_release:
     runs-on: ubuntu-latest
     steps:
+      - name: "LS"
+        run: ls -la
       - name: "Build binaries"
         run: make build
 
