@@ -19,8 +19,9 @@ import (
 )
 
 var (
-	outFileFlag string
-	queryFlag   string
+	outFileFlag    string
+	queryFlag      string
+	noTruncateFlag bool
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -49,7 +50,9 @@ func runQuery(cmd *cobra.Command, query string) error {
 	results, err := db_int.GetRows(query)
 	if err != nil {
 		return err
-	} else if results.RowCount == 0 {
+	}
+
+	if len(results.Columns) == 0 {
 		cmd.Println("Query ran successfully.")
 		cmd.Println()
 		return nil
@@ -60,7 +63,7 @@ func runQuery(cmd *cobra.Command, query string) error {
 
 	w, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
-		cmd.Println("ERROR: couldn't get the terminal size, terminal printing might be buggy")
+		cmd.Println("ERROR: couldn't get the terminal size, terminal table printing might not be ideal...")
 		w = math.MaxInt32
 	}
 
@@ -92,14 +95,18 @@ func runQuery(cmd *cobra.Command, query string) error {
 	if w >= outputW {
 		cmd.Println(formattedOutput)
 	} else {
-		tmpDir, _ := lib.GetTmpDirPath()
-		tmpFile := path.Join(tmpDir, constants.TextQueryOutput)
-		err := os.WriteFile(tmpFile, []byte(formattedOutput), 0644)
+		tmpDir, tmpDirErr := lib.FindTmpDirPath()
+		if tmpDirErr != nil {
+			return err
+		}
+
+		tmpFilePath := path.Join(tmpDir, constants.TextQueryOutput)
+		err := os.WriteFile(tmpFilePath, []byte(formattedOutput), 0644)
 		if err != nil {
 			return err
 		}
 
-		cmd.Println("Formatted output too long to display here. See temp. file:", tmpFile)
+		cmd.Println("Formatted output too long to display here. See temp. file:", tmpFilePath)
 	}
 
 	wg.Wait()
@@ -110,8 +117,7 @@ func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {
 		if queryFlag != "" {
-			runQuery(cmd, queryFlag)
-			return nil
+			return runQuery(cmd, queryFlag)
 		}
 
 		for {
@@ -131,6 +137,7 @@ func run(cmd *cobra.Command, args []string) {
 			if query == ".tables" {
 				tables, err := db_int.ListTablesInDb()
 				if err != nil {
+					cmd.PrintErrln("Unexpectedly, coudln't read list of tables", err)
 					return err
 				}
 
@@ -149,7 +156,7 @@ func run(cmd *cobra.Command, args []string) {
 
 			qErr := runQuery(cmd, query)
 			if qErr != nil {
-				return err
+				cmd.PrintErrln(qErr)
 			}
 		}
 	})
@@ -160,7 +167,8 @@ func run(cmd *cobra.Command, args []string) {
 
 func Init() *cobra.Command {
 	cmd.Flags().StringVarP(&queryFlag, "query", "q", "", "Enter text here to execute a one-off query")
-	cmd.Flags().StringVarP(&outFileFlag, "output", "o", "", "Specify CSV-formatted output file path here")
+	cmd.Flags().StringVarP(&outFileFlag, "output", "o", "", "Specify CSV-formatted output file path here. supplied along with '-q'")
+	cmd.Flags().BoolVar(&noTruncateFlag, "no-truncate", false, "In table formatted output, row items are truncated by default, use this to disable it.")
 
 	return cmd
 }

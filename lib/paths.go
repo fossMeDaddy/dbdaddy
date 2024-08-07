@@ -22,7 +22,7 @@ func FindConfigFilePath() (string, error) {
 	}
 }
 
-func FindConfigDir() (string, error) {
+func FindConfigDirPath() (string, error) {
 	configFile, err := FindConfigFilePath()
 	if err != nil {
 		return "", err
@@ -42,12 +42,15 @@ func GetAbsolutePathFor(relativePath string) (string, error) {
 	return path.Join(cwd, relativePath), err
 }
 
-func GetTmpDirPath() (string, error) {
-	configDir := constants.GetGlobalDirPath()
+func FindTmpDirPath() (string, error) {
+	configDir, err := FindConfigDirPath()
+	if err != nil {
+		return "", err
+	}
 
 	tmpDirPath := path.Join(configDir, constants.TmpDir)
-	err := DirExistsCreate(tmpDirPath)
-	if err != nil {
+	osDirErr := DirExistsCreate(tmpDirPath)
+	if osDirErr != nil {
 		return "", err
 	}
 

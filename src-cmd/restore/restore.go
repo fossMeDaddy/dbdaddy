@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	useGlobalContext bool
 	userDumpFilePath string
 )
 
@@ -32,7 +33,12 @@ func run(cmd *cobra.Command, args []string) {
 
 	var dumpFilePath string
 	if len(userDumpFilePath) == 0 {
-		configFilePath, _ := lib.FindConfigFilePath()
+		var configFilePath string
+		if useGlobalContext {
+			configFilePath = constants.GetGlobalConfigPath()
+		} else {
+			configFilePath, _ = lib.FindConfigFilePath()
+		}
 		dbGroupedDumpFiles, err := lib.GetDbGroupedDumpFiles(configFilePath)
 		if err != nil {
 			cmd.PrintErrln("Error occured while fetching available dump files!\n", err)
@@ -80,6 +86,7 @@ func run(cmd *cobra.Command, args []string) {
 
 func Init() *cobra.Command {
 	cmd.Flags().StringVar(&userDumpFilePath, "file", "", "provide a dump file path to restore the current db branch from")
+	cmd.Flags().BoolVarP(&useGlobalContext, "global", "g", false, "use global context to list dumps from.")
 
 	return cmd
 }

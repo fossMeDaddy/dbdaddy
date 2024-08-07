@@ -4,9 +4,16 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
 	"dbdaddy/middlewares"
+	"fmt"
+	"strings"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+var (
+	silentFlag bool
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -14,16 +21,55 @@ var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 var cmd = &cobra.Command{
 	Use:   "delete <branchname>",
 	Short: "Deletes a database branch, this action can not be undone",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
-	branchname := args[0]
+	var branchname string
+	if len(args) > 0 {
+		branchname = args[0]
 
-	if !db_int.DbExists(branchname) {
-		cmd.PrintErrf("Database branch '%s' does not exist\n", branchname)
-		return
+		if !db_int.DbExists(branchname) {
+			cmd.PrintErrf("Database branch '%s' does not exist\n", branchname)
+			return
+		}
+	} else {
+		dbs, err := db_int.GetExistingDbs()
+		if err != nil {
+			cmd.Println("unexpected error occured", err)
+			return
+		}
+
+		dbPrompt := promptui.Select{
+			Label: "Choose database to delete",
+			Items: dbs,
+			Searcher: func(input string, index int) bool {
+				return strings.Contains(dbs[index], strings.ToLower(strings.Trim(input, " ")))
+			},
+			StartInSearchMode: true,
+		}
+
+		_, result, pErr := dbPrompt.Run()
+		if pErr != nil {
+			cmd.PrintErrln("Error occured while choosing deletion database", pErr)
+			return
+		}
+
+		branchname = result
+	}
+
+	if !silentFlag {
+		prompt := promptui.Prompt{
+			Label:     fmt.Sprintf("Deleting database: '%s' continue", branchname),
+			IsConfirm: true,
+		}
+
+		_, err := prompt.Run()
+		if err != nil {
+			cmd.Println("Cancelling deletion.")
+			return
+		}
 	}
 
 	err := db_int.DeleteDb(branchname)
@@ -49,8 +95,7 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func Init() *cobra.Command {
-	// add some flags
-	// ...
+	cmd.Flags().BoolVar(&silentFlag, "silent", false, "silences confirmation for deleting branch")
 
 	return cmd
 }

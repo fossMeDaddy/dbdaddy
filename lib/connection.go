@@ -29,9 +29,9 @@ func SwitchDB(v *viper.Viper, dbname string, fn func() error) error {
 		return err
 	}
 
-	err = fn()
-	if err != nil {
-		return err
+	fnErr := fn()
+	if fnErr != nil {
+		return fnErr
 	}
 
 	return nil

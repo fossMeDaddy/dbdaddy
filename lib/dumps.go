@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func GetDbGroupedDumpFiles(configPath string) (types.DbDumpFilesMap, error) {
-	dumpDirPath := GetDriverDumpDir(configPath)
+func GetDbGroupedDumpFiles(configFilePath string) (types.DbDumpFilesMap, error) {
+	dumpDirPath := GetDriverDumpDir(configFilePath)
 	files, err := os.ReadDir(dumpDirPath)
 	if err != nil {
 		return nil, err

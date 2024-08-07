@@ -11,9 +11,10 @@ import (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "list",
-	Short: "Lists available database branches, etc. on the db server (defaults to database branches)",
-	Run:   cmdRunFn,
+	Use:     "ls",
+	Aliases: []string{"list"},
+	Short:   "Lists available database branches, etc. on the db server (defaults to database branches)",
+	Run:     cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
