@@ -5,3 +5,6 @@ build:
 
 release:
 	go run build-scripts/release/release.go
+
+get_version:
+	go run build-scripts/version/version.go

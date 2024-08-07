@@ -1,9 +1,10 @@
 run-name: Build & Release
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Create & Push New Tag"]
+    types: [completed]
     branches: main
-    tags: '*'
 
 permissions:
   contents: write
@@ -20,11 +21,18 @@ jobs:
         
       - name: "Build binaries"
         run: make build
-      
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0)
+          echo "Latest tag: $latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+
       - name: "Release binaries"
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: ${{ steps.get_latest_tag.outputs.latest_tag }}
           files: |
             bin/dbdaddy-darwin-amd64
             bin/dbdaddy-darwin-arm64
