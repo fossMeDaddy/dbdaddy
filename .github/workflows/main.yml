@@ -1,0 +1,24 @@
+run-name: Build & Release
+
+on:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./script
+
+env:
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  deploy_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Build binaries"
+        run: make build
+
+      - name: "Release binaries"
+        run: make release
