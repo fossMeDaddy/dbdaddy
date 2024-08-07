@@ -2,6 +2,7 @@ run-name: Build & Release
 
 on:
   push:
+    branches: main
     tags: '*'
 
 permissions:

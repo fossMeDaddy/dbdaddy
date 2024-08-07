@@ -2,8 +2,7 @@ run-name: Create & Push New Tag
 
 on:
   push:
-    branches:
-      main
+    branches: main
     paths: version
 
 permissions:
