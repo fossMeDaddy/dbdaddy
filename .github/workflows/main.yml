@@ -17,6 +17,16 @@ jobs:
         
       - name: "Build binaries"
         run: make build
-
+      
       - name: "Release binaries"
-        run: make release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dbdaddy-darwin-amd64
+            dbdaddy-darwin-arm64
+            dbdaddy-freebsd-amd64
+            dbdaddy-linux-386
+            dbdaddy-linux-amd64
+            dbdaddy-linux-arm64
+            dbdaddy-windows-386
+            dbdaddy-windows-amd64
