@@ -2,18 +2,49 @@ package main
 
 import (
 	"dbdaddy/build-scripts/utils"
+	"sync"
 )
 
 func main() {
-	utils.Build("linux", "arm64")
-	utils.Build("linux", "amd64")
-	utils.Build("linux", "386")
+	var wg sync.WaitGroup
 
-	utils.Build("darwin", "arm64")
-	utils.Build("darwin", "amd64")
+	wg.Add(8)
 
-	utils.Build("windows", "amd64")
-	utils.Build("windows", "386")
+	go (func() {
+		defer wg.Done()
+		utils.Build("linux", "arm64")
+	})()
+	go (func() {
+		defer wg.Done()
+		utils.Build("linux", "amd64")
+	})()
+	go (func() {
+		defer wg.Done()
+		utils.Build("linux", "386")
+	})()
 
-	utils.Build("freebsd", "amd64")
+	go (func() {
+		defer wg.Done()
+		utils.Build("darwin", "arm64")
+	})()
+	go (func() {
+		defer wg.Done()
+		utils.Build("darwin", "amd64")
+	})()
+
+	go (func() {
+		defer wg.Done()
+		utils.Build("windows", "amd64")
+	})()
+	go (func() {
+		defer wg.Done()
+		utils.Build("windows", "386")
+	})()
+
+	go (func() {
+		defer wg.Done()
+		utils.Build("freebsd", "amd64")
+	})()
+
+	wg.Wait()
 }
