@@ -3,7 +3,7 @@ package pg
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/db"
-	pg_queries "dbdaddy/db/pg/queries"
+	"dbdaddy/db/pg/pgq"
 	"dbdaddy/types"
 
 	"github.com/spf13/viper"
@@ -40,7 +40,7 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 		Name:   tablename,
 	}
 
-	rows, err := db.DB.Query(pg_queries.QGetTableSchema(schema, tablename))
+	rows, err := db.DB.Query(pgq.QGetTableSchema(schema, tablename))
 	if err != nil {
 		return table, err
 	}

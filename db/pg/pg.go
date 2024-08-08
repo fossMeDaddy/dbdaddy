@@ -3,11 +3,11 @@ package pg
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/db"
-	pg_queries "dbdaddy/db/pg/queries"
+	"dbdaddy/db/pg/pgq"
 )
 
 func GetExistingDbs() ([]string, error) {
-	rows, err := db.DB.Query(pg_queries.QGetExistingDbs())
+	rows, err := db.DB.Query(pgq.QGetExistingDbs())
 	if err != nil {
 		return nil, err
 	}
@@ -27,12 +27,12 @@ func GetExistingDbs() ([]string, error) {
 }
 
 func DisconnectAllUsers(dbname string) error {
-	_, err := db.DB.Query(pg_queries.QDisconnectAllUsersFromDb(dbname))
+	_, err := db.DB.Query(pgq.QDisconnectAllUsersFromDb(dbname))
 	return err
 }
 
 func DbExists(dbname string) bool {
-	row := db.DB.QueryRow(pg_queries.QCheckDbExists(dbname))
+	row := db.DB.QueryRow(pgq.QCheckDbExists(dbname))
 
 	exists := false
 	_ = row.Scan(&exists)
@@ -46,7 +46,7 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 		return err
 	}
 
-	_, err = db.DB.Query(pg_queries.QCreateNewDbFromOldTemplate(newDbName, originalDbName))
+	_, err = db.DB.Query(pgq.QCreateNewDbFromOldTemplate(newDbName, originalDbName))
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 }
 
 func CreateDb(dbname string) error {
-	_, err := db.DB.Query(pg_queries.QCreateNewDb(dbname))
+	_, err := db.DB.Query(pgq.QCreateNewDb(dbname))
 	return err
 }
 
@@ -64,7 +64,7 @@ func DeleteDb(dbname string) error {
 		return err
 	}
 
-	_, err := db.DB.Query(pg_queries.QDeleteDb(dbname))
+	_, err := db.DB.Query(pgq.QDeleteDb(dbname))
 	if err != nil {
 		return err
 	}

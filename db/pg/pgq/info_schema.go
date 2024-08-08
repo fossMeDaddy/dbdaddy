@@ -1,5 +1,5 @@
 // not necessary to move ALL SQL queries here
-package pg_queries
+package pgq
 
 import "fmt"
 
