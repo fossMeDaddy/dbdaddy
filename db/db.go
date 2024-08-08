@@ -3,9 +3,12 @@ package db
 import (
 	"database/sql"
 	constants "dbdaddy/const"
+	"dbdaddy/errs"
+	"errors"
 	"fmt"
 	"strings"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/spf13/viper"
 )
@@ -16,18 +19,6 @@ var (
 
 	ConnDbName string
 )
-
-func GetPgConnUriFromViper(v *viper.Viper, dbname string) string {
-	// EXAMPLE URI:
-	// postgresql://sally:sallyspassword@dbserver.example:5555/userdata?connect_timeout=10&sslmode=require&target_session_attrs=primary
-
-	host := v.GetString(constants.DbConfigHostKey)
-	port := v.GetUint16(constants.DbConfigPortKey)
-	user := v.GetString(constants.DbConfigUserKey)
-	password := v.GetString(constants.DbConfigPassKey)
-
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, fmt.Sprint(port), dbname)
-}
 
 func openConn(driverName string, dataSourceName string) (*sql.DB, error) {
 	db, err := sql.Open(driverName, dataSourceName)
@@ -43,6 +34,40 @@ func openConn(driverName string, dataSourceName string) (*sql.DB, error) {
 }
 
 func ConnectSelfDb(v *viper.Viper) (*sql.DB, error) {
+	var fnLocalDb *sql.DB
+
+	db, err := ConnectDb(v, constants.SelfDbName)
+	if errors.Is(err, errs.ErrUnsupportedDriver) {
+		return db, err
+	} else if err != nil {
+		userDb, userErr := ConnectDb(v, v.GetString(constants.DbConfigDbNameKey))
+		if userErr != nil {
+			return nil, fmt.Errorf("error connecting to your database!\n" + err.Error())
+		}
+		defer userDb.Close()
+
+		if _, err := userDb.Query(fmt.Sprintf("CREATE DATABASE %s", constants.SelfDbName)); err != nil {
+			return nil, fmt.Errorf("could not create database, please check your connection or permissions!\n" + err.Error())
+		}
+
+		selfDb, selfErr := ConnectDb(v, constants.SelfDbName)
+		if selfErr != nil {
+			return nil, fmt.Errorf("unexpected error occured!\n" + selfErr.Error())
+		}
+
+		fnLocalDb = selfDb
+	} else {
+		fnLocalDb = db
+	}
+
+	ConnDbName = constants.SelfDbName
+	DB = fnLocalDb
+
+	return DB, nil
+}
+
+// deprecated in favor of makeing things db driver agnostic
+func ConnectSelfDb_DEPRECATED(v *viper.Viper) (*sql.DB, error) {
 	var fnLocalDb *sql.DB
 	if viper.Get(constants.DbConfigDriverKey) == constants.DbDriverPostgres {
 		db, err := openConn("pgx", GetPgConnUriFromViper(v, constants.SelfDbName))
@@ -81,18 +106,26 @@ func ConnectSelfDb(v *viper.Viper) (*sql.DB, error) {
 }
 
 func ConnectDb(v *viper.Viper, dbname string) (*sql.DB, error) {
-	if v.GetString(constants.DbConfigDriverKey) == constants.DbDriverPostgres {
-		db, err := openConn("pgx", GetPgConnUriFromViper(v, dbname))
-		if err != nil {
-			return nil, fmt.Errorf("unexpected error occured!\n" + err.Error())
-		}
+	var (
+		db  *sql.DB
+		err error
+	)
 
-		ConnDbName = dbname
-		DB = db
-
-		return DB, nil
+	switch v.GetString(constants.DbConfigDriverKey) {
+	case constants.DbDriverPostgres:
+		db, err = openConn("pgx", GetPgConnUriFromViper(v, dbname))
+	case constants.DbDriverMySQL:
+		db, err = openConn("mysql", GetMysqlConnUriFromViper(v, dbname))
+	default:
+		return db, errs.ErrUnsupportedDriver
 	}
 
-	fmt.Println(v.Get(constants.DbConfigDriverKey), constants.SupportedDrivers)
-	panic(fmt.Sprintf("'%s' driver is not supported, as of now, the supported drivers are: %v", v.Get(constants.DbConfigDriverKey), constants.SupportedDrivers))
+	if err != nil {
+		return db, err
+	}
+
+	ConnDbName = dbname
+	DB = db
+
+	return DB, nil
 }

@@ -2,7 +2,9 @@ package db_int
 
 import (
 	constants "dbdaddy/const"
+	"dbdaddy/db/msql"
 	"dbdaddy/db/pg"
+	"dbdaddy/errs"
 	"dbdaddy/types"
 
 	"github.com/spf13/viper"
@@ -12,10 +14,13 @@ import (
 
 func GetExistingDbs() ([]string, error) {
 	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
+	switch driver {
+	case constants.DbDriverPostgres:
 		return pg.GetExistingDbs()
-	} else {
-		panic("")
+	case constants.DbDriverMySQL:
+		return msql.GetExistingDbs()
+	default:
+		return []string{}, errs.ErrUnsupportedDriver
 	}
 }
 
