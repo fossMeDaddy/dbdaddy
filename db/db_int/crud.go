@@ -24,15 +24,6 @@ func GetExistingDbs() ([]string, error) {
 	}
 }
 
-func DisconnectAllUsers(dbname string) error {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
-		return pg.DisconnectAllUsers(dbname)
-	} else {
-		panic("")
-	}
-}
-
 func DbExists(dbname string) bool {
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	switch driver {
