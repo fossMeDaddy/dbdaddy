@@ -4,6 +4,7 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/db"
 	"dbdaddy/db/pg/pgq"
+	"dbdaddy/db/sharedq"
 )
 
 func GetExistingDbs() ([]string, error) {
@@ -40,7 +41,8 @@ func DbExists(dbname string) bool {
 	return exists
 }
 
-func NewDbFromOriginal(originalDbName string, newDbName string) error {
+// DO NOT USE, disconnects all users while creating new db
+func NewDbFromOriginal_DEPRECATED(originalDbName string, newDbName string) error {
 	err := DisconnectAllUsers(originalDbName)
 	if err != nil {
 		return err
@@ -55,7 +57,7 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 }
 
 func CreateDb(dbname string) error {
-	_, err := db.DB.Query(pgq.QCreateNewDb(dbname))
+	_, err := db.DB.Query(sharedq.QCreateNewDb(dbname))
 	return err
 }
 
@@ -64,7 +66,7 @@ func DeleteDb(dbname string) error {
 		return err
 	}
 
-	_, err := db.DB.Query(pgq.QDeleteDb(dbname))
+	_, err := db.DB.Query(sharedq.QDeleteDb(dbname))
 	if err != nil {
 		return err
 	}

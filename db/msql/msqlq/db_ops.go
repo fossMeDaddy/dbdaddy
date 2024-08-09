@@ -8,3 +8,10 @@ func QGetExistingDbs() string {
 		"`Database`",
 	)
 }
+
+func QCheckDbExists(dbname string) string {
+	return fmt.Sprintf(
+		`SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '%s'`,
+		dbname,
+	)
+}

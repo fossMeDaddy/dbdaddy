@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// creates db & restores its content from given dump
 func RestoreDb(dbname string, v *viper.Viper, dumpFilePath string, override bool) error {
 	if DbExists(dbname) {
 		if override {

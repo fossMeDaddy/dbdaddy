@@ -6,9 +6,7 @@ import (
 	"dbdaddy/errs"
 	"dbdaddy/lib"
 	"dbdaddy/middlewares"
-	"fmt"
 	"path"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,7 +34,7 @@ func run(cmd *cobra.Command, args []string) {
 	v := viper.New()
 	lib.ReadConfig(v, configFilePath)
 
-	outputFilePath := path.Join(lib.GetDriverDumpDir(configFilePath), fmt.Sprintf("%s__%s", time.Now().Local().Format("2006-01-02_15:04:05"), v.GetString(constants.DbConfigCurrentBranchKey)))
+	outputFilePath := path.Join(lib.GetDriverDumpDir(configFilePath), constants.GetDumpFileName(v.GetString(constants.DbConfigCurrentBranchKey)))
 
 	if err := db_int.DumpDb(outputFilePath, v); err != nil {
 		if err.Error() == errs.PG_DUMP_NOT_FOUND {

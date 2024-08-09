@@ -35,37 +35,37 @@ func DisconnectAllUsers(dbname string) error {
 
 func DbExists(dbname string) bool {
 	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
+	switch driver {
+	case constants.DbDriverPostgres:
 		return pg.DbExists(dbname)
-	} else {
-		panic("")
-	}
-}
-
-func NewDbFromOriginal(originalDbName string, newDbName string) error {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
-		return pg.NewDbFromOriginal(originalDbName, newDbName)
-	} else {
-		panic("")
+	case constants.DbDriverMySQL:
+		return msql.DbExists(dbname)
+	default:
+		return false
 	}
 }
 
 func CreateDb(dbname string) error {
 	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
+	switch driver {
+	case constants.DbDriverPostgres:
 		return pg.CreateDb(dbname)
-	} else {
-		panic("")
+	case constants.DbDriverMySQL:
+		return msql.CreateDb(dbname)
+	default:
+		return errs.ErrUnsupportedDriver
 	}
 }
 
 func DeleteDb(dbname string) error {
 	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
+	switch driver {
+	case constants.DbDriverPostgres:
 		return pg.DeleteDb(dbname)
-	} else {
-		panic("")
+	case constants.DbDriverMySQL:
+		return msql.DeleteDb(dbname)
+	default:
+		return errs.ErrUnsupportedDriver
 	}
 }
 
