@@ -3,10 +3,11 @@ package checkoutCmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
+	"dbdaddy/errs"
 	"dbdaddy/lib"
 	"dbdaddy/middlewares"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -52,12 +53,12 @@ func run(cmd *cobra.Command, args []string) {
 			err = lib.NewBranchFromCurrent(branchname)
 		}
 		if err != nil {
-			if strings.Contains(err.Error(), "exists") {
+			if errors.Is(err, errs.ErrDbAlreadyExists) {
 				cmd.PrintErrf("Could not create a new database branch with name '%s' because it already exists.\n", branchname)
 				return
 			}
 
-			cmd.PrintErrln("ERROR OCCURED!", err)
+			cmd.PrintErrln("UNKNOWN ERROR OCCURED!", err)
 			return
 		}
 	} else {

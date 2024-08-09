@@ -3,6 +3,7 @@ package lib
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
+	"dbdaddy/errs"
 	"fmt"
 	"path"
 	"regexp"
@@ -31,7 +32,10 @@ func SetCurrentBranch(branchname string) error {
 }
 
 func NewBranchFromCurrent(dbname string) error {
-	// dump the db
+	if db_int.DbExists(dbname) {
+		return errs.ErrDbAlreadyExists
+	}
+
 	configFilePath, _ := FindConfigFilePath()
 	dumpFilePath := path.Join(
 		GetDriverDumpDir(configFilePath),

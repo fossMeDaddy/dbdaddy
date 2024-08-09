@@ -91,7 +91,6 @@ func RestoreDb(dbname string, v *viper.Viper, dumpFilePath string, override bool
 		fmt.Sprintf("--database=%s", dbname),
 	)
 
-	restoreCmd.Stdout = os.Stdout
 	restoreCmd.Stdin = dumpFile
 	restoreCmd.Stderr = os.Stderr
 
