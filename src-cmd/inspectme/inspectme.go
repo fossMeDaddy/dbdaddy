@@ -22,9 +22,9 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:     "inspectmedaddy",
+	Use:     "inspect",
 	Aliases: []string{"inspectme"},
-	Short:   "prints the schema of a selected table",
+	Short:   "prints the schema of a selected table in current database",
 	Run:     cmdRunFn,
 }
 

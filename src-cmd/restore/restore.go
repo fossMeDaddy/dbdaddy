@@ -22,10 +22,9 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:     "restore",
-	Aliases: []string{"revivemedaddy"},
-	Short:   "restores the current database branch with a given database dump file, does so by OVER-WRITING THE EXISTING CONTENTS.",
-	Run:     cmdRunFn,
+	Use:   "restore",
+	Short: "restores the current database branch with a given database dump file, does so by OVER-WRITING THE EXISTING CONTENTS.",
+	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {

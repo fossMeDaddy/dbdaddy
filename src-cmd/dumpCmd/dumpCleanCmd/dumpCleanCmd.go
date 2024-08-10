@@ -19,7 +19,7 @@ var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
 	Use:   "clean",
-	Short: "Cleans old dump files, won't touch any newly created dumps",
+	Short: "Cleans old dump files, won't touch latest dumps",
 	Run:   cmdRunFn,
 }
 

@@ -15,7 +15,7 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "dump",
+	Use:   "dumps",
 	Short: "perform operations on db backups aka \"dumps\" i.e. list or clear them",
 	Run:   cmdRunFn,
 }

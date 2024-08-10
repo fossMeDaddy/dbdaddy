@@ -22,7 +22,7 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "dumpmedaddy",
+	Use:   "dumpme",
 	Short: "Takes a dump of the current database branch, this dump file can be later used to restore the data",
 	Run:   cmdRunFn,
 }
