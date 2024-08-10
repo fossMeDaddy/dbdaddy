@@ -22,4 +22,5 @@ type TableSchema struct {
 type Table struct {
 	Name   string
 	Schema string
+	Type   string // IMP: possible values to be put in from constants 'TableType*'
 }

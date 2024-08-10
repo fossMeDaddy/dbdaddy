@@ -64,7 +64,7 @@ func run(cmd *cobra.Command, args []string) {
 		} else {
 			prompt := promptui.Select{
 				Label: "Choose table to display schema of",
-				Items: slices.Concat(dbStrTables),
+				Items: dbStrTables,
 				Searcher: func(input string, index int) bool {
 					return strings.Contains(dbStrTables[index], strings.ToLower(strings.Trim(input, " ")))
 				},
@@ -100,8 +100,18 @@ func run(cmd *cobra.Command, args []string) {
 				colDataTypePadding = max(colDataTypePadding, len(col.DataType))
 			}
 
+			tableNameTmp := strings.Split(tablename, ".")
+			dbTableI := slices.IndexFunc(dbTables, func(dbTable types.Table) bool {
+				return tableNameTmp[0] == dbTable.Schema && tableNameTmp[1] == dbTable.Name
+			})
+			dbTable := dbTables[dbTableI]
+
 			cmd.Println()
 			cmd.Printf("TABLE: %s\n", tablename)
+			if dbTable.Type == constants.TableTypeView {
+				cmd.Println("INFO: TABLE IS A VIEW")
+			}
+
 			for i, col := range tableSchema.Columns {
 				cmd.Printf(
 					"%0*d - %-*s %-*s DEFAULT %-*s NULLABLE %-*t %s\n",

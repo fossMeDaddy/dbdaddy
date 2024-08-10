@@ -12,9 +12,17 @@ import (
 func ListTablesInDb() ([]types.Table, error) {
 	tables := []types.Table{}
 	rows, err := db.DB.Query(`
-		select distinct table_name as name, table_schema as schema from information_schema.tables
-        where table_schema != 'information_schema' and table_schema != 'pg_catalog'
-        order by table_name
+		select
+			table_name as name,
+			table_schema as schema,
+			table_type as type
+		from information_schema.tables
+
+		where
+			table_schema not in ('information_schema', 'pg_catalog') and
+			table_type in ('BASE TABLE', 'VIEW')
+
+		order by table_name
     `)
 	if err != nil {
 		return tables, err
@@ -22,7 +30,7 @@ func ListTablesInDb() ([]types.Table, error) {
 
 	for rows.Next() {
 		table := types.Table{}
-		if err := rows.Scan(&table.Name, &table.Schema); err != nil {
+		if err := rows.Scan(&table.Name, &table.Schema, &table.Type); err != nil {
 			return tables, err
 		}
 		tables = append(tables, table)
