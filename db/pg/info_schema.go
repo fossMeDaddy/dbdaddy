@@ -1,12 +1,9 @@
 package pg
 
 import (
-	constants "dbdaddy/const"
 	"dbdaddy/db"
 	"dbdaddy/db/pg/pgq"
 	"dbdaddy/types"
-
-	"github.com/spf13/viper"
 )
 
 func ListTablesInDb() ([]types.Table, error) {
@@ -39,11 +36,9 @@ func ListTablesInDb() ([]types.Table, error) {
 	return tables, nil
 }
 
-func GetTableSchema(schema string, tablename string) (types.TableSchema, error) {
-	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
-
+func GetTableSchema(dbname string, schema string, tablename string) (types.TableSchema, error) {
 	table := types.TableSchema{
-		Db:     currBranch,
+		Db:     dbname,
 		Schema: schema,
 		Name:   tablename,
 	}

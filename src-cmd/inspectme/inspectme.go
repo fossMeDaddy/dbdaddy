@@ -84,7 +84,7 @@ func run(cmd *cobra.Command, args []string) {
 			schema := tmp[0]
 			table := tmp[1]
 
-			tableSchema, err := db_int.GetTableSchema(schema, table)
+			tableSchema, err := db_int.GetTableSchema(currBranch, schema, table)
 			if err != nil {
 				return fmt.Errorf("Unexpected error occured while fetching table schema for %s\n"+err.Error(), tablename)
 			}
