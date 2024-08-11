@@ -39,3 +39,29 @@ func DumpDb(outputFilePath string, v *viper.Viper) error {
 	err := osCmd.Run()
 	return err
 }
+
+func DumpDbOnlySchema(outputFilePath string, v *viper.Viper) error {
+	if !PgDumpExists() {
+		return fmt.Errorf(errs.PG_DUMP_NOT_FOUND)
+	}
+
+	osCmd := exec.Command("pg_dump",
+		"--clean",
+		"--schema-only",
+		"--file="+outputFilePath,
+		"--format=directory",
+		"--verbose",
+		"--username="+v.GetString(constants.DbConfigUserKey),
+		"--host="+v.GetString(constants.DbConfigHostKey),
+		"--port="+v.GetString(constants.DbConfigPortKey),
+		"--no-password",
+		v.GetString(constants.DbConfigCurrentBranchKey))
+
+	osCmd.Env = append(os.Environ(), "PGPASSWORD="+v.GetString(constants.DbConfigPassKey))
+
+	osCmd.Stdout = os.Stdout
+	osCmd.Stderr = os.Stderr
+
+	err := osCmd.Run()
+	return err
+}

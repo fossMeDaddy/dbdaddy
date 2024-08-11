@@ -42,3 +42,25 @@ func RestoreDb(dbname string, v *viper.Viper, dumpFilePath string, override bool
 	err := osCmd.Run()
 	return err
 }
+
+func RestoreDbOnlySchema(dbname string, v *viper.Viper, dumpFilePath string) error {
+	if err := CreateDb(dbname); err != nil {
+		return err
+	}
+
+	// run restore command
+	osCmd := exec.Command(
+		"pg_restore",
+		"--verbose",
+		"--clean",
+		"--if-exists",
+		fmt.Sprintf("--dbname=%s", db.GetPgConnUriFromViper(v, dbname)),
+		dumpFilePath,
+	)
+
+	osCmd.Stderr = os.Stderr
+	osCmd.Stdout = os.Stdout
+
+	err := osCmd.Run()
+	return err
+}
