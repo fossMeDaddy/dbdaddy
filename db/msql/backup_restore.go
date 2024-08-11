@@ -17,7 +17,6 @@ func DumpDb(outputFilePath string, v *viper.Viper, onlySchema bool) error {
 		fmt.Sprintf("--host=%s", v.GetString(constants.DbConfigHostKey)),
 		fmt.Sprintf("--port=%s", v.GetString(constants.DbConfigPortKey)),
 		// fmt.Sprintf("--result-file=%s", outputFilePath),
-		"--compact",
 		"--skip-comments",
 		"--no-create-db",
 		"--no-autocommit",
