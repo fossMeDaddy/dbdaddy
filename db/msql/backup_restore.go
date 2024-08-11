@@ -11,20 +11,23 @@ import (
 	"github.com/spf13/viper"
 )
 
-func DumpDb(outputFilePath string, v *viper.Viper) error {
-	dumpCmd := exec.Command(
-		"mysqldump",
-		fmt.Sprintf("--user=%s", v.GetString(constants.DbConfigUserKey)),
+func DumpDb(outputFilePath string, v *viper.Viper, onlySchema bool) error {
+	args := []string{fmt.Sprintf("--user=%s", v.GetString(constants.DbConfigUserKey)),
 		fmt.Sprintf("--password=%s", v.GetString(constants.DbConfigPassKey)),
 		fmt.Sprintf("--host=%s", v.GetString(constants.DbConfigHostKey)),
 		fmt.Sprintf("--port=%s", v.GetString(constants.DbConfigPortKey)),
 		// fmt.Sprintf("--result-file=%s", outputFilePath),
-		"--skip-comments",
 		"--compact",
+		"--skip-comments",
 		"--no-create-db",
 		"--no-autocommit",
 		"--databases",
-		v.GetString(constants.DbConfigCurrentBranchKey),
+		v.GetString(constants.DbConfigCurrentBranchKey)}
+	if onlySchema {
+		args = append(args, "--no-data")
+	}
+	dumpCmd := exec.Command(
+		"mysqldump", args...,
 	)
 
 	pipe, err := dumpCmd.StdoutPipe()

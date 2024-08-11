@@ -9,23 +9,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-func DumpDb(outputFilePath string, v *viper.Viper) error {
+func DumpDb(outputFilePath string, v *viper.Viper, onlySchema bool) error {
 	driver := v.GetString(constants.DbConfigDriverKey)
 	switch driver {
 	case constants.DbDriverPostgres:
-		return pg.DumpDb(outputFilePath, v)
+		return pg.DumpDb(outputFilePath, v, onlySchema)
 	case constants.DbDriverMySQL:
-		return msql.DumpDb(outputFilePath, v)
+		return msql.DumpDb(outputFilePath, v, onlySchema)
 	default:
 		return errs.ErrUnsupportedDriver
-	}
-}
-func DumpDbOnlySchema(outputFilePath string, v *viper.Viper) error {
-	driver := v.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
-		return pg.DumpDbOnlySchema(outputFilePath, v)
-	} else {
-		panic("")
 	}
 }
 
@@ -38,13 +30,5 @@ func RestoreDb(dbname string, v *viper.Viper, dumpFilePath string, override bool
 		return msql.RestoreDb(dbname, v, dumpFilePath, override)
 	default:
 		return errs.ErrUnsupportedDriver
-	}
-}
-func RestoreDbOnlySchema(dbname string, v *viper.Viper, dumpFilePath string) error {
-	driver := v.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
-		return pg.RestoreDbOnlySchema(dbname, v, dumpFilePath)
-	} else {
-		panic("")
 	}
 }

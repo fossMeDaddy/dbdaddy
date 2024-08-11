@@ -8,9 +8,6 @@ import (
 	"dbdaddy/middlewares"
 	"errors"
 	"fmt"
-	"os"
-	"path"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -58,30 +55,10 @@ func run(cmd *cobra.Command, args []string) {
 
 	if shouldCreateNewBranch {
 		var err error
-		var outputFilePath string
 		if shouldKeepItClean {
 			err = db_int.CreateDb(branchname)
-		} else if shouldCopyOnlySchema {
-			configFilePath, _ := lib.FindConfigFilePath()
-
-			v := viper.New()
-			lib.ReadConfig(v, configFilePath)
-
-			outputFilePath = path.Join(lib.GetDriverDumpDir(configFilePath), fmt.Sprintf("%s__%s", time.Now().Local().Format("2006-01-02_15:04:05"), v.GetString(constants.DbConfigCurrentBranchKey)))
-			fmt.Println(outputFilePath)
-			if err := db_int.DumpDbOnlySchema(outputFilePath, v); err != nil {
-				if err.Error() == errs.PG_DUMP_NOT_FOUND {
-					cmd.Println("Hey! we noticed you don't have 'pg_dump', then you also probably won't have 'pg_restore', we use these tools internally to perform dumps & restores... please install these tools in your OS before proceeding.")
-				} else {
-					cmd.PrintErrln("Unexpected error occured:", err)
-				}
-
-				return
-			}
-			err = db_int.RestoreDbOnlySchema(branchname, viper.GetViper(), outputFilePath)
-
 		} else {
-			err = lib.NewBranchFromCurrent(branchname)
+			err = lib.NewBranchFromCurrent(branchname, shouldCopyOnlySchema)
 		}
 		if err != nil {
 			if errors.Is(err, errs.ErrDbAlreadyExists) {
@@ -91,11 +68,6 @@ func run(cmd *cobra.Command, args []string) {
 
 			cmd.PrintErrln("UNKNOWN ERROR OCCURED!", err)
 			return
-		}
-		if shouldCopyOnlySchema {
-			if err := os.RemoveAll(outputFilePath); err != nil {
-				panic("Unexpected error occured while removing useless dump files!\n" + err.Error())
-			}
 		}
 	} else {
 		if db_int.DbExists(branchname) {

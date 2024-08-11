@@ -5,6 +5,7 @@ import (
 	"dbdaddy/db/db_int"
 	"dbdaddy/errs"
 	"fmt"
+	"os"
 	"path"
 	"regexp"
 
@@ -31,7 +32,7 @@ func SetCurrentBranch(branchname string) error {
 	return nil
 }
 
-func NewBranchFromCurrent(dbname string) error {
+func NewBranchFromCurrent(dbname string, onlySchema bool) error {
 	if db_int.DbExists(dbname) {
 		return errs.ErrDbAlreadyExists
 	}
@@ -41,13 +42,15 @@ func NewBranchFromCurrent(dbname string) error {
 		GetDriverDumpDir(configFilePath),
 		constants.GetDumpFileName(viper.GetString(constants.DbConfigCurrentBranchKey)),
 	)
-	if err := db_int.DumpDb(dumpFilePath, viper.GetViper()); err != nil {
+	if err := db_int.DumpDb(dumpFilePath, viper.GetViper(), onlySchema); err != nil {
 		return err
 	}
 
 	if err := db_int.RestoreDb(dbname, viper.GetViper(), dumpFilePath, true); err != nil {
 		return err
 	}
-
+	if err := os.RemoveAll(dumpFilePath); err != nil {
+		panic("Unexpected error occured while removing useless dump files!\n" + err.Error())
+	}
 	return nil
 }
