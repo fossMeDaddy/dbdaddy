@@ -20,7 +20,6 @@ func DumpDb(outputFilePath string, v *viper.Viper) error {
 		fmt.Sprintf("--port=%s", v.GetString(constants.DbConfigPortKey)),
 		// fmt.Sprintf("--result-file=%s", outputFilePath),
 		"--skip-comments",
-		"--compact",
 		"--no-create-db",
 		"--no-autocommit",
 		"--databases",
