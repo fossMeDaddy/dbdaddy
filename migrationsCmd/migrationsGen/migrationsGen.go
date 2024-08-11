@@ -2,7 +2,10 @@ package migrationsGenCmd
 
 import (
 	constants "dbdaddy/const"
+	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
+	migrationsLib "dbdaddy/lib/migrations"
+	"dbdaddy/types"
 	"os"
 	"path"
 
@@ -39,16 +42,20 @@ func run(cmd *cobra.Command, args []string) {
 		isInit = true
 	}
 
-	// var prevState []types.TableSchema
+	var prevState types.DbSchema
 
-	if isInit {
-	} else {
+	if !isInit {
 		// get the previous state, parse it & assign it
 	}
 
-	// get the current state "getschema" or something
+	currentState, err := db_int.GetDbSchema(currBranch)
+	if err != nil {
+		cmd.PrintErrln("error occured while fetching db schema")
+		cmd.PrintErrln(err)
+		return
+	}
 
-	// upChanges := diff (current_state, previous_state) [GOING UP]
+	migrationsLib.DiffStates(currentState, prevState)
 	// downChanges := diff (current_state, previous_state) [GOING DOWN]
 
 	// convert changes to SQL string & write up & down

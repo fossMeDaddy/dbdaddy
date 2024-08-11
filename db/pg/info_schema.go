@@ -4,6 +4,7 @@ import (
 	"dbdaddy/db"
 	"dbdaddy/db/pg/pgq"
 	"dbdaddy/types"
+	"fmt"
 )
 
 func ListTablesInDb() ([]types.Table, error) {
@@ -70,6 +71,55 @@ func GetTableSchema(dbname string, schema string, tablename string) (types.Table
 	return table, nil
 }
 
+// runs the query on the current db to get the db schema
 func GetDbSchema(dbname string) ([]types.TableSchema, error) {
-	return []types.TableSchema{}, nil
+	dbSchema := []types.TableSchema{}
+
+	rows, err := db.DB.Query(pgq.QGetSchema())
+	if err != nil {
+		return dbSchema, err
+	}
+
+	tableSchemaMapping := map[string]*types.TableSchema{}
+
+	for rows.Next() {
+		var tableschema, tablename string
+		column := types.Column{}
+		if err := rows.Scan(
+			&tableschema,
+			&tablename,
+			&column.Name,
+			&column.Default,
+			&column.Nullable,
+			&column.DataType,
+			&column.IsPrimaryKey,
+			&column.IsRelation,
+			&column.ForeignTableSchema,
+			&column.ForeignTableName,
+			&column.ForeignColumnName,
+		); err != nil {
+			return dbSchema, err
+		}
+
+		tableid := fmt.Sprint(tableschema + tablename)
+
+		tableSchema := tableSchemaMapping[tableid]
+		if tableSchema == nil {
+			tableSchema = &types.TableSchema{
+				Db:     dbname,
+				Schema: tableschema,
+				Name:   tablename,
+			}
+
+			tableSchemaMapping[tableid] = tableSchema
+		}
+
+		tableSchema.Columns = append(tableSchema.Columns, column)
+	}
+
+	for key := range tableSchemaMapping {
+		dbSchema = append(dbSchema, *tableSchemaMapping[key])
+	}
+
+	return dbSchema, nil
 }

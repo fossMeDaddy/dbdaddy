@@ -24,3 +24,5 @@ type Table struct {
 	Schema string
 	Type   string // IMP: possible values to be put in from constants 'TableType*'
 }
+
+type DbSchema []TableSchema
