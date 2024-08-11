@@ -3,7 +3,7 @@ bin/
 .env
 .env.*
 
-.dbdaddy/
+.dbdaddy*/
 dbdaddy.config.json
 
 ignore/

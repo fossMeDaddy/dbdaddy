@@ -6,10 +6,10 @@ import (
 	"dbdaddy/errs"
 	"dbdaddy/lib"
 	"dbdaddy/middlewares"
+	"errors"
 	"fmt"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -81,15 +81,16 @@ func run(cmd *cobra.Command, args []string) {
 			err = db_int.RestoreDbOnlySchema(branchname, viper.GetViper(), outputFilePath)
 
 		} else {
-			err = db_int.NewDbFromOriginal(viper.GetString(constants.DbConfigCurrentBranchKey), branchname)
+			err = lib.NewBranchFromCurrent(branchname)
 		}
 		if err != nil {
-			if strings.Contains(err.Error(), "already exists") {
+			if errors.Is(err, errs.ErrDbAlreadyExists) {
 				cmd.PrintErrf("Could not create a new database branch with name '%s' because it already exists.\n", branchname)
 				return
 			}
 
-			panic(err)
+			cmd.PrintErrln("UNKNOWN ERROR OCCURED!", err)
+			return
 		}
 		if shouldCopyOnlySchema {
 			if err := os.RemoveAll(outputFilePath); err != nil {

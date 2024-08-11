@@ -23,13 +23,6 @@ func QCreateNewDbFromOldTemplate(newDbName string, oldDbName string) string {
 	)
 }
 
-func QCreateNewDb(dbname string) string {
-	return fmt.Sprintf(
-		`CREATE DATABASE %s`,
-		dbname,
-	)
-}
-
 func QDisconnectAllUsersFromDb(dbname string) string {
 	return fmt.Sprintf(
 		`
@@ -38,13 +31,6 @@ func QDisconnectAllUsersFromDb(dbname string) string {
             WHERE pg_stat_activity.datname = '%s'
                 AND pid <> pg_backend_pid()
         `,
-		dbname,
-	)
-}
-
-func QDeleteDb(dbname string) string {
-	return fmt.Sprintf(
-		`drop database %s`,
 		dbname,
 	)
 }
