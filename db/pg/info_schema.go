@@ -74,3 +74,7 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 
 	return table, nil
 }
+
+func GetDbSchema(dbname string) ([]types.TableSchema, error) {
+	return []types.TableSchema{}, nil
+}

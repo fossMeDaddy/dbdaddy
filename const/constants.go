@@ -26,6 +26,9 @@ const (
 	MySqlDumpDir  = "mysql_dumps"
 	SqliteDumpDir = "sqlite_dumps"
 
+	// migrations
+	MigrationDir = "migrations"
+
 	// tmp
 	TmpDir          = "tmp"
 	TextQueryOutput = "query.out"

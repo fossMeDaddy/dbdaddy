@@ -81,3 +81,12 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 		panic("")
 	}
 }
+
+func GetDbSchema(dbname string) ([]types.TableSchema, error) {
+	driver := viper.GetString(constants.DbConfigDriverKey)
+	if driver == constants.DbDriverPostgres {
+		return pg.GetDbSchema(dbname)
+	} else {
+		panic("")
+	}
+}

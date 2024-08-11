@@ -3,6 +3,7 @@ package cmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
+	"dbdaddy/migrationsCmd"
 	checkoutCmd "dbdaddy/src-cmd/checkout"
 	configCmd "dbdaddy/src-cmd/config"
 	deleteCmd "dbdaddy/src-cmd/delete"
@@ -17,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/v5"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -70,6 +71,7 @@ func Execute() {
 	rootCmd.AddCommand(inspectMeCmd.Init())
 	rootCmd.AddCommand(studioCmd.Init())
 	rootCmd.AddCommand(execCmd.Init())
+	rootCmd.AddCommand(migrationsCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

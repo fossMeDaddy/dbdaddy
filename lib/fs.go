@@ -1,23 +1,28 @@
 package lib
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
 
-func DirExistsCreate(dirName string) error {
+// returns "(true, nil)" if dir was created, else returns "(false, ...)"
+func DirExistsCreate(dirName string) (bool, error) {
 	// Stat the directory to check if it exists
-	if _, err := os.Stat(dirName); os.IsNotExist(err) {
+	if _, err := os.Stat(dirName); errors.Is(err, os.ErrNotExist) {
 		// Directory does not exist, so create it
 		err := os.MkdirAll(dirName, 0755) // 0755 permissions allowing read and execute for others
 		if err != nil {
-			return fmt.Errorf("error creating directory: %v", err)
+			return false, fmt.Errorf("error creating directory: %v", err)
 		}
+
+		return true, nil
 	} else if err != nil {
 		// Some other error occurred when trying to access the directory
-		return fmt.Errorf("error checking directory: %v", err)
+		return false, fmt.Errorf("error checking directory: %v", err)
 	}
-	return nil
+
+	return false, nil
 }
 
 func Exists(path string) bool {

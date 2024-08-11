@@ -26,7 +26,7 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	dir, _ := path.Split(configWritePath)
-	if err := lib.DirExistsCreate(dir); err != nil {
+	if _, err := lib.DirExistsCreate(dir); err != nil {
 		panic("Unexpected error occured!\n" + err.Error())
 	}
 
