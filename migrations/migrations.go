@@ -1,4 +1,0 @@
-package migrations
-
-func LoadMigrations() {
-}
