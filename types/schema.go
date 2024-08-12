@@ -26,3 +26,6 @@ type Table struct {
 }
 
 type DbSchema []TableSchema
+
+// the string key is of format "schema.table"
+type DbSchemaMapping map[string]*TableSchema

@@ -7,6 +7,7 @@ import (
 	migrationsLib "dbdaddy/lib/migrations"
 	"dbdaddy/middlewares"
 	"dbdaddy/types"
+	"fmt"
 	"os"
 	"path"
 
@@ -43,25 +44,25 @@ func run(cmd *cobra.Command, args []string) {
 			isInit = true
 		}
 
-		prevState := types.DbSchema{}
+		prevState := types.DbSchemaMapping{}
 		if !isInit {
 			// get the previous state, parse it & assign it
 		}
 
-		currentState, err := db_int.GetDbSchema(currBranch)
+		currentState, err := db_int.GetDbSchemaMapping(currBranch)
 		if err != nil {
 			return err
 		}
 
-		migrationsLib.DiffDbSchema(currentState, prevState)
-		// downChanges := diff (current_state, previous_state) [GOING DOWN]
+		upChanges := migrationsLib.DiffDbSchema(currentState, prevState)
+		downChanges := migrationsLib.DiffDbSchema(prevState, currentState)
 
-		// convert changes to SQL string & write up & down
+		fmt.Println(upChanges, downChanges)
 
 		return nil
 	})
 	if err != nil {
-		cmd.PrintErrln("Unexpected error ioccured!")
+		cmd.PrintErrln("Unexpected error occured!")
 		cmd.PrintErrln(err)
 		return
 	}

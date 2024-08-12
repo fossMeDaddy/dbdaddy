@@ -3,8 +3,8 @@ package migrationsLib
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/types"
-	"fmt"
 	"slices"
+	"sync"
 )
 
 const (
@@ -12,11 +12,17 @@ const (
 	prevStateTag    = "PS"
 )
 
-func getKeysFromState(state types.DbSchema, tag string) ([][]string, [][]string) {
+var (
+	globalWg sync.WaitGroup
+)
+
+func getKeysFromState(state types.DbSchemaMapping, tag string) ([][]string, [][]string) {
 	tableKeys := [][]string{}
 	colKeys := [][]string{}
 
-	for _, tableSchema := range state {
+	for mapKey := range state {
+		tableSchema := state[mapKey]
+
 		tableKey := []string{tag, tableSchema.Db, tableSchema.Schema, tableSchema.Name}
 		tableKeys = append(tableKeys, tableKey)
 
@@ -34,41 +40,128 @@ give changes to be done on 'prevState' in order to move from 'prevState' to 'cur
 
 v0.1 - very simple, CREATE OR DELETE (DEFINITELY NOT FOR PRODUCTION DATABASES)
 */
-func DiffDbSchema(currentState, prevState types.DbSchema) {
-	changes := []types.MigAction{}
+func DiffDbSchema(currentState, prevState types.DbSchemaMapping) []types.MigAction {
+	safeChanges := types.NewSafeVar([]types.MigAction{})
 
-	tableKeysCS, _ := getKeysFromState(currentState, currentStateTag)
-	tableKeysPS, _ := getKeysFromState(prevState, prevStateTag)
+	var (
+		tableKeysCS, colKeysCS [][]string
+		tableKeysPS, colKeysPS [][]string
 
-	tableStateKeysConcat := slices.Concat(tableKeysCS, tableKeysPS)
-	slices.SortFunc(tableStateKeysConcat, slices.Compare)
+		tableStateKeysConcat [][]string
+		colStateKeysConcat   [][]string
+	)
 
-	// TABLE KEYS
-	for _, tableKey := range tableStateKeysConcat {
-		if tableKey[0] == currentStateTag {
-			psTableKey := slices.Concat([]string{prevStateTag}, tableKey[1:])
-			_, found := slices.BinarySearchFunc(tableStateKeysConcat, psTableKey, slices.Compare)
-			if !found {
-				action := types.MigAction{
-					Type:     constants.MigActionCreateTable,
-					EntityId: tableKey[1:],
+	// get keys from state
+	(func() {
+		globalWg.Add(2)
+		defer globalWg.Wait()
+
+		go (func() {
+			defer globalWg.Done()
+			tableKeysCS, colKeysCS = getKeysFromState(currentState, currentStateTag)
+		})()
+
+		go (func() {
+			defer globalWg.Done()
+			tableKeysPS, colKeysPS = getKeysFromState(prevState, prevStateTag)
+		})()
+	})()
+
+	// concat keys & sort
+	(func() {
+		globalWg.Add(2)
+		defer globalWg.Wait()
+
+		go (func() {
+			defer globalWg.Done()
+			tableStateKeysConcat = slices.Concat(tableKeysCS, tableKeysPS)
+			slices.SortFunc(tableStateKeysConcat, slices.Compare)
+		})()
+
+		go (func() {
+			defer globalWg.Done()
+			colStateKeysConcat = slices.Concat(colKeysCS, colKeysPS)
+			slices.SortFunc(colStateKeysConcat, slices.Compare)
+		})()
+	})()
+
+	// accumulate changes keys
+	(func() {
+		globalWg.Add(2)
+		defer globalWg.Wait()
+
+		go (func() {
+			defer globalWg.Done()
+
+			localChanges := []types.MigAction{}
+
+			for _, tableKey := range tableStateKeysConcat {
+				if tableKey[0] == currentStateTag {
+					// CREATE
+					psTableKey := slices.Concat([]string{prevStateTag}, tableKey[1:])
+					_, found := slices.BinarySearchFunc(tableStateKeysConcat, psTableKey, slices.Compare)
+					if !found {
+						action := types.MigAction{
+							Type:     constants.MigActionCreateTable,
+							EntityId: tableKey[1:],
+						}
+
+						localChanges = append(localChanges, action)
+					}
+				} else if tableKey[0] == prevStateTag {
+					// DROP
+					csTableKey := slices.Concat([]string{currentStateTag}, tableKey[1:])
+					_, found := slices.BinarySearchFunc(tableStateKeysConcat, csTableKey, slices.Compare)
+					if !found {
+						action := types.MigAction{
+							Type:     constants.MigActionDropTable,
+							EntityId: tableKey[1:],
+						}
+
+						localChanges = append(localChanges, action)
+					}
 				}
-
-				changes = append(changes, action)
 			}
-		} else if tableKey[0] == prevStateTag {
-			csTableKey := slices.Concat([]string{currentStateTag}, tableKey[1:])
-			_, found := slices.BinarySearchFunc(tableStateKeysConcat, csTableKey, slices.Compare)
-			if !found {
-				action := types.MigAction{
-					Type:     constants.MigActionDropTable,
-					EntityId: tableKey[1:],
+
+			safeChanges.Set(localChanges)
+		})()
+
+		go (func() {
+			defer globalWg.Done()
+
+			localChanges := []types.MigAction{}
+
+			for _, colKey := range colStateKeysConcat {
+				if colKey[0] == currentStateTag {
+					// CREATE
+					psColKey := slices.Concat([]string{prevStateTag}, colKey[1:])
+					_, found := slices.BinarySearchFunc(colStateKeysConcat, psColKey, slices.Compare)
+					if !found {
+						action := types.MigAction{
+							Type:     constants.MigActionCreateCol,
+							EntityId: colKey[1:],
+						}
+
+						localChanges = append(localChanges, action)
+					}
+				} else if colKey[0] == prevStateTag {
+					// DROP
+					csColKey := slices.Concat([]string{currentStateTag}, colKey[1:])
+					_, found := slices.BinarySearchFunc(colStateKeysConcat, csColKey, slices.Compare)
+					if !found {
+						action := types.MigAction{
+							Type:     constants.MigActionDropCol,
+							EntityId: colKey[1:],
+						}
+
+						localChanges = append(localChanges, action)
+					}
 				}
-
-				changes = append(changes, action)
 			}
-		}
-	}
 
-	fmt.Println(changes)
+			safeChanges.Set(localChanges)
+		})()
+	})()
+
+	return safeChanges.Get()
 }
