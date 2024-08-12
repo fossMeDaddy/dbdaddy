@@ -48,3 +48,7 @@ func GetDriverDumpDir(configPath string) string {
 
 	return dumpDirPath
 }
+
+func GetTableId(schemaname, tablename string) string {
+	return fmt.Sprintf("%s.%s", schemaname, tablename)
+}

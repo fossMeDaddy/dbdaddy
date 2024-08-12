@@ -7,7 +7,6 @@ import (
 	migrationsLib "dbdaddy/lib/migrations"
 	"dbdaddy/middlewares"
 	"dbdaddy/types"
-	"fmt"
 	"os"
 	"path"
 
@@ -54,10 +53,13 @@ func run(cmd *cobra.Command, args []string) {
 			return err
 		}
 
-		upChanges := migrationsLib.DiffDbSchema(currentState, prevState)
-		downChanges := migrationsLib.DiffDbSchema(prevState, currentState)
+		migrationsLib.DiffDbSchema(currentState, prevState)
+		// b, err := json.MarshalIndent(upChanges, "", "  ")
+		// if err != nil {
+		// 	cmd.Println(err)
+		// }
 
-		fmt.Println(upChanges, downChanges)
+		// cmd.Println(string(b))
 
 		return nil
 	})
