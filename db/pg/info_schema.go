@@ -71,8 +71,8 @@ func GetTableSchema(dbname string, schema string, tablename string) (types.Table
 	return table, nil
 }
 
-func GetDbSchemaMapping(dbname string) (types.DbSchemaMapping, error) {
-	dbSchema := types.DbSchemaMapping{}
+func GetDbSchema(dbname string) (types.DbSchema, error) {
+	dbSchema := types.DbSchema{}
 
 	rows, err := db.DB.Query(pgq.QGetSchema())
 	if err != nil {
@@ -116,21 +116,7 @@ func GetDbSchemaMapping(dbname string) (types.DbSchemaMapping, error) {
 		tableSchema.Columns = append(tableSchema.Columns, column)
 	}
 
-	return tableSchemaMapping, nil
-}
-
-// runs the query on the current db to get the db schema
-func GetDbSchema(dbname string) (types.DbSchema, error) {
-	dbSchema := types.DbSchema{}
-
-	tableSchemaMapping, err := GetDbSchemaMapping(dbname)
-	if err != nil {
-		return dbSchema, err
-	}
-
-	for key := range tableSchemaMapping {
-		dbSchema = append(dbSchema, *tableSchemaMapping[key])
-	}
+	dbSchema.Tables = tableSchemaMapping
 
 	return dbSchema, nil
 }

@@ -12,12 +12,12 @@ var (
 	globalWg sync.WaitGroup
 )
 
-func getKeysFromState(state types.DbSchemaMapping, tag string) ([][]string, [][]string) {
+func getKeysFromState(state types.DbSchema, tag string) ([][]string, [][]string) {
 	tableKeys := [][]string{}
 	colKeys := [][]string{}
 
-	for mapKey := range state {
-		tableSchema := state[mapKey]
+	for mapKey := range state.Tables {
+		tableSchema := state.Tables[mapKey]
 
 		tableKey := []string{tag, tableSchema.Db, tableSchema.Schema, tableSchema.Name}
 		tableKeys = append(tableKeys, tableKey)
@@ -116,7 +116,7 @@ give changes to be done on 'prevState' in order to move from 'prevState' to 'cur
 
 v0.1 - very simple, CREATE OR DELETE (DEFINITELY NOT FOR PRODUCTION DATABASES)
 */
-func DiffDbSchema(currentState, prevState types.DbSchemaMapping) []types.MigAction {
+func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 	changes := []types.MigAction{}
 
 	var (

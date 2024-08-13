@@ -43,12 +43,12 @@ func run(cmd *cobra.Command, args []string) {
 			isInit = true
 		}
 
-		prevState := types.DbSchemaMapping{}
+		prevState := types.DbSchema{}
 		if !isInit {
 			// get the previous state, parse it & assign it
 		}
 
-		currentState, err := db_int.GetDbSchemaMapping(currBranch)
+		currentState, err := db_int.GetDbSchema(currBranch)
 		if err != nil {
 			return err
 		}

@@ -90,12 +90,3 @@ func GetDbSchema(dbname string) (types.DbSchema, error) {
 		panic("")
 	}
 }
-
-func GetDbSchemaMapping(dbname string) (types.DbSchemaMapping, error) {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
-		return pg.GetDbSchemaMapping(dbname)
-	} else {
-		panic("")
-	}
-}

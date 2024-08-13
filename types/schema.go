@@ -1,5 +1,9 @@
 package types
 
+type DbType struct {
+	Name string
+}
+
 type Column struct {
 	Name               string
 	Default            string
@@ -25,7 +29,8 @@ type Table struct {
 	Type   string // IMP: possible values to be put in from constants 'TableType*'
 }
 
-type DbSchema []TableSchema
-
 // the string key is of format "schema.table"
-type DbSchemaMapping map[string]*TableSchema
+type DbSchema struct {
+	Tables map[string]*TableSchema
+	Types  []DbType
+}
