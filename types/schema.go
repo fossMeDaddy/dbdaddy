@@ -1,7 +1,8 @@
 package types
 
 type DbType struct {
-	Name string
+	Schema string
+	Name   string
 }
 
 type Column struct {
@@ -14,6 +15,7 @@ type Column struct {
 	ForeignTableSchema string
 	ForeignTableName   string
 	ForeignColumnName  string
+	CharMaxLen         string
 }
 
 type TableSchema struct {

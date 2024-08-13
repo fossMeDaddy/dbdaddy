@@ -5,6 +5,11 @@ import (
 	"dbdaddy/db/pg/pgq"
 	"dbdaddy/types"
 	"fmt"
+	"sync"
+)
+
+var (
+	globalWg sync.WaitGroup
 )
 
 func ListTablesInDb() ([]types.Table, error) {
@@ -56,6 +61,7 @@ func GetTableSchema(dbname string, schema string, tablename string) (types.Table
 			&column.Default,
 			&column.Nullable,
 			&column.DataType,
+			&column.CharMaxLen,
 			&column.IsPrimaryKey,
 			&column.IsRelation,
 			&column.ForeignTableSchema,
@@ -81,6 +87,43 @@ func GetDbSchema(dbname string) (types.DbSchema, error) {
 
 	tableSchemaMapping := map[string]*types.TableSchema{}
 
+	dbTypes := []types.DbType{}
+	globalWg.Add(1)
+	go (func() {
+		defer globalWg.Done()
+
+		rows, err := db.DB.Query(`
+			select nsp.nspname, typ.typname from pg_type as typ
+
+			inner join pg_namespace as nsp on
+				typ.typnamespace = nsp.oid and
+				nsp.nspname != 'information_schema' and
+				nsp.nspname NOT LIKE 'pg_%'
+
+			where
+				typtype not in ('b', 'c')
+		`)
+		if err != nil {
+			fmt.Println("Warning, error occured while fetching DB types", err)
+			return
+		}
+
+		for rows.Next() {
+			dbType := types.DbType{}
+
+			err := rows.Scan(
+				&dbType.Schema,
+				&dbType.Name,
+			)
+			if err != nil {
+				fmt.Println("error occured while reading row from pg_type", err)
+				return
+			}
+
+			dbTypes = append(dbTypes, dbType)
+		}
+	})()
+
 	for rows.Next() {
 		var tableschema, tablename string
 		column := types.Column{}
@@ -91,6 +134,7 @@ func GetDbSchema(dbname string) (types.DbSchema, error) {
 			&column.Default,
 			&column.Nullable,
 			&column.DataType,
+			&column.CharMaxLen,
 			&column.IsPrimaryKey,
 			&column.IsRelation,
 			&column.ForeignTableSchema,
@@ -116,6 +160,9 @@ func GetDbSchema(dbname string) (types.DbSchema, error) {
 		tableSchema.Columns = append(tableSchema.Columns, column)
 	}
 
+	globalWg.Wait()
+
+	dbSchema.Types = dbTypes
 	dbSchema.Tables = tableSchemaMapping
 
 	return dbSchema, nil

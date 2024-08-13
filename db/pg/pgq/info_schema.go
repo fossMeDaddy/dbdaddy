@@ -17,6 +17,10 @@ var QGetTableSchema = func(schema string, table string) string {
             END AS nullable,
             infcol.udt_name as datatype,
             CASE
+				WHEN infcol.character_maximum_length IS NULL THEN -1
+				ELSE infcol.character_maximum_length
+			END,
+            CASE
                 WHEN relcon.contype = 'p' then true
                 ELSE false
             END as is_primary_key,
@@ -80,7 +84,7 @@ var QGetSchema = func() string {
             infcol.table_name,
             infcol.column_name as column_name,
             CASE
-                WHEN infcol.column_default IS NULL then '<null>'
+                WHEN infcol.column_default IS NULL then ''
                 ELSE infcol.column_default
             END as default_value,
             CASE
@@ -88,6 +92,10 @@ var QGetSchema = func() string {
                 ELSE FALSE
             END AS nullable,
             infcol.udt_name as datatype,
+            CASE
+				WHEN infcol.character_maximum_length IS NULL THEN -1
+				ELSE infcol.character_maximum_length
+			END,
             CASE
                 WHEN relcon.contype = 'p' then true
                 ELSE false
