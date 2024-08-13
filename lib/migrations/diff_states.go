@@ -12,23 +12,43 @@ var (
 	globalWg sync.WaitGroup
 )
 
-func getKeysFromState(state types.DbSchema, tag string) ([][]string, [][]string) {
+func getKeysFromState(state types.DbSchema, tag string) ([][]string, [][]string, [][]string) {
+	keysWg := sync.WaitGroup{}
+
 	tableKeys := [][]string{}
 	colKeys := [][]string{}
+	typeKeys := [][]string{}
 
-	for mapKey := range state.Tables {
-		tableSchema := state.Tables[mapKey]
+	(func() {
+		keysWg.Add(2)
+		defer keysWg.Wait()
 
-		tableKey := []string{tag, tableSchema.Db, tableSchema.Schema, tableSchema.Name}
-		tableKeys = append(tableKeys, tableKey)
+		go (func() {
+			defer keysWg.Done()
 
-		for _, col := range tableSchema.Columns {
-			colKey := append(tableKey, col.Name)
-			colKeys = append(colKeys, colKey)
-		}
-	}
+			for _, typeKey := range state.Types {
+				typeKeys = append(typeKeys, []string{tag, typeKey.Schema, typeKey.Name})
+			}
+		})()
 
-	return tableKeys, colKeys
+		go (func() {
+			defer keysWg.Done()
+
+			for mapKey := range state.Tables {
+				tableSchema := state.Tables[mapKey]
+
+				tableKey := []string{tag, tableSchema.Db, tableSchema.Schema, tableSchema.Name}
+				tableKeys = append(tableKeys, tableKey)
+
+				for _, col := range tableSchema.Columns {
+					colKey := append(tableKey, col.Name)
+					colKeys = append(colKeys, colKey)
+				}
+			}
+		})()
+	})()
+
+	return tableKeys, colKeys, typeKeys
 }
 
 // takes in CS & PS concatenated sorted table keys.
@@ -111,6 +131,40 @@ func getColStateChanges(colStateKeysConcat [][]string, tableChangesMapping map[s
 	return localChanges
 }
 
+func getTypeStateChanges(typeStateKeysConcat [][]string) []types.MigAction {
+	localChanges := []types.MigAction{}
+
+	for _, typeKey := range typeStateKeysConcat {
+		if typeKey[0] == currentStateTag {
+			// CREATE
+			psTypeKey := slices.Concat([]string{prevStateTag}, typeKey[1:])
+			_, found := slices.BinarySearchFunc(typeStateKeysConcat, psTypeKey, slices.Compare)
+			if !found {
+				action := types.MigAction{
+					Type:     constants.MigActionCreateType,
+					EntityId: typeKey,
+				}
+
+				localChanges = append(localChanges, action)
+			}
+		} else if typeKey[0] == prevStateTag {
+			// DROP
+			csTypeKey := slices.Concat([]string{currentStateTag}, typeKey[1:])
+			_, found := slices.BinarySearchFunc(typeStateKeysConcat, csTypeKey, slices.Compare)
+			if !found {
+				action := types.MigAction{
+					Type:     constants.MigActionDropType,
+					EntityId: typeKey,
+				}
+
+				localChanges = append(localChanges, action)
+			}
+		}
+	}
+
+	return localChanges
+}
+
 /*
 give changes to be done on 'prevState' in order to move from 'prevState' to 'currentState'
 
@@ -123,8 +177,11 @@ func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 		tableKeysCS, colKeysCS [][]string
 		tableKeysPS, colKeysPS [][]string
 
+		typeKeysCS, typeKeysPS [][]string
+
 		tableStateKeysConcat [][]string
 		colStateKeysConcat   [][]string
+		typeStateKeysConcat  [][]string
 	)
 
 	// get keys from state
@@ -134,18 +191,18 @@ func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 
 		go (func() {
 			defer globalWg.Done()
-			tableKeysCS, colKeysCS = getKeysFromState(currentState, currentStateTag)
+			tableKeysCS, colKeysCS, typeKeysCS = getKeysFromState(currentState, currentStateTag)
 		})()
 
 		go (func() {
 			defer globalWg.Done()
-			tableKeysPS, colKeysPS = getKeysFromState(prevState, prevStateTag)
+			tableKeysPS, colKeysPS, typeKeysPS = getKeysFromState(prevState, prevStateTag)
 		})()
 	})()
 
 	// concat keys & sort
 	(func() {
-		globalWg.Add(2)
+		globalWg.Add(3)
 		defer globalWg.Wait()
 
 		go (func() {
@@ -159,12 +216,19 @@ func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 			colStateKeysConcat = slices.Concat(colKeysCS, colKeysPS)
 			slices.SortFunc(colStateKeysConcat, slices.Compare)
 		})()
+
+		go (func() {
+			defer globalWg.Done()
+			typeStateKeysConcat = slices.Concat(typeKeysCS, typeKeysPS)
+			slices.SortFunc(typeStateKeysConcat, slices.Compare)
+		})()
 	})()
 
 	// accumulate changes keys
+	typeChanges := getTypeStateChanges(typeStateKeysConcat)
 	tableChanges, tableChangesMapping := getTableStateChanges(tableStateKeysConcat)
 	colChanges := getColStateChanges(colStateKeysConcat, tableChangesMapping)
-	changes = slices.Concat(changes, tableChanges, colChanges)
+	changes = slices.Concat(changes, typeChanges, tableChanges, colChanges)
 
 	return changes
 }

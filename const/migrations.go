@@ -7,4 +7,7 @@ const (
 
 	MigActionCreateCol = "CREATE_COLUMN"
 	MigActionDropCol   = "DROP_COLUMN"
+
+	MigActionCreateType = "CREATE_TYPE"
+	MigActionDropType   = "DROP_TYPE"
 )
