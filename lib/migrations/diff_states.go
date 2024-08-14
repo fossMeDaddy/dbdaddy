@@ -11,12 +11,15 @@ var (
 	globalWg sync.WaitGroup
 )
 
-func getKeysFromState(state types.DbSchema, tag string) ([][]string, [][]string, [][]string) {
+type keyType [][]string
+
+func getKeysFromState(state types.DbSchema, tag string) (keyType, keyType, keyType, keyType) {
 	keysWg := sync.WaitGroup{}
 
-	tableKeys := [][]string{}
-	colKeys := [][]string{}
-	typeKeys := [][]string{}
+	tableKeys := keyType{}
+	colKeys := keyType{}
+	typeKeys := keyType{}
+	conKeys := keyType{}
 
 	(func() {
 		keysWg.Add(2)
@@ -43,18 +46,25 @@ func getKeysFromState(state types.DbSchema, tag string) ([][]string, [][]string,
 					colKey := append(tableKey, col.Name)
 					colKeys = append(colKeys, colKey)
 				}
+
+				for _, con := range tableSchema.Constraints {
+					conKey := append(tableKey, con.ConName)
+					conKeys = append(conKeys, conKey)
+				}
 			}
 		})()
 	})()
 
-	return tableKeys, colKeys, typeKeys
+	return tableKeys, colKeys, typeKeys, conKeys
 }
 
 // takes in CS & PS concatenated sorted table keys.
 // returns changes & mapping for what tables were created/deleted
-func getTableStateChanges(tableStateKeysConcat [][]string) ([]types.MigAction, map[string]bool) {
+func getTableStateChanges(tableStateKeysConcat keyType) ([]types.MigAction, map[string]string) {
 	tableChanges := []types.MigAction{}
-	tableChangesMapping := map[string]bool{}
+
+	// tableid is mapped to a string containing same values as "MigAction*" Strings
+	tableChangesMapping := map[string]string{}
 
 	for _, tableKey := range tableStateKeysConcat {
 		if tableKey[0] == currentStateTag {
@@ -68,7 +78,7 @@ func getTableStateChanges(tableStateKeysConcat [][]string) ([]types.MigAction, m
 				}
 
 				tableChanges = append(tableChanges, action)
-				tableChangesMapping[constants.GetTableId(tableKey[2], tableKey[3])] = true
+				tableChangesMapping[constants.GetTableId(tableKey[2], tableKey[3])] = action.Type
 			}
 		} else if tableKey[0] == prevStateTag {
 			// DROP
@@ -81,7 +91,7 @@ func getTableStateChanges(tableStateKeysConcat [][]string) ([]types.MigAction, m
 				}
 
 				tableChanges = append(tableChanges, action)
-				tableChangesMapping[constants.GetTableId(tableKey[2], tableKey[3])] = true
+				tableChangesMapping[constants.GetTableId(tableKey[2], tableKey[3])] = action.Type
 			}
 		}
 	}
@@ -89,14 +99,14 @@ func getTableStateChanges(tableStateKeysConcat [][]string) ([]types.MigAction, m
 	return tableChanges, tableChangesMapping
 }
 
-func getColStateChanges(colStateKeysConcat [][]string, tableChangesMapping map[string]bool) []types.MigAction {
+func getColStateChanges(colStateKeysConcat keyType, tableChangesMapping map[string]string) []types.MigAction {
 	localChanges := []types.MigAction{}
 
 	for _, colKey := range colStateKeysConcat {
 		// if table itself was changed (created/deleted)
 		// there's no point of tracking the columns
 		tableid := constants.GetTableId(colKey[2], colKey[3])
-		if tableChangesMapping[tableid] {
+		if slices.Contains([]string{constants.MigActionCreateTable, constants.MigActionDropTable}, tableChangesMapping[tableid]) {
 			continue
 		}
 
@@ -130,7 +140,7 @@ func getColStateChanges(colStateKeysConcat [][]string, tableChangesMapping map[s
 	return localChanges
 }
 
-func getTypeStateChanges(typeStateKeysConcat [][]string) []types.MigAction {
+func getTypeStateChanges(typeStateKeysConcat keyType) []types.MigAction {
 	localChanges := []types.MigAction{}
 
 	for _, typeKey := range typeStateKeysConcat {
@@ -164,6 +174,45 @@ func getTypeStateChanges(typeStateKeysConcat [][]string) []types.MigAction {
 	return localChanges
 }
 
+func getConStateChanges(conStateKeysConcat keyType, tableChangesMapping map[string]string) []types.MigAction {
+	localChanges := []types.MigAction{}
+
+	for _, conKey := range conStateKeysConcat {
+		tableid := constants.GetTableId(conKey[2], conKey[3])
+		if tableChangesMapping[tableid] == constants.MigActionDropTable {
+			continue
+		}
+
+		if conKey[0] == currentStateTag {
+			// CREATE
+			psConKey := slices.Concat([]string{prevStateTag}, conKey[1:])
+			_, found := slices.BinarySearchFunc(conStateKeysConcat, psConKey, slices.Compare)
+			if !found {
+				change := types.MigAction{
+					Type:     constants.MigActionCreateConstraint,
+					EntityId: conKey,
+				}
+
+				localChanges = append(localChanges, change)
+			}
+		} else if conKey[0] == prevStateTag {
+			// DROP
+			csConKey := slices.Concat([]string{currentStateTag}, conKey[1:])
+			_, found := slices.BinarySearchFunc(conStateKeysConcat, csConKey, slices.Compare)
+			if !found {
+				change := types.MigAction{
+					Type:     constants.MigActionDropConstraint,
+					EntityId: conKey,
+				}
+
+				localChanges = append(localChanges, change)
+			}
+		}
+	}
+
+	return localChanges
+}
+
 /*
 give changes to be done on 'prevState' in order to move from 'prevState' to 'currentState'
 
@@ -173,14 +222,15 @@ func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 	changes := []types.MigAction{}
 
 	var (
-		tableKeysCS, colKeysCS [][]string
-		tableKeysPS, colKeysPS [][]string
+		tableKeysCS, tableKeysPS keyType
+		colKeysCS, colKeysPS     keyType
+		conKeysCS, conKeysPS     keyType
+		typeKeysCS, typeKeysPS   keyType
 
-		typeKeysCS, typeKeysPS [][]string
-
-		tableStateKeysConcat [][]string
-		colStateKeysConcat   [][]string
-		typeStateKeysConcat  [][]string
+		tableStateKeysConcat keyType
+		colStateKeysConcat   keyType
+		typeStateKeysConcat  keyType
+		conStateKeysConcat   keyType
 	)
 
 	// get keys from state
@@ -190,18 +240,18 @@ func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 
 		go (func() {
 			defer globalWg.Done()
-			tableKeysCS, colKeysCS, typeKeysCS = getKeysFromState(currentState, currentStateTag)
+			tableKeysCS, colKeysCS, typeKeysCS, conKeysCS = getKeysFromState(currentState, currentStateTag)
 		})()
 
 		go (func() {
 			defer globalWg.Done()
-			tableKeysPS, colKeysPS, typeKeysPS = getKeysFromState(prevState, prevStateTag)
+			tableKeysPS, colKeysPS, typeKeysPS, conKeysPS = getKeysFromState(prevState, prevStateTag)
 		})()
 	})()
 
 	// concat keys & sort
 	(func() {
-		globalWg.Add(3)
+		globalWg.Add(4)
 		defer globalWg.Wait()
 
 		go (func() {
@@ -221,13 +271,20 @@ func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 			typeStateKeysConcat = slices.Concat(typeKeysCS, typeKeysPS)
 			slices.SortFunc(typeStateKeysConcat, slices.Compare)
 		})()
+
+		go (func() {
+			defer globalWg.Done()
+			conStateKeysConcat = slices.Concat(conKeysCS, conKeysPS)
+			slices.SortFunc(conStateKeysConcat, slices.Compare)
+		})()
 	})()
 
 	// accumulate changes keys
 	typeChanges := getTypeStateChanges(typeStateKeysConcat)
 	tableChanges, tableChangesMapping := getTableStateChanges(tableStateKeysConcat)
 	colChanges := getColStateChanges(colStateKeysConcat, tableChangesMapping)
-	changes = slices.Concat(changes, typeChanges, tableChanges, colChanges)
+	conChanges := getConStateChanges(conStateKeysConcat, tableChangesMapping)
+	changes = slices.Concat(changes, typeChanges, tableChanges, colChanges, conChanges)
 
 	return changes
 }

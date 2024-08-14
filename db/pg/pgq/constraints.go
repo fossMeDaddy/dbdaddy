@@ -6,7 +6,7 @@ import (
 )
 
 // pass "" in tableid if need to get constraints for the whole db
-func QGetAllConstraints(tableid string) string {
+func QGetConstraints(tableid string) string {
 
 	whereClause := "infcol.table_schema not in ('pg_catalog', 'information_schema')"
 	if len(tableid) > 0 {
@@ -23,10 +23,7 @@ func QGetAllConstraints(tableid string) string {
 			relcon.contype,
 			relcon.confupdtype,
 			relcon.confdeltype,
-			CASE
-				WHEN relcon.conbin IS NOT NULL THEN pg_get_constraintdef(relcon.oid, true)
-				ELSE ''
-			END as check_syntax,
+			pg_get_constraintdef(relcon.oid, true) as syntax,
 			infcol.table_schema,
             infcol.table_name,
             infcol.column_name as column_name,

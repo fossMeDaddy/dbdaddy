@@ -108,7 +108,7 @@ func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
 		}
 	})()
 
-	conRows, conErr := db.DB.Query(pgq.QGetAllConstraints(tableid))
+	conRows, conErr := db.DB.Query(pgq.QGetConstraints(tableid))
 	if conErr != nil {
 		return dbSchema, conErr
 	}
@@ -121,7 +121,7 @@ func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
 			&con.Type,
 			&con.UpdateActionType,
 			&con.DeleteActionType,
-			&con.CheckSyntax,
+			&con.Syntax,
 			&con.TableSchema,
 			&con.TableName,
 			&con.ColName,

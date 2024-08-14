@@ -10,4 +10,7 @@ const (
 
 	MigActionCreateType = "CREATE_TYPE"
 	MigActionDropType   = "DROP_TYPE"
+
+	MigActionCreateConstraint = "CREATE_CONSTRAINT"
+	MigActionDropConstraint   = "DROP_CONSTRAINT"
 )

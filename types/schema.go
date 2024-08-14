@@ -11,7 +11,7 @@ type DbConstraint struct {
 	Type             string
 	UpdateActionType string
 	DeleteActionType string
-	CheckSyntax      string
+	Syntax           string
 
 	// on table
 	TableSchema string
