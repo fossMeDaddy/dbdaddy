@@ -10,12 +10,14 @@ type Column struct {
 	Default            string
 	Nullable           bool
 	DataType           string
+	CharMaxLen         int
+	NumericPrecision   int
+	NumericScale       int
 	IsPrimaryKey       bool
 	IsRelation         bool
 	ForeignTableSchema string
 	ForeignTableName   string
 	ForeignColumnName  string
-	CharMaxLen         string
 }
 
 type TableSchema struct {

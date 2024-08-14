@@ -15,10 +15,24 @@ var QGetTableSchema = func(schema string, table string) string {
                 WHEN infcol.is_nullable = 'YES' THEN TRUE
                 ELSE FALSE
             END AS nullable,
-            infcol.udt_name as datatype,
+            CASE
+				WHEN infcol.data_type = 'ARRAY'
+					THEN CONCAT(releltype.data_type, '[]')
+				WHEN infcol.domain_name IS NOT NULL
+					THEN infcol.domain_name
+				ELSE infcol.udt_name
+			END as datatype,
             CASE
 				WHEN infcol.character_maximum_length IS NULL THEN -1
 				ELSE infcol.character_maximum_length
+			END,
+			CASE
+				WHEN infcol.numeric_precision IS NULL THEN -1
+				ELSE infcol.numeric_precision
+			END,
+			CASE
+				WHEN infcol.numeric_scale IS NULL THEN -1
+				ELSE infcol.numeric_scale
 			END,
             CASE
                 WHEN relcon.contype = 'p' then true
@@ -42,6 +56,9 @@ var QGetTableSchema = func(schema string, table string) string {
             END as foreign_column_name
         from information_schema.columns infcol
 
+        LEFT JOIN information_schema.element_types releltype
+		ON ((infcol.table_catalog, infcol.table_schema, infcol.table_name, 'TABLE', infcol.dtd_identifier)
+			= (releltype.object_catalog, releltype.object_schema, releltype.object_name, releltype.object_type, releltype.collection_type_identifier))
         inner join pg_namespace as relnsp on infcol.table_schema = relnsp.nspname
         inner join pg_class as relcls on
             relcls.relname = infcol.table_name and
@@ -91,10 +108,24 @@ var QGetSchema = func() string {
                 WHEN infcol.is_nullable = 'YES' THEN TRUE
                 ELSE FALSE
             END AS nullable,
-            infcol.udt_name as datatype,
+			CASE
+				WHEN infcol.data_type = 'ARRAY'
+					THEN CONCAT(releltype.data_type, '[]')
+				WHEN infcol.domain_name IS NOT NULL
+					THEN infcol.domain_name
+				ELSE infcol.udt_name
+			END as datatype,
             CASE
 				WHEN infcol.character_maximum_length IS NULL THEN -1
 				ELSE infcol.character_maximum_length
+			END,
+			CASE
+				WHEN infcol.numeric_precision IS NULL THEN -1
+				ELSE infcol.numeric_precision
+			END,
+			CASE
+				WHEN infcol.numeric_scale IS NULL THEN -1
+				ELSE infcol.numeric_scale
 			END,
             CASE
                 WHEN relcon.contype = 'p' then true
@@ -118,7 +149,10 @@ var QGetSchema = func() string {
             END as foreign_column_name
         from information_schema.columns infcol
 
-        inner join pg_namespace as relnsp on infcol.table_schema = relnsp.nspname
+        LEFT JOIN information_schema.element_types releltype
+		ON ((infcol.table_catalog, infcol.table_schema, infcol.table_name, 'TABLE', infcol.dtd_identifier)
+			= (releltype.object_catalog, releltype.object_schema, releltype.object_name, releltype.object_type, releltype.collection_type_identifier))
+		inner join pg_namespace as relnsp on infcol.table_schema = relnsp.nspname
         inner join pg_class as relcls on
             relcls.relname = infcol.table_name and
             relcls.relnamespace = relnsp.oid
