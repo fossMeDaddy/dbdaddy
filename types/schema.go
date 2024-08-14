@@ -5,26 +5,44 @@ type DbType struct {
 	Name   string
 }
 
+type DbConstraint struct {
+	ConName          string
+	ConSchema        string
+	Type             string
+	UpdateActionType string
+	DeleteActionType string
+	CheckSyntax      string
+
+	// on table
+	TableSchema string
+	TableName   string
+	ColName     string
+
+	// foreign table
+	FTableSchema string
+	FTableName   string
+	FColName     string
+}
+
 type Column struct {
-	Name               string
-	Default            string
-	Nullable           bool
-	DataType           string
-	CharMaxLen         int
-	NumericPrecision   int
-	NumericScale       int
-	IsPrimaryKey       bool
-	IsRelation         bool
-	ForeignTableSchema string
-	ForeignTableName   string
-	ForeignColumnName  string
+	Name             string
+	Default          string
+	Nullable         bool
+	DataType         string
+	CharMaxLen       int
+	NumericPrecision int
+	NumericScale     int
+
+	// OnlyFrontend (only for use by frontend-loving buttplug furries)
+	IsPrimaryKey bool
 }
 
 type TableSchema struct {
-	Db      string
-	Schema  string
-	Name    string
-	Columns []Column
+	Db          string
+	Schema      string
+	Name        string
+	Columns     []Column
+	Constraints []*DbConstraint
 }
 
 type Table struct {

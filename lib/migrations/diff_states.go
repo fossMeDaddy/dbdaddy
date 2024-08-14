@@ -2,7 +2,6 @@ package migrationsLib
 
 import (
 	constants "dbdaddy/const"
-	"dbdaddy/lib"
 	"dbdaddy/types"
 	"slices"
 	"sync"
@@ -69,7 +68,7 @@ func getTableStateChanges(tableStateKeysConcat [][]string) ([]types.MigAction, m
 				}
 
 				tableChanges = append(tableChanges, action)
-				tableChangesMapping[lib.GetTableId(tableKey[2], tableKey[3])] = true
+				tableChangesMapping[constants.GetTableId(tableKey[2], tableKey[3])] = true
 			}
 		} else if tableKey[0] == prevStateTag {
 			// DROP
@@ -82,7 +81,7 @@ func getTableStateChanges(tableStateKeysConcat [][]string) ([]types.MigAction, m
 				}
 
 				tableChanges = append(tableChanges, action)
-				tableChangesMapping[lib.GetTableId(tableKey[2], tableKey[3])] = true
+				tableChangesMapping[constants.GetTableId(tableKey[2], tableKey[3])] = true
 			}
 		}
 	}
@@ -96,7 +95,7 @@ func getColStateChanges(colStateKeysConcat [][]string, tableChangesMapping map[s
 	for _, colKey := range colStateKeysConcat {
 		// if table itself was changed (created/deleted)
 		// there's no point of tracking the columns
-		tableid := lib.GetTableId(colKey[2], colKey[3])
+		tableid := constants.GetTableId(colKey[2], colKey[3])
 		if tableChangesMapping[tableid] {
 			continue
 		}

@@ -1,6 +1,7 @@
 package pg
 
 import (
+	constants "dbdaddy/const"
 	"dbdaddy/db"
 	"dbdaddy/db/pg/pgq"
 	"dbdaddy/types"
@@ -42,55 +43,36 @@ func ListTablesInDb() ([]types.Table, error) {
 	return tables, nil
 }
 
-func GetTableSchema(dbname string, schema string, tablename string) (types.TableSchema, error) {
-	table := types.TableSchema{
-		Db:     dbname,
-		Schema: schema,
-		Name:   tablename,
-	}
+func GetTableSchema(dbname string, schema string, tablename string) (*types.TableSchema, error) {
+	var tableSchema *types.TableSchema
 
-	rows, err := db.DB.Query(pgq.QGetTableSchema(schema, tablename))
+	dbSchema, err := GetDbSchema(dbname, schema, tablename)
 	if err != nil {
-		return table, err
+		return tableSchema, err
 	}
 
-	for rows.Next() {
-		column := types.Column{}
-		if err := rows.Scan(
-			&column.Name,
-			&column.Default,
-			&column.Nullable,
-			&column.DataType,
-			&column.CharMaxLen,
-			&column.NumericPrecision,
-			&column.NumericScale,
-			&column.IsPrimaryKey,
-			&column.IsRelation,
-			&column.ForeignTableSchema,
-			&column.ForeignTableName,
-			&column.ForeignColumnName,
-		); err != nil {
-			return table, err
-		}
-
-		table.Columns = append(table.Columns, column)
+	tableid := constants.GetTableId(schema, tablename)
+	tableSchema = dbSchema.Tables[tableid]
+	if tableSchema == nil {
+		return tableSchema, fmt.Errorf("table with name '%s' could not be found in db schema", tableid)
 	}
 
-	return table, nil
+	return tableSchema, nil
 }
 
-func GetDbSchema(dbname string) (types.DbSchema, error) {
+func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
+	tableid := constants.GetTableId(schema, tablename)
+
 	dbSchema := types.DbSchema{}
 
-	rows, err := db.DB.Query(pgq.QGetSchema())
-	if err != nil {
-		return dbSchema, err
-	}
-
 	tableSchemaMapping := map[string]*types.TableSchema{}
-
+	dbCons := map[string][]*types.DbConstraint{}
 	dbTypes := []types.DbType{}
+
 	globalWg.Add(1)
+	var (
+		typeErr error
+	)
 	go (func() {
 		defer globalWg.Done()
 
@@ -106,7 +88,7 @@ func GetDbSchema(dbname string) (types.DbSchema, error) {
 				typtype not in ('b', 'c')
 		`)
 		if err != nil {
-			fmt.Println("Warning, error occured while fetching DB types", err)
+			typeErr = err
 			return
 		}
 
@@ -118,13 +100,52 @@ func GetDbSchema(dbname string) (types.DbSchema, error) {
 				&dbType.Name,
 			)
 			if err != nil {
-				fmt.Println("error occured while reading row from pg_type", err)
+				typeErr = err
 				return
 			}
 
 			dbTypes = append(dbTypes, dbType)
 		}
 	})()
+
+	conRows, conErr := db.DB.Query(pgq.QGetAllConstraints(tableid))
+	if conErr != nil {
+		return dbSchema, conErr
+	}
+
+	for conRows.Next() {
+		con := types.DbConstraint{}
+		err := conRows.Scan(
+			&con.ConName,
+			&con.ConSchema,
+			&con.Type,
+			&con.UpdateActionType,
+			&con.DeleteActionType,
+			&con.CheckSyntax,
+			&con.TableSchema,
+			&con.TableName,
+			&con.ColName,
+			&con.FTableSchema,
+			&con.FTableName,
+			&con.FColName,
+		)
+		if err != nil {
+			fmt.Println(err)
+			return dbSchema, err
+		}
+
+		tableid := constants.GetTableId(con.TableSchema, con.TableName)
+
+		if dbCons[tableid] == nil {
+			dbCons[tableid] = []*types.DbConstraint{}
+		}
+		dbCons[tableid] = append(dbCons[tableid], &con)
+	}
+
+	rows, err := db.DB.Query(pgq.QGetSchema(tableid))
+	if err != nil {
+		return dbSchema, err
+	}
 
 	for rows.Next() {
 		var tableschema, tablename string
@@ -140,22 +161,20 @@ func GetDbSchema(dbname string) (types.DbSchema, error) {
 			&column.NumericPrecision,
 			&column.NumericScale,
 			&column.IsPrimaryKey,
-			&column.IsRelation,
-			&column.ForeignTableSchema,
-			&column.ForeignTableName,
-			&column.ForeignColumnName,
 		); err != nil {
 			return dbSchema, err
 		}
 
-		tableid := fmt.Sprint(tableschema + tablename)
+		tableid := constants.GetTableId(tableschema, tablename)
 
 		tableSchema := tableSchemaMapping[tableid]
+		tableCons := dbCons[tableid]
 		if tableSchema == nil {
 			tableSchema = &types.TableSchema{
-				Db:     dbname,
-				Schema: tableschema,
-				Name:   tablename,
+				Db:          dbname,
+				Schema:      tableschema,
+				Name:        tablename,
+				Constraints: tableCons,
 			}
 
 			tableSchemaMapping[tableid] = tableSchema
@@ -165,6 +184,13 @@ func GetDbSchema(dbname string) (types.DbSchema, error) {
 	}
 
 	globalWg.Wait()
+
+	if typeErr != nil {
+		return dbSchema, typeErr
+	}
+	if conErr != nil {
+		return dbSchema, typeErr
+	}
 
 	dbSchema.Types = dbTypes
 	dbSchema.Tables = tableSchemaMapping

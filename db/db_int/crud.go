@@ -73,7 +73,7 @@ func ListTablesInDb() ([]types.Table, error) {
 	}
 }
 
-func GetTableSchema(dbname, schema, tablename string) (types.TableSchema, error) {
+func GetTableSchema(dbname, schema, tablename string) (*types.TableSchema, error) {
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
 		return pg.GetTableSchema(dbname, schema, tablename)
@@ -85,7 +85,7 @@ func GetTableSchema(dbname, schema, tablename string) (types.TableSchema, error)
 func GetDbSchema(dbname string) (types.DbSchema, error) {
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	if driver == constants.DbDriverPostgres {
-		return pg.GetDbSchema(dbname)
+		return pg.GetDbSchema(dbname, "", "")
 	} else {
 		panic("")
 	}

@@ -4,7 +4,12 @@ type MigAction struct {
 	// actions defined in constants
 	Type string
 
-	// if table: `["dbname", "schemaname", "tablename"]`
-	// else if column: `["dbname", "schemaname", "tablename", "columnname"]`
+	/*
+		if table: `["CS | PS", "dbname", "schemaname", "tablename"]`
+
+		else if column: `["CS | PS", "dbname", "schemaname", "tablename", "columnname"]`
+
+		else if type: ["CS | PS", "dbname", "schemaname", "typename"]
+	*/
 	EntityId []string
 }

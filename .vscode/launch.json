@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            "args": ["migrations", "generate"]
+            "args": ["inspect", "--all"]
         }
     ]
 }
