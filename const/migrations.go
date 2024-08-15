@@ -19,3 +19,10 @@ const (
 const (
 	MigFileIndentation = "    "
 )
+
+const (
+	MigDirName             = "migrations"
+	MigDirStateFile        = "state.json"
+	MigDirActiveSignalFile = "active"
+	MigDirVersionFile      = "version_info.md"
+)

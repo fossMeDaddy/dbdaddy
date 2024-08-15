@@ -30,7 +30,7 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	configDirPath, _ := lib.FindConfigDirPath()
+	configDirPath, _ := libUtils.FindConfigDirPath()
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
 	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {

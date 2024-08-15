@@ -96,7 +96,7 @@ func runQuery(cmd *cobra.Command, query string) error {
 	if w >= outputW {
 		cmd.Println(formattedOutput)
 	} else {
-		tmpDir, tmpDirErr := lib.FindTmpDirPath()
+		tmpDir, tmpDirErr := libUtils.FindTmpDirPath()
 		if tmpDirErr != nil {
 			return err
 		}

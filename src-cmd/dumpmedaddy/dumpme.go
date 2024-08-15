@@ -5,6 +5,7 @@ import (
 	"dbdaddy/db/db_int"
 	"dbdaddy/errs"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"fmt"
 	"path"
@@ -28,7 +29,7 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	configFilePath, _ := lib.FindConfigFilePath()
+	configFilePath, _ := libUtils.FindConfigFilePath()
 	if useGlobalFile {
 		configFilePath = constants.GetGlobalConfigPath()
 	}

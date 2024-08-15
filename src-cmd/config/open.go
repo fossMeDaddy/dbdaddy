@@ -2,7 +2,6 @@ package configCmd
 
 import (
 	constants "dbdaddy/const"
-	"dbdaddy/lib"
 	"dbdaddy/libUtils"
 	"fmt"
 
@@ -26,7 +25,7 @@ func openCmdRun(cmd *cobra.Command, args []string) {
 			return
 		}
 	} else {
-		tmpConfigFilePath, err := lib.FindConfigFilePath()
+		tmpConfigFilePath, err := libUtils.FindConfigFilePath()
 		if err != nil {
 			cmd.PrintErrln("Could not find a config file! please create one. run 'config -h' for more info")
 			return

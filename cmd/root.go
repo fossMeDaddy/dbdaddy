@@ -56,7 +56,7 @@ func Execute() {
 
 		libUtils.OpenFileInEditor(configFilePath)
 	} else {
-		configFilePath, _ := lib.FindConfigFilePath()
+		configFilePath, _ := libUtils.FindConfigFilePath()
 		lib.ReadConfig(viper.GetViper(), configFilePath)
 		lib.EnsureSupportedDbDriver()
 	}

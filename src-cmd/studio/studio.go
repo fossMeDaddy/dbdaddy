@@ -4,6 +4,7 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
 	libServer "dbdaddy/lib/server"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
@@ -23,7 +24,7 @@ func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
 	v := viper.New()
-	configFile, _ := lib.FindConfigFilePath()
+	configFile, _ := libUtils.FindConfigFilePath()
 	lib.ReadConfig(v, configFile)
 	lib.SwitchDB(v, currBranch, func() error {
 		cmd.Println("Starting webserver at: http://127.0.0.1:42069")
