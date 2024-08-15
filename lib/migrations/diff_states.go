@@ -48,7 +48,7 @@ func getKeysFromState(state types.DbSchema, tag string) (keyType, keyType, keyTy
 				}
 
 				for _, con := range tableSchema.Constraints {
-					conKey := append(tableKey, con.ConName)
+					conKey := append(tableKey, con.ConName, con.Type)
 					conKeys = append(conKeys, conKey)
 				}
 			}
@@ -283,7 +283,19 @@ func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 	typeChanges := getTypeStateChanges(typeStateKeysConcat)
 	tableChanges, tableChangesMapping := getTableStateChanges(tableStateKeysConcat)
 	colChanges := getColStateChanges(colStateKeysConcat, tableChangesMapping)
+
+	// sort constraints in an order that prevents SQL errors during migration run
 	conChanges := getConStateChanges(conStateKeysConcat, tableChangesMapping)
+	conSortingOrder := map[string]int{
+		"p": 0,
+		"u": 1,
+		"c": 2,
+		"f": 3,
+	}
+	slices.SortFunc(conChanges, func(a, b types.MigAction) int {
+		return conSortingOrder[a.EntityId[5]] - conSortingOrder[b.EntityId[5]]
+	})
+
 	changes = slices.Concat(changes, typeChanges, tableChanges, colChanges, conChanges)
 
 	return changes

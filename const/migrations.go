@@ -14,3 +14,8 @@ const (
 	MigActionCreateConstraint = "CREATE_CONSTRAINT"
 	MigActionDropConstraint   = "DROP_CONSTRAINT"
 )
+
+// Default SQL migration file indentation
+const (
+	MigFileIndentation = "    "
+)

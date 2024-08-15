@@ -42,13 +42,19 @@ func QGetSchema(tableid string) string {
 				ELSE infcol.character_maximum_length
 			END,
 			CASE
-				WHEN infcol.numeric_precision IS NULL THEN -1
-				ELSE infcol.numeric_precision
-			END,
+				WHEN
+					infcol.numeric_precision IS NOT NULL AND
+					infcol.numeric_scale > 0
+				THEN infcol.numeric_precision
+				ELSE -1
+			END as numeric_precision,
 			CASE
-				WHEN infcol.numeric_scale IS NULL THEN -1
+				WHEN
+					infcol.numeric_scale IS NULL OR
+					infcol.numeric_scale = 0
+				THEN -1
 				ELSE infcol.numeric_scale
-			END,
+			END AS numeric_scale,
             CASE
                 WHEN relcon.contype = 'p' then true
                 ELSE false

@@ -5,53 +5,30 @@ import (
 	"dbdaddy/db/db_int"
 	"dbdaddy/types"
 	"fmt"
-	"strings"
+	"slices"
 )
 
-func GetCreateTableSQL(tableSchema *types.TableSchema) string {
-	sqlStmt := fmt.Sprintln(fmt.Sprintf(`CREATE TABLE %s.%s (`, tableSchema.Schema, tableSchema.Name))
-	defer (func() {
-		sqlStmt += ");"
-	})()
+func getTableSchemaFromEntity(entity []string, currentState, prevState *types.DbSchema) *types.TableSchema {
+	var tableSchema *types.TableSchema
 
-	columns := []string{}
-
-	for _, col := range tableSchema.Columns {
-		// name
-		colSql := []string{col.Name}
-
-		// type
-		if col.CharMaxLen != -1 {
-			colSql = append(colSql, fmt.Sprintf("%s(%d)", col.DataType, col.CharMaxLen))
-		} else if col.NumericPrecision != -1 {
-			bracketContent := fmt.Sprintf("%d", col.NumericPrecision)
-			if col.NumericScale != -1 {
-				bracketContent += fmt.Sprintf(",%d", col.NumericScale)
-			}
-
-			colSql = append(colSql, fmt.Sprintf("%s(%s)", col.DataType, bracketContent))
-		} else {
-			colSql = append(colSql, col.DataType)
-		}
-
-		// default
-		if len(col.Default) > 0 {
-			colSql = append(colSql, fmt.Sprintf("DEFAULT %s", col.Default))
-		}
-
-		// nullable
-		if !col.Nullable {
-			colSql = append(colSql, "NOT NULL")
-		}
-
-		columns = append(columns, "    "+strings.Join(colSql, " "))
+	tableid := constants.GetTableId(entity[2], entity[3])
+	if entity[0] == currentStateTag {
+		tableSchema = currentState.Tables[tableid]
+	} else {
+		tableSchema = prevState.Tables[tableid]
 	}
 
-	sqlStmt += fmt.Sprintln(strings.Join(columns, fmt.Sprintln(",")))
-	sqlStmt += fmt.Sprintln(");")
-	sqlStmt += fmt.Sprintln()
+	return tableSchema
+}
 
-	return sqlStmt
+func getConstraintFromEntity(entityId []string, currentState, prevState *types.DbSchema) *types.DbConstraint {
+	tableSchema := getTableSchemaFromEntity(entityId, currentState, prevState)
+	findI := slices.IndexFunc(tableSchema.Constraints, func(con *types.DbConstraint) bool {
+		return con.ConName == entityId[4]
+	})
+	con := tableSchema.Constraints[findI]
+
+	return con
 }
 
 func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []types.MigAction) string {
@@ -61,19 +38,50 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 
 	for _, change := range changes {
 		switch change.Type {
+		// TABLE CHANGES
+		case constants.MigActionDropTable:
+			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
+			sqlFile += GetDropTableSQL(constants.GetTableId(tableSchema.Schema, tableSchema.Name))
 		case constants.MigActionCreateTable:
-			var tableSchema *types.TableSchema
-			if change.EntityId[0] == currentStateTag {
-				tableid := strings.Join(change.EntityId[2:], ".")
-				tableSchema = currentState.Tables[tableid]
-			} else {
-				tableid := strings.Join(change.EntityId[2:], ".")
-				tableSchema = prevState.Tables[tableid]
-			}
-
+			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
 			sqlFile += GetCreateTableSQL(tableSchema)
+
+		// TABLE COL CHANGES (ALTER TABLE)
+		case constants.MigActionDropCol:
+			tableid := constants.GetTableId(change.EntityId[2], change.EntityId[3])
+			sqlFile += GetATDropColSQL(tableid, change.EntityId[4])
+		case constants.MigActionCreateCol:
+			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
+			findI := slices.IndexFunc(tableSchema.Columns, func(col types.Column) bool {
+				return col.Name == change.EntityId[4]
+			})
+			sqlFile += GetATCreateColSQL(
+				constants.GetTableId(tableSchema.Schema, tableSchema.Name),
+				&tableSchema.Columns[findI],
+			)
+
+		// CONSTRAINT CHANGES (ALTER TABLE)
+		case constants.MigActionDropConstraint:
+			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
+			con := getConstraintFromEntity(change.EntityId, currentState, prevState)
+			sqlFile += GetATDropConstraint(
+				constants.GetTableId(tableSchema.Schema, tableSchema.Name),
+				con.ConName,
+			)
+		case constants.MigActionCreateConstraint:
+			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
+			con := getConstraintFromEntity(change.EntityId, currentState, prevState)
+			sqlFile += GetATCreateConstraintSQL(
+				constants.GetTableId(tableSchema.Schema, tableSchema.Name),
+				con,
+			)
 		}
+
+		sqlFile += fmt.Sprintln()
 	}
+
+	sqlFile += db_int.GetEnableConstSQL()
+	sqlFile += fmt.Sprintln()
 
 	return sqlFile
 }

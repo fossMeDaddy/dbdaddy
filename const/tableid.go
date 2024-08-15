@@ -8,6 +8,8 @@ import (
 func GetTableId(schemaname, tablename string) string {
 	if len(schemaname) > 0 && len(tablename) > 0 {
 		return fmt.Sprintf("%s.%s", schemaname, tablename)
+	} else if len(tablename) > 0 {
+		return tablename
 	}
 
 	return ""

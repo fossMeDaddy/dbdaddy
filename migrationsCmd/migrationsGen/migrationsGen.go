@@ -56,7 +56,7 @@ func run(cmd *cobra.Command, args []string) {
 
 		upChanges := migrationsLib.DiffDbSchema(prevState, currentState)
 
-		upSqlScript := migrationsLib.GetSQLFromDiffChanges(&currentState, &prevState, upChanges)
+		upSqlScript := migrationsLib.GetSQLFromDiffChanges(&prevState, &currentState, upChanges)
 
 		fmt.Println(upSqlScript)
 
