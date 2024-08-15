@@ -2,6 +2,7 @@ package lib
 
 import (
 	constants "dbdaddy/const"
+	"dbdaddy/libUtils"
 	"fmt"
 	"os"
 	"path"
@@ -40,7 +41,7 @@ func FindTmpDirPath() (string, error) {
 	}
 
 	tmpDirPath := path.Join(configDir, constants.TmpDir)
-	_, osDirErr := DirExistsCreate(tmpDirPath)
+	_, osDirErr := libUtils.DirExistsCreate(tmpDirPath)
 	if osDirErr != nil {
 		return "", err
 	}

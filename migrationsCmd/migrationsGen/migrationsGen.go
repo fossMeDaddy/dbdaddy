@@ -5,6 +5,7 @@ import (
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
 	migrationsLib "dbdaddy/lib/migrations"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"dbdaddy/types"
 	"fmt"
@@ -34,7 +35,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {
 		migrationsDirPath := path.Join(configDirPath, constants.MigrationDir, currBranch)
-		_, err := lib.DirExistsCreate(migrationsDirPath)
+		_, err := libUtils.DirExistsCreate(migrationsDirPath)
 		if err != nil {
 			return err
 		}
