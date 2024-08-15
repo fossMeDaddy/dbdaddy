@@ -2,6 +2,7 @@ package migrationsLib
 
 import (
 	constants "dbdaddy/const"
+	"dbdaddy/libUtils"
 	"dbdaddy/types"
 	"slices"
 	"sync"
@@ -78,7 +79,7 @@ func getTableStateChanges(tableStateKeysConcat keyType) ([]types.MigAction, map[
 				}
 
 				tableChanges = append(tableChanges, action)
-				tableChangesMapping[constants.GetTableId(tableKey[2], tableKey[3])] = action.Type
+				tableChangesMapping[libUtils.GetTableId(tableKey[2], tableKey[3])] = action.Type
 			}
 		} else if tableKey[0] == prevStateTag {
 			// DROP
@@ -91,7 +92,7 @@ func getTableStateChanges(tableStateKeysConcat keyType) ([]types.MigAction, map[
 				}
 
 				tableChanges = append(tableChanges, action)
-				tableChangesMapping[constants.GetTableId(tableKey[2], tableKey[3])] = action.Type
+				tableChangesMapping[libUtils.GetTableId(tableKey[2], tableKey[3])] = action.Type
 			}
 		}
 	}
@@ -105,7 +106,7 @@ func getColStateChanges(colStateKeysConcat keyType, tableChangesMapping map[stri
 	for _, colKey := range colStateKeysConcat {
 		// if table itself was changed (created/deleted)
 		// there's no point of tracking the columns
-		tableid := constants.GetTableId(colKey[2], colKey[3])
+		tableid := libUtils.GetTableId(colKey[2], colKey[3])
 		if slices.Contains([]string{constants.MigActionCreateTable, constants.MigActionDropTable}, tableChangesMapping[tableid]) {
 			continue
 		}
@@ -178,7 +179,7 @@ func getConStateChanges(conStateKeysConcat keyType, tableChangesMapping map[stri
 	localChanges := []types.MigAction{}
 
 	for _, conKey := range conStateKeysConcat {
-		tableid := constants.GetTableId(conKey[2], conKey[3])
+		tableid := libUtils.GetTableId(conKey[2], conKey[3])
 		if tableChangesMapping[tableid] == constants.MigActionDropTable {
 			continue
 		}

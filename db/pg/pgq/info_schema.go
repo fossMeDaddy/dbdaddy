@@ -2,7 +2,7 @@
 package pgq
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/libUtils"
 	"fmt"
 )
 
@@ -11,7 +11,7 @@ func QGetSchema(tableid string) string {
 
 	whereClause := "infcol.table_schema not in ('pg_catalog', 'information_schema')"
 	if len(tableid) > 0 {
-		schemaname, tablename := constants.GetTableFromId(tableid)
+		schemaname, tablename := libUtils.GetTableFromId(tableid)
 		whereClause += fmt.Sprintf(`
             and infcol.table_schema = '%s' and infcol.table_name = '%s'
         `, schemaname, tablename)

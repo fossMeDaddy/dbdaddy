@@ -3,6 +3,7 @@ package migrationsLib
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
+	"dbdaddy/libUtils"
 	"dbdaddy/types"
 	"fmt"
 	"slices"
@@ -11,7 +12,7 @@ import (
 func getTableSchemaFromEntity(entity []string, currentState, prevState *types.DbSchema) *types.TableSchema {
 	var tableSchema *types.TableSchema
 
-	tableid := constants.GetTableId(entity[2], entity[3])
+	tableid := libUtils.GetTableId(entity[2], entity[3])
 	if entity[0] == currentStateTag {
 		tableSchema = currentState.Tables[tableid]
 	} else {
@@ -41,14 +42,14 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 		// TABLE CHANGES
 		case constants.MigActionDropTable:
 			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
-			sqlFile += GetDropTableSQL(constants.GetTableId(tableSchema.Schema, tableSchema.Name))
+			sqlFile += GetDropTableSQL(libUtils.GetTableId(tableSchema.Schema, tableSchema.Name))
 		case constants.MigActionCreateTable:
 			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
 			sqlFile += GetCreateTableSQL(tableSchema)
 
 		// TABLE COL CHANGES (ALTER TABLE)
 		case constants.MigActionDropCol:
-			tableid := constants.GetTableId(change.EntityId[2], change.EntityId[3])
+			tableid := libUtils.GetTableId(change.EntityId[2], change.EntityId[3])
 			sqlFile += GetATDropColSQL(tableid, change.EntityId[4])
 		case constants.MigActionCreateCol:
 			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
@@ -56,7 +57,7 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 				return col.Name == change.EntityId[4]
 			})
 			sqlFile += GetATCreateColSQL(
-				constants.GetTableId(tableSchema.Schema, tableSchema.Name),
+				libUtils.GetTableId(tableSchema.Schema, tableSchema.Name),
 				&tableSchema.Columns[findI],
 			)
 
@@ -65,14 +66,14 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
 			con := getConstraintFromEntity(change.EntityId, currentState, prevState)
 			sqlFile += GetATDropConstraint(
-				constants.GetTableId(tableSchema.Schema, tableSchema.Name),
+				libUtils.GetTableId(tableSchema.Schema, tableSchema.Name),
 				con.ConName,
 			)
 		case constants.MigActionCreateConstraint:
 			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)
 			con := getConstraintFromEntity(change.EntityId, currentState, prevState)
 			sqlFile += GetATCreateConstraintSQL(
-				constants.GetTableId(tableSchema.Schema, tableSchema.Name),
+				libUtils.GetTableId(tableSchema.Schema, tableSchema.Name),
 				con,
 			)
 		}

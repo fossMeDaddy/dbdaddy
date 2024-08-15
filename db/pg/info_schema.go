@@ -1,9 +1,9 @@
 package pg
 
 import (
-	constants "dbdaddy/const"
 	"dbdaddy/db"
 	"dbdaddy/db/pg/pgq"
+	"dbdaddy/libUtils"
 	"dbdaddy/types"
 	"fmt"
 	"sync"
@@ -51,7 +51,7 @@ func GetTableSchema(dbname string, schema string, tablename string) (*types.Tabl
 		return tableSchema, err
 	}
 
-	tableid := constants.GetTableId(schema, tablename)
+	tableid := libUtils.GetTableId(schema, tablename)
 	tableSchema = dbSchema.Tables[tableid]
 	if tableSchema == nil {
 		return tableSchema, fmt.Errorf("table with name '%s' could not be found in db schema", tableid)
@@ -61,7 +61,7 @@ func GetTableSchema(dbname string, schema string, tablename string) (*types.Tabl
 }
 
 func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
-	tableid := constants.GetTableId(schema, tablename)
+	tableid := libUtils.GetTableId(schema, tablename)
 
 	dbSchema := types.DbSchema{}
 
@@ -134,7 +134,7 @@ func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
 			return dbSchema, err
 		}
 
-		tableid := constants.GetTableId(con.TableSchema, con.TableName)
+		tableid := libUtils.GetTableId(con.TableSchema, con.TableName)
 
 		if dbCons[tableid] == nil {
 			dbCons[tableid] = []*types.DbConstraint{}
@@ -165,7 +165,7 @@ func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
 			return dbSchema, err
 		}
 
-		tableid := constants.GetTableId(tableschema, tablename)
+		tableid := libUtils.GetTableId(tableschema, tablename)
 
 		tableSchema := tableSchemaMapping[tableid]
 		tableCons := dbCons[tableid]
