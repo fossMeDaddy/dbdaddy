@@ -33,15 +33,6 @@ func FindConfigDirPath() (string, error) {
 	return configDir, nil
 }
 
-func GetAbsolutePathFor(relativePath string) (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(cwd, relativePath), err
-}
-
 func FindTmpDirPath() (string, error) {
 	configDir, err := FindConfigDirPath()
 	if err != nil {
