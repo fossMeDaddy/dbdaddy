@@ -3,6 +3,7 @@ package configCmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -35,7 +36,7 @@ func openCmdRun(cmd *cobra.Command, args []string) {
 	}
 	cmd.Println(fmt.Sprintf("Config file found at: %s, opening via vim...", configFilePath))
 
-	lib.OpenFileInEditor(configFilePath)
+	libUtils.OpenFileInEditor(configFilePath)
 }
 
 func InitOpenCmd() *cobra.Command {

@@ -3,6 +3,7 @@ package cmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/migrationsCmd"
 	checkoutCmd "dbdaddy/src-cmd/checkout"
 	configCmd "dbdaddy/src-cmd/config"
@@ -53,7 +54,7 @@ func Execute() {
 			os.Exit(1)
 		}
 
-		lib.OpenFileInEditor(configFilePath)
+		libUtils.OpenFileInEditor(configFilePath)
 	} else {
 		configFilePath, _ := lib.FindConfigFilePath()
 		lib.ReadConfig(viper.GetViper(), configFilePath)

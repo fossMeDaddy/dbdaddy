@@ -3,6 +3,7 @@ package configCmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"fmt"
 	"path"
 
@@ -45,7 +46,7 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	lib.OpenFileInEditor(configWritePath)
+	libUtils.OpenFileInEditor(configWritePath)
 }
 
 func InitCreateCmd() *cobra.Command {
