@@ -10,9 +10,14 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sync"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+var (
+	globalWg sync.WaitGroup
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -54,11 +59,29 @@ func run(cmd *cobra.Command, args []string) {
 			return err
 		}
 
-		upChanges := migrationsLib.DiffDbSchema(prevState, currentState)
+		var (
+			upSqlScript   string
+			downSqlScript string
+		)
 
-		upSqlScript := migrationsLib.GetSQLFromDiffChanges(&prevState, &currentState, upChanges)
+		(func() {
+			globalWg.Add(2)
+			defer globalWg.Wait()
 
-		fmt.Println(upSqlScript)
+			go (func() {
+				defer globalWg.Done()
+				upChanges := migrationsLib.DiffDbSchema(currentState, prevState)
+				upSqlScript = migrationsLib.GetSQLFromDiffChanges(&currentState, &prevState, upChanges)
+			})()
+
+			go (func() {
+				defer globalWg.Done()
+				downChanges := migrationsLib.DiffDbSchema(prevState, currentState)
+				downSqlScript = migrationsLib.GetSQLFromDiffChanges(&currentState, &prevState, downChanges)
+			})()
+		})()
+
+		fmt.Println(upSqlScript, downSqlScript)
 
 		return nil
 	})
