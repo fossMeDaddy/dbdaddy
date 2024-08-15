@@ -7,11 +7,11 @@ import (
 )
 
 // returns "(true, nil)" if dir was created, else returns "(false, ...)"
-func DirExistsCreate(dirName string) (bool, error) {
+func EnsureDirExists(dirName string) (bool, error) {
 	// Stat the directory to check if it exists
 	if _, err := os.Stat(dirName); errors.Is(err, os.ErrNotExist) {
 		// Directory does not exist, so create it
-		err := os.MkdirAll(dirName, 0755) // 0755 permissions allowing read and execute for others
+		err := os.MkdirAll(dirName, 0644) // 0755 permissions allowing read and execute for others
 		if err != nil {
 			return false, fmt.Errorf("error creating directory: %v", err)
 		}

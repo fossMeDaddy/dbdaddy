@@ -17,7 +17,7 @@ func GetDriverDumpDir(configPath string) string {
 	dumpDirName := constants.DriverDumpDirNames[v.GetString(constants.DbConfigDriverKey)]
 
 	dumpDirPath := path.Join(configDirPath, dumpDirName)
-	libUtils.DirExistsCreate(dumpDirPath)
+	libUtils.EnsureDirExists(dumpDirPath)
 
 	return dumpDirPath
 }

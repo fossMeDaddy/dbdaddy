@@ -9,10 +9,6 @@ import (
 	"sync"
 )
 
-var (
-	globalWg sync.WaitGroup
-)
-
 func ListTablesInDb() ([]types.Table, error) {
 	tables := []types.Table{}
 	rows, err := db.DB.Query(`
@@ -61,6 +57,8 @@ func GetTableSchema(dbname string, schema string, tablename string) (*types.Tabl
 }
 
 func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
+	var wg sync.WaitGroup
+
 	tableid := libUtils.GetTableId(schema, tablename)
 
 	dbSchema := types.DbSchema{}
@@ -69,12 +67,12 @@ func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
 	dbCons := map[string][]*types.DbConstraint{}
 	dbTypes := []types.DbType{}
 
-	globalWg.Add(1)
+	wg.Add(1)
 	var (
 		typeErr error
 	)
 	go (func() {
-		defer globalWg.Done()
+		defer wg.Done()
 
 		rows, err := db.DB.Query(`
 			select nsp.nspname, typ.typname from pg_type as typ
@@ -183,7 +181,7 @@ func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
 		tableSchema.Columns = append(tableSchema.Columns, column)
 	}
 
-	globalWg.Wait()
+	wg.Wait()
 
 	if typeErr != nil {
 		return dbSchema, typeErr

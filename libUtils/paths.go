@@ -37,7 +37,7 @@ func FindConfigDirPath() (string, error) {
 		return "", err
 	}
 
-	configDir, _ := path.Split(configFile)
+	configDir := path.Dir(configFile)
 
 	return configDir, nil
 }
@@ -49,7 +49,7 @@ func FindTmpDirPath() (string, error) {
 	}
 
 	tmpDirPath := path.Join(configDir, constants.TmpDir)
-	_, osDirErr := DirExistsCreate(tmpDirPath)
+	_, osDirErr := EnsureDirExists(tmpDirPath)
 	if osDirErr != nil {
 		return "", err
 	}

@@ -20,9 +20,16 @@ const (
 	MigFileIndentation = "    "
 )
 
+// collection of migrations for each db
 const (
-	MigDirName             = "migrations"
+	MigDirName = "migrations"
+)
+
+// migration dir files e.g. "migrations/dbname/version_string/*"
+const (
 	MigDirStateFile        = "state.json"
 	MigDirActiveSignalFile = "active"
-	MigDirVersionFile      = "version_info.md"
+	MigDirVersionInfoFile  = "version_info.md"
+	MigDirUpSqlFile        = "up.sql"
+	MigDirDownSqlFile      = "down.sql"
 )

@@ -41,7 +41,7 @@ func Execute() {
 		fmt.Println("I'll create a global config for ya, let me know your database url here")
 
 		configFilePath := constants.GetGlobalConfigPath()
-		libUtils.DirExistsCreate(constants.GetGlobalDirPath())
+		libUtils.EnsureDirExists(constants.GetGlobalDirPath())
 		lib.InitConfigFile(viper.GetViper(), configFilePath, true)
 
 		dbUrlPrompt := promptui.Prompt{

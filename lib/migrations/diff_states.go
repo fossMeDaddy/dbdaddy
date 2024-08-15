@@ -8,10 +8,6 @@ import (
 	"sync"
 )
 
-var (
-	globalWg sync.WaitGroup
-)
-
 type keyType [][]string
 
 func getKeysFromState(state types.DbSchema, tag string) (keyType, keyType, keyType, keyType) {
@@ -220,6 +216,8 @@ give changes to be done on 'prevState' in order to move from 'prevState' to 'cur
 v0.1 - very simple, CREATE OR DELETE (DEFINITELY NOT FOR PRODUCTION DATABASES)
 */
 func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
+	var wg sync.WaitGroup
+
 	changes := []types.MigAction{}
 
 	var (
@@ -236,45 +234,45 @@ func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
 
 	// get keys from state
 	(func() {
-		globalWg.Add(2)
-		defer globalWg.Wait()
+		wg.Add(2)
+		defer wg.Wait()
 
 		go (func() {
-			defer globalWg.Done()
+			defer wg.Done()
 			tableKeysCS, colKeysCS, typeKeysCS, conKeysCS = getKeysFromState(currentState, currentStateTag)
 		})()
 
 		go (func() {
-			defer globalWg.Done()
+			defer wg.Done()
 			tableKeysPS, colKeysPS, typeKeysPS, conKeysPS = getKeysFromState(prevState, prevStateTag)
 		})()
 	})()
 
 	// concat keys & sort
 	(func() {
-		globalWg.Add(4)
-		defer globalWg.Wait()
+		wg.Add(4)
+		defer wg.Wait()
 
 		go (func() {
-			defer globalWg.Done()
+			defer wg.Done()
 			tableStateKeysConcat = slices.Concat(tableKeysCS, tableKeysPS)
 			slices.SortFunc(tableStateKeysConcat, slices.Compare)
 		})()
 
 		go (func() {
-			defer globalWg.Done()
+			defer wg.Done()
 			colStateKeysConcat = slices.Concat(colKeysCS, colKeysPS)
 			slices.SortFunc(colStateKeysConcat, slices.Compare)
 		})()
 
 		go (func() {
-			defer globalWg.Done()
+			defer wg.Done()
 			typeStateKeysConcat = slices.Concat(typeKeysCS, typeKeysPS)
 			slices.SortFunc(typeStateKeysConcat, slices.Compare)
 		})()
 
 		go (func() {
-			defer globalWg.Done()
+			defer wg.Done()
 			conStateKeysConcat = slices.Concat(conKeysCS, conKeysPS)
 			slices.SortFunc(conStateKeysConcat, slices.Compare)
 		})()

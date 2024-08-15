@@ -5,12 +5,9 @@ import (
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
 	migrationsLib "dbdaddy/lib/migrations"
-	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"dbdaddy/types"
 	"fmt"
-	"os"
-	"path"
 	"sync"
 
 	"github.com/spf13/cobra"
@@ -18,7 +15,7 @@ import (
 )
 
 var (
-	globalWg sync.WaitGroup
+	wg sync.WaitGroup
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -30,23 +27,16 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	configDirPath, _ := libUtils.FindConfigDirPath()
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
 	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {
-		migrationsDirPath := path.Join(configDirPath, constants.MigrationDir, currBranch)
-		_, err := libUtils.DirExistsCreate(migrationsDirPath)
-		if err != nil {
-			return err
-		}
-
-		dirEntries, err := os.ReadDir(migrationsDirPath)
+		migrations, err := migrationsLib.FetchMigrations(currBranch)
 		if err != nil {
 			return err
 		}
 
 		isInit := false
-		if len(dirEntries) == 0 {
+		if len(migrations) == 0 {
 			isInit = true
 		}
 
@@ -66,19 +56,19 @@ func run(cmd *cobra.Command, args []string) {
 		)
 
 		(func() {
-			globalWg.Add(2)
-			defer globalWg.Wait()
+			wg.Add(2)
+			defer wg.Wait()
 
 			go (func() {
-				defer globalWg.Done()
+				defer wg.Done()
 				upChanges := migrationsLib.DiffDbSchema(currentState, prevState)
 				upSqlScript = migrationsLib.GetSQLFromDiffChanges(&currentState, &prevState, upChanges)
 			})()
 
 			go (func() {
-				defer globalWg.Done()
+				defer wg.Done()
 				downChanges := migrationsLib.DiffDbSchema(prevState, currentState)
-				downSqlScript = migrationsLib.GetSQLFromDiffChanges(&currentState, &prevState, downChanges)
+				downSqlScript = migrationsLib.GetSQLFromDiffChanges(&prevState, &currentState, downChanges)
 			})()
 		})()
 
