@@ -1,6 +1,7 @@
 package constants
 
 // Migration action
+// always use the prefixes: "CREATE_" OR "DROP_" (underscore is necessary)
 const (
 	MigActionCreateTable = "CREATE_TABLE"
 	MigActionDropTable   = "DROP_TABLE"

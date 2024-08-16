@@ -5,10 +5,18 @@ import (
 	"dbdaddy/libUtils"
 	"dbdaddy/types"
 	"slices"
+	"strings"
 	"sync"
 )
 
 type keyType [][]string
+
+var (
+	changeTypePrefixSortingOrder = map[string]int{
+		"DROP":   0,
+		"CREATE": 1,
+	}
+)
 
 func getKeysFromState(state *types.DbSchema, tag string) (keyType, keyType, keyType, keyType) {
 	keysWg := sync.WaitGroup{}
@@ -45,7 +53,7 @@ func getKeysFromState(state *types.DbSchema, tag string) (keyType, keyType, keyT
 				}
 
 				for _, con := range tableSchema.Constraints {
-					conKey := append(tableKey, con.ConName, con.Type)
+					conKey := append(tableKey, con.ConName, con.Type, con.Syntax)
 					conKeys = append(conKeys, conKey)
 				}
 			}
@@ -210,6 +218,18 @@ func getConStateChanges(conStateKeysConcat keyType, tableChangesMapping map[stri
 	return localChanges
 }
 
+func getChangeTypePrefix(changeType string) string {
+	prefix := strings.Split(changeType, "_")[0]
+	return prefix
+}
+
+func changeTypePrefixSortingCmp(a, b types.MigAction) int {
+	aPrefix := getChangeTypePrefix(a.Type)
+	bPrefix := getChangeTypePrefix(b.Type)
+
+	return changeTypePrefixSortingOrder[aPrefix] - changeTypePrefixSortingOrder[bPrefix]
+}
+
 /*
 give changes to be done on 'prevState' in order to move from 'prevState' to 'currentState'
 
@@ -280,8 +300,12 @@ func DiffDbSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 
 	// accumulate changes keys
 	typeChanges := getTypeStateChanges(typeStateKeysConcat)
+
 	tableChanges, tableChangesMapping := getTableStateChanges(tableStateKeysConcat)
+	slices.SortFunc(tableChanges, changeTypePrefixSortingCmp)
+
 	colChanges := getColStateChanges(colStateKeysConcat, tableChangesMapping)
+	slices.SortFunc(colChanges, changeTypePrefixSortingCmp)
 
 	// sort constraints in an order that prevents SQL errors during migration run
 	conChanges := getConStateChanges(conStateKeysConcat, tableChangesMapping)
@@ -292,7 +316,14 @@ func DiffDbSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 		"f": 3,
 	}
 	slices.SortFunc(conChanges, func(a, b types.MigAction) int {
-		return conSortingOrder[a.EntityId[5]] - conSortingOrder[b.EntityId[5]]
+		aPrefix := getChangeTypePrefix(a.Type)
+		bPrefix := getChangeTypePrefix(b.Type)
+
+		if aPrefix == "CREATE" && bPrefix == "CREATE" {
+			return conSortingOrder[a.EntityId[5]] - conSortingOrder[b.EntityId[5]]
+		} else {
+			return changeTypePrefixSortingCmp(a, b)
+		}
 	})
 
 	changes = slices.Concat(changes, typeChanges, tableChanges, colChanges, conChanges)

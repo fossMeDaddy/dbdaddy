@@ -11,7 +11,7 @@ type MigAction struct {
 
 		else if type: ["CS | PS", "dbname", "schemaname", "typename"]
 
-		else if constraint: `["CS | PS", "dbname", "schemaname", "tablename", "constraint-name", "constraint-type"]`
+		else if constraint: `["CS | PS", "dbname", "schemaname", "tablename", "constraint-name", "constraint-type", "constraint-syntax"]`
 
 		array makes things sortable...
 	*/
