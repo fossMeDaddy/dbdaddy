@@ -9,3 +9,4 @@ bin/
 dbdaddy.config.json
 
 ignore/
+migrations/

@@ -56,12 +56,12 @@ func GetTableSchema(dbname string, schema string, tablename string) (*types.Tabl
 	return tableSchema, nil
 }
 
-func GetDbSchema(dbname, schema, tablename string) (types.DbSchema, error) {
+func GetDbSchema(dbname, schema, tablename string) (*types.DbSchema, error) {
 	var wg sync.WaitGroup
 
 	tableid := libUtils.GetTableId(schema, tablename)
 
-	dbSchema := types.DbSchema{}
+	dbSchema := &types.DbSchema{}
 
 	tableSchemaMapping := map[string]*types.TableSchema{}
 	dbCons := map[string][]*types.DbConstraint{}

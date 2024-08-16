@@ -8,8 +8,20 @@ import (
 	"path"
 )
 
+/*
+primitive DbMigration type, only containing helper function, use migrationsLib for complete use
+
+a db migration directory will look like: /migrations/dbname/2024_01_01T00_00_00
+
+this directory will contain files:
+"active" (present ONLY IF migration is currently active),
+"state.json" (a state snapshot of the CURRENT state)
+"up.sql" (sql file to go up to the next state) [COULD BE ABSENT IF LATEST STATE]
+"down.sql" (sql file to go down to the previous state) [ABSENT ON INIT MIGRATION]
+"info.md" (user maintained description of the current state changes relative to previous state)
+*/
 type DbMigration struct {
-	// dir path will also contain the id (cwd/migrations/dbname/2024_01_01:00:00:00)
+	// dir path will also contain the id (.../migrations/dbname/<timestamp>)
 	DirPath  string
 	IsActive bool
 	Up       *DbMigration
@@ -30,6 +42,15 @@ func (mig *DbMigration) ReadState() (*DbSchema, error) {
 	return state, nil
 }
 
+func (mig *DbMigration) writeSqlFile(sqlFilePath, sql string) error {
+	if len(sql) == 0 {
+		os.Remove(sqlFilePath)
+		return nil
+	}
+
+	return os.WriteFile(sqlFilePath, []byte(sql), 0644)
+}
+
 func (mig *DbMigration) GetUpQuery() (string, error) {
 	file, err := os.ReadFile(path.Join(mig.DirPath, constants.MigDirUpSqlFile))
 	if err != nil {
@@ -37,6 +58,11 @@ func (mig *DbMigration) GetUpQuery() (string, error) {
 	}
 
 	return string(file), nil
+}
+
+func (mig *DbMigration) WriteUpQuery(sql string) error {
+	upSqlFilePath := path.Join(mig.DirPath, constants.MigDirUpSqlFile)
+	return mig.writeSqlFile(upSqlFilePath, sql)
 }
 
 func (mig *DbMigration) GetDownQuery() (string, error) {
@@ -48,9 +74,27 @@ func (mig *DbMigration) GetDownQuery() (string, error) {
 	return string(file), nil
 }
 
+func (mig *DbMigration) WriteDownQuery(sql string) error {
+	downSqlFilePath := path.Join(mig.DirPath, constants.MigDirDownSqlFile)
+	return mig.writeSqlFile(downSqlFilePath, sql)
+}
+
+func (mig *DbMigration) GetInfoFile() (string, error) {
+	infoFileB, err := os.ReadFile(path.Join(mig.DirPath, constants.MigDirInfoFile))
+	if err != nil {
+		return "", err
+	}
+
+	return string(infoFileB), nil
+}
+
+func (mig *DbMigration) WriteInfoFile(infoStr string) error {
+	return os.WriteFile(path.Join(mig.DirPath, constants.MigDirInfoFile), []byte(infoStr), 0644)
+}
+
 // set "this" migration as active.
 // removes the active signal file from all other migrations in the parent directory
-// then creates the active signal file here
+// then creates the active signal file in the current migration
 func (mig *DbMigration) SetActive() error {
 	migrationsDir := path.Dir(mig.DirPath)
 
@@ -73,4 +117,41 @@ func (mig *DbMigration) SetActive() error {
 	}
 
 	return nil
+}
+
+// ensures migration dir exists and writes state, up/down sql queries & info file to disk
+// path string should look like this ".../migrations/dbname/2024-01-01T00_00_00"
+func NewDbMigration(migDirPath string, state *DbSchema, upSqlStr string, downSqlStr string, infoStr string) (*DbMigration, error) {
+	mig := &DbMigration{
+		DirPath: migDirPath,
+	}
+
+	if _, err := libUtils.EnsureDirExists(migDirPath); err != nil {
+		return mig, err
+	}
+
+	// write to state file
+	stateB, err := json.Marshal(state)
+	if err != nil {
+		return mig, err
+	}
+	if err := os.WriteFile(path.Join(migDirPath, constants.MigDirStateFile), stateB, 0644); err != nil {
+		return mig, err
+	}
+
+	// write to up & down query files
+	if err := mig.WriteUpQuery(upSqlStr); err != nil {
+		return mig, err
+	}
+
+	if err := mig.WriteDownQuery(downSqlStr); err != nil {
+		return mig, err
+	}
+
+	// write info file blank
+	if err := mig.WriteInfoFile(infoStr); err != nil {
+		return mig, err
+	}
+
+	return mig, nil
 }

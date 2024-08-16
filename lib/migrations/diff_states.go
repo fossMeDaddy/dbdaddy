@@ -10,7 +10,7 @@ import (
 
 type keyType [][]string
 
-func getKeysFromState(state types.DbSchema, tag string) (keyType, keyType, keyType, keyType) {
+func getKeysFromState(state *types.DbSchema, tag string) (keyType, keyType, keyType, keyType) {
 	keysWg := sync.WaitGroup{}
 
 	tableKeys := keyType{}
@@ -215,7 +215,7 @@ give changes to be done on 'prevState' in order to move from 'prevState' to 'cur
 
 v0.1 - very simple, CREATE OR DELETE (DEFINITELY NOT FOR PRODUCTION DATABASES)
 */
-func DiffDbSchema(currentState, prevState types.DbSchema) []types.MigAction {
+func DiffDbSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 	var wg sync.WaitGroup
 
 	changes := []types.MigAction{}
