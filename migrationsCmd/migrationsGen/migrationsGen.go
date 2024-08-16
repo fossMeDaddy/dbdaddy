@@ -8,6 +8,7 @@ import (
 	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"dbdaddy/types"
+	"fmt"
 	"path"
 	"sync"
 
@@ -20,6 +21,7 @@ var (
 
 	// flags
 	titleFlag     string
+	dryRunFlag    bool
 	emptyInfoFile bool
 )
 
@@ -100,8 +102,17 @@ func run(cmd *cobra.Command, args []string) {
 			return nil
 		}
 
-		migDirPath := path.Join(migrationsDirPath, libUtils.GenerateMigrationId(titleFlag))
+		if dryRunFlag {
+			fmt.Println("-- UP SCRIPT")
+			fmt.Println(upSqlScript)
 
+			fmt.Println("-- DOWN SCRIPT")
+			fmt.Println(downSqlScript)
+
+			return nil
+		}
+
+		migDirPath := path.Join(migrationsDirPath, libUtils.GenerateMigrationId(titleFlag))
 		mig, err := types.NewDbMigration(
 			migDirPath,
 			currentState,
@@ -137,6 +148,7 @@ func Init() *cobra.Command {
 	// flags
 	cmd.Flags().StringVarP(&titleFlag, "title", "t", "", "add a title for migration file (should not contain any special symbols)")
 	cmd.Flags().BoolVar(&emptyInfoFile, "no-info", false, "do not ask for info file input, leave it blank")
+	cmd.Flags().BoolVar(&dryRunFlag, "dry-run", false, "do not ask for info file input, leave it blank")
 
 	return cmd
 }
