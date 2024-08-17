@@ -1,12 +1,15 @@
 package pg
 
 import (
+	constants "dbdaddy/const"
 	"dbdaddy/db"
 	"dbdaddy/db/pg/pgq"
 	"dbdaddy/libUtils"
 	"dbdaddy/types"
 	"fmt"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
 func ListTablesInDb() ([]types.Table, error) {
@@ -39,10 +42,10 @@ func ListTablesInDb() ([]types.Table, error) {
 	return tables, nil
 }
 
-func GetTableSchema(dbname string, schema string, tablename string) (*types.TableSchema, error) {
+func GetTableSchema(schema string, tablename string) (*types.TableSchema, error) {
 	var tableSchema *types.TableSchema
 
-	dbSchema, err := GetDbSchema(dbname, schema, tablename)
+	dbSchema, err := GetDbSchema(schema, tablename)
 	if err != nil {
 		return tableSchema, err
 	}
@@ -56,12 +59,17 @@ func GetTableSchema(dbname string, schema string, tablename string) (*types.Tabl
 	return tableSchema, nil
 }
 
-func GetDbSchema(dbname, schema, tablename string) (*types.DbSchema, error) {
+// take schema & tablename as "" if need to fetch the whole db schema
+// else specify schema & tablename to get schema for a specific table
+func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	var wg sync.WaitGroup
 
+	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 	tableid := libUtils.GetTableId(schema, tablename)
 
-	dbSchema := &types.DbSchema{}
+	dbSchema := &types.DbSchema{
+		DbName: currBranch,
+	}
 
 	tableSchemaMapping := map[string]*types.TableSchema{}
 	dbCons := map[string][]*types.DbConstraint{}
@@ -169,7 +177,6 @@ func GetDbSchema(dbname, schema, tablename string) (*types.DbSchema, error) {
 		tableCons := dbCons[tableid]
 		if tableSchema == nil {
 			tableSchema = &types.TableSchema{
-				Db:          dbname,
 				Schema:      tableschema,
 				Name:        tablename,
 				Constraints: tableCons,

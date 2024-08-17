@@ -44,7 +44,7 @@ func getKeysFromState(state *types.DbSchema, tag string) (keyType, keyType, keyT
 			for mapKey := range state.Tables {
 				tableSchema := state.Tables[mapKey]
 
-				tableKey := []string{tag, tableSchema.Db, tableSchema.Schema, tableSchema.Name}
+				tableKey := []string{tag, state.DbName, tableSchema.Schema, tableSchema.Name}
 				tableKeys = append(tableKeys, tableKey)
 
 				for _, col := range tableSchema.Columns {

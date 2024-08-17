@@ -38,7 +38,6 @@ type Column struct {
 }
 
 type TableSchema struct {
-	Db          string
 	Schema      string
 	Name        string
 	Columns     []Column
@@ -53,6 +52,7 @@ type Table struct {
 
 // the string key is of format "schema.table"
 type DbSchema struct {
+	DbName string
 	Tables map[string]*TableSchema
 	Types  []DbType
 }
