@@ -36,7 +36,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	outputFilePath := path.Join(lib.GetDriverDumpDir(configFilePath), constants.GetDumpFileName(v.GetString(constants.DbConfigCurrentBranchKey)))
 
-	if err := db_int.DumpDb(outputFilePath, v); err != nil {
+	if err := db_int.DumpDb(outputFilePath, v, false); err != nil {
 		if err.Error() == errs.PG_DUMP_NOT_FOUND {
 			cmd.Println("Hey! we noticed you don't have 'pg_dump', then you also probably won't have 'pg_restore', we use these tools internally to perform dumps & restores... please install these tools in your OS before proceeding.")
 		} else {

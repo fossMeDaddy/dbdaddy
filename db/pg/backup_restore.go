@@ -10,16 +10,20 @@ import (
 	"github.com/spf13/viper"
 )
 
-func DumpDb(outputFilePath string, v *viper.Viper) error {
-	osCmd := exec.Command("pg_dump",
-		"--clean",
-		"--file="+outputFilePath,
+func DumpDb(outputFilePath string, v *viper.Viper, onlySchema bool) error {
+	args := []string{"--clean",
+		"--file=" + outputFilePath,
 		"--format=directory",
-		"--username="+v.GetString(constants.DbConfigUserKey),
-		"--host="+v.GetString(constants.DbConfigHostKey),
-		"--port="+v.GetString(constants.DbConfigPortKey),
+		"--username=" + v.GetString(constants.DbConfigUserKey),
+		"--host=" + v.GetString(constants.DbConfigHostKey),
+		"--port=" + v.GetString(constants.DbConfigPortKey),
 		"--no-password",
-		v.GetString(constants.DbConfigCurrentBranchKey))
+		v.GetString(constants.DbConfigCurrentBranchKey),
+	}
+	if onlySchema {
+		args = append(args, "--schema-only")
+	}
+	osCmd := exec.Command("pg_dump", args...)
 
 	osCmd.Env = append(os.Environ(), "PGPASSWORD="+v.GetString(constants.DbConfigPassKey))
 

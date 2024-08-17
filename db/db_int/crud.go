@@ -62,18 +62,25 @@ func DeleteDb(dbname string) error {
 
 func ListTablesInDb() ([]types.Table, error) {
 	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
+	switch driver {
+	case constants.DbDriverPostgres:
 		return pg.ListTablesInDb()
-	} else {
-		panic("")
+	case constants.DbDriverMySQL:
+		return msql.ListTablesInDb()
+	default:
+		return []types.Table{}, errs.ErrUnsupportedDriver
 	}
 }
 
 func GetTableSchema(schema string, tablename string) (types.TableSchema, error) {
 	driver := viper.GetString(constants.DbConfigDriverKey)
-	if driver == constants.DbDriverPostgres {
+	switch driver {
+	case constants.DbDriverPostgres:
 		return pg.GetTableSchema(schema, tablename)
-	} else {
-		panic("")
+	case constants.DbDriverMySQL:
+		return msql.GetTableSchema(schema, tablename)
+	default:
+		return types.TableSchema{}, errs.ErrUnsupportedDriver
 	}
+
 }

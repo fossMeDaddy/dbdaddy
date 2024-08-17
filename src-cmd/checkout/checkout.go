@@ -17,6 +17,7 @@ import (
 var (
 	shouldCreateNewBranch bool
 	shouldKeepItClean     bool
+	shouldCopyOnlySchema  bool
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -32,16 +33,23 @@ var cmd = &cobra.Command{
 func Init() *cobra.Command {
 	cmd.Flags().BoolVarP(&shouldCreateNewBranch, "new", "n", false, "create a new branch with given branch name, the contents of the current branch will be copied over (tables, columns, column properties, data, etc.)")
 	cmd.Flags().BoolVarP(&shouldKeepItClean, "clean", "c", false, "the new branch created by '-n' will be independent of the current branch i.e. nothing will be copied over")
-
+	cmd.Flags().BoolVar(&shouldCopyOnlySchema, "only-schema", false, "create a new branch with given branch name, only the schema of the current branch will be copied over (table structure, relations, etc.)")
 	return cmd
 }
 
 func run(cmd *cobra.Command, args []string) {
 	branchname := args[0]
-
 	// flags validation
 	if shouldKeepItClean && !shouldCreateNewBranch {
 		cmd.PrintErrln("'--clean, -c' option can only be provided when creating new branches i.e. with '-n, --new' option")
+		return
+	}
+	if shouldCopyOnlySchema && !shouldCreateNewBranch {
+		cmd.PrintErrln("'--only-schema' option can only be provided when creating new branches i.e. with '-n, --new' option")
+		return
+	}
+	if shouldCopyOnlySchema && shouldKeepItClean {
+		cmd.PrintErrln("'--clean, -c' and '--only-schema' options can not be used simultaneously")
 		return
 	}
 
@@ -50,7 +58,7 @@ func run(cmd *cobra.Command, args []string) {
 		if shouldKeepItClean {
 			err = db_int.CreateDb(branchname)
 		} else {
-			err = lib.NewBranchFromCurrent(branchname)
+			err = lib.NewBranchFromCurrent(branchname, shouldCopyOnlySchema)
 		}
 		if err != nil {
 			if errors.Is(err, errs.ErrDbAlreadyExists) {

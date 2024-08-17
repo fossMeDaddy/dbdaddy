@@ -23,7 +23,7 @@ func InitConfigFile(v *viper.Viper, configPath string, write bool) {
 	v.AddConfigPath(viperConfigPath)
 
 	// setup default values for PG connection
-	v.SetDefault(constants.DbConfigHostKey, "localhost")
+	v.SetDefault(constants.DbConfigHostKey, "127.0.0.1")
 	v.SetDefault(constants.DbConfigPortKey, 5432)
 	v.SetDefault(constants.DbConfigUserKey, "postgres")
 	v.SetDefault(constants.DbConfigPassKey, "postgres")
