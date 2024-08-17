@@ -31,10 +31,10 @@ func ListTablesInDb() ([]types.Table, error) {
 	return tables, nil
 }
 
-func GetTableSchema(schema string, tablename string) (types.TableSchema, error) {
+func GetTableSchema(schema string, tablename string) (*types.TableSchema, error) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
-	table := types.TableSchema{
+	table := &types.TableSchema{
 		Db:     currBranch,
 		Schema: schema,
 		Name:   tablename,
@@ -53,10 +53,10 @@ func GetTableSchema(schema string, tablename string) (types.TableSchema, error) 
 			&column.Nullable,
 			&column.DataType,
 			&column.IsPrimaryKey,
-			&column.IsRelation,
-			&column.ForeignTableSchema,
-			&column.ForeignTableName,
-			&column.ForeignColumnName,
+			// &column.IsRelation,
+			// &column.ForeignTableSchema,
+			// &column.ForeignTableName,
+			// &column.ForeignColumnName,
 		); err != nil {
 			return table, err
 		}
