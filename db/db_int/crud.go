@@ -1,3 +1,4 @@
+// this is a central place for calling driver-specific internal functions
 package db_int
 
 import (
@@ -7,8 +8,6 @@ import (
 
 	"github.com/spf13/viper"
 )
-
-// this is a central place for calling driver-specific internal functions
 
 func GetExistingDbs() ([]string, error) {
 	driver := viper.GetString(constants.DbConfigDriverKey)
