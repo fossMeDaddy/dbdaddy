@@ -4,6 +4,7 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
 	"dbdaddy/errs"
+	"dbdaddy/libUtils"
 	"fmt"
 	"os"
 	"path"
@@ -37,7 +38,7 @@ func NewBranchFromCurrent(dbname string, onlySchema bool) error {
 		return errs.ErrDbAlreadyExists
 	}
 
-	configFilePath, _ := FindConfigFilePath()
+	configFilePath, _ := libUtils.FindConfigFilePath()
 	dumpFilePath := path.Join(
 		GetDriverDumpDir(configFilePath),
 		constants.GetDumpFileName(viper.GetString(constants.DbConfigCurrentBranchKey)),
