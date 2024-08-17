@@ -2,7 +2,7 @@ package configCmd
 
 import (
 	constants "dbdaddy/const"
-	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -20,12 +20,12 @@ func openCmdRun(cmd *cobra.Command, args []string) {
 	var configFilePath string
 	if openGlobalConfig {
 		configFilePath = constants.GetGlobalConfigPath()
-		if !lib.Exists(configFilePath) {
+		if !libUtils.Exists(configFilePath) {
 			cmd.PrintErrln("File in the global context doesn't exist. please create one, run 'config -h' for more info")
 			return
 		}
 	} else {
-		tmpConfigFilePath, err := lib.FindConfigFilePath()
+		tmpConfigFilePath, err := libUtils.FindConfigFilePath()
 		if err != nil {
 			cmd.PrintErrln("Could not find a config file! please create one. run 'config -h' for more info")
 			return
@@ -35,7 +35,7 @@ func openCmdRun(cmd *cobra.Command, args []string) {
 	}
 	cmd.Println(fmt.Sprintf("Config file found at: %s, opening via vim...", configFilePath))
 
-	lib.OpenFileInEditor(configFilePath)
+	libUtils.OpenFileInEditor(configFilePath)
 }
 
 func InitOpenCmd() *cobra.Command {

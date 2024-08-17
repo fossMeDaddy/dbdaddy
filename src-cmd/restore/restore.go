@@ -4,6 +4,7 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"path/filepath"
 	"slices"
@@ -36,7 +37,7 @@ func run(cmd *cobra.Command, args []string) {
 		if useGlobalContext {
 			configFilePath = constants.GetGlobalConfigPath()
 		} else {
-			configFilePath, _ = lib.FindConfigFilePath()
+			configFilePath, _ = libUtils.FindConfigFilePath()
 		}
 		dbGroupedDumpFiles, err := lib.GetDbGroupedDumpFiles(configFilePath)
 		if err != nil {

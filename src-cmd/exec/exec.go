@@ -5,6 +5,7 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"fmt"
 	"math"
@@ -73,7 +74,7 @@ func runQuery(cmd *cobra.Command, query string) error {
 
 		if len(outFileFlag) > 0 {
 			csvFile := lib.GetCsvString(results)
-			outFilePath, err := lib.GetAbsolutePathFor(outFileFlag)
+			outFilePath, err := libUtils.GetAbsolutePathFor(outFileFlag)
 			if err != nil {
 				cmd.Println("unexpected error occured while writing CSV file", err)
 				return
@@ -95,7 +96,7 @@ func runQuery(cmd *cobra.Command, query string) error {
 	if w >= outputW {
 		cmd.Println(formattedOutput)
 	} else {
-		tmpDir, tmpDirErr := lib.FindTmpDirPath()
+		tmpDir, tmpDirErr := libUtils.FindTmpDirPath()
 		if tmpDirErr != nil {
 			return err
 		}

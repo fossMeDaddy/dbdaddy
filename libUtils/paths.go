@@ -1,4 +1,4 @@
-package lib
+package libUtils
 
 import (
 	constants "dbdaddy/const"
@@ -6,6 +6,15 @@ import (
 	"os"
 	"path"
 )
+
+func GetAbsolutePathFor(relativePath string) (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(cwd, relativePath), err
+}
 
 func FindConfigFilePath() (string, error) {
 	_, cwdFileErr := os.Stat(constants.GetLocalConfigPath())
@@ -28,18 +37,9 @@ func FindConfigDirPath() (string, error) {
 		return "", err
 	}
 
-	configDir, _ := path.Split(configFile)
+	configDir := path.Dir(configFile)
 
 	return configDir, nil
-}
-
-func GetAbsolutePathFor(relativePath string) (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(cwd, relativePath), err
 }
 
 func FindTmpDirPath() (string, error) {
@@ -49,7 +49,7 @@ func FindTmpDirPath() (string, error) {
 	}
 
 	tmpDirPath := path.Join(configDir, constants.TmpDir)
-	osDirErr := DirExistsCreate(tmpDirPath)
+	_, osDirErr := EnsureDirExists(tmpDirPath)
 	if osDirErr != nil {
 		return "", err
 	}

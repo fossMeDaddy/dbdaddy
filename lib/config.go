@@ -2,6 +2,7 @@ package lib
 
 import (
 	constants "dbdaddy/const"
+	"dbdaddy/libUtils"
 	"fmt"
 	"slices"
 	"strings"
@@ -10,7 +11,7 @@ import (
 )
 
 func IsFirstTimeUser() bool {
-	_, err := FindConfigFilePath()
+	_, err := libUtils.FindConfigFilePath()
 	return err != nil
 }
 

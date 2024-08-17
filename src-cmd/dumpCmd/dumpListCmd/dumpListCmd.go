@@ -3,6 +3,7 @@ package dumpListCmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"path"
 
@@ -23,7 +24,7 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	configFilePath, _ := lib.FindConfigFilePath()
+	configFilePath, _ := libUtils.FindConfigFilePath()
 	if useGlobalConfigFile {
 		configFilePath = constants.GetGlobalConfigPath()
 	}

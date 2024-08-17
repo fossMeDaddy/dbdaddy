@@ -3,6 +3,8 @@ package cmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
+	"dbdaddy/migrationsCmd"
 	checkoutCmd "dbdaddy/src-cmd/checkout"
 	configCmd "dbdaddy/src-cmd/config"
 	deleteCmd "dbdaddy/src-cmd/delete"
@@ -17,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/v5"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,7 +41,7 @@ func Execute() {
 		fmt.Println("I'll create a global config for ya, let me know your database url here")
 
 		configFilePath := constants.GetGlobalConfigPath()
-		lib.DirExistsCreate(constants.GetGlobalDirPath())
+		libUtils.EnsureDirExists(constants.GetGlobalDirPath())
 		lib.InitConfigFile(viper.GetViper(), configFilePath, true)
 
 		dbUrlPrompt := promptui.Prompt{
@@ -52,9 +54,9 @@ func Execute() {
 			os.Exit(1)
 		}
 
-		lib.OpenFileInEditor(configFilePath)
+		libUtils.OpenFileInEditor(configFilePath)
 	} else {
-		configFilePath, _ := lib.FindConfigFilePath()
+		configFilePath, _ := libUtils.FindConfigFilePath()
 		lib.ReadConfig(viper.GetViper(), configFilePath)
 		lib.EnsureSupportedDbDriver()
 	}
@@ -70,6 +72,7 @@ func Execute() {
 	rootCmd.AddCommand(inspectMeCmd.Init())
 	rootCmd.AddCommand(studioCmd.Init())
 	rootCmd.AddCommand(execCmd.Init())
+	rootCmd.AddCommand(migrationsCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
