@@ -1,5 +1,5 @@
 .vscode/launch.json
-bin/
+/bin/
 
 .env
 .env.*
@@ -8,5 +8,5 @@ bin/
 .dbdaddy*
 dbdaddy.config.json
 
-ignore/
-migrations/
+/ignore/
+/migrations/

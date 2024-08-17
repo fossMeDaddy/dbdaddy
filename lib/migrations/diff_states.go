@@ -299,7 +299,9 @@ func DiffDbSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 	})()
 
 	// accumulate changes keys
-	typeChanges := getTypeStateChanges(typeStateKeysConcat)
+
+	// TYPES SQL NOT SUPPORTED CURRENTLY
+	_ = getTypeStateChanges(typeStateKeysConcat)
 
 	tableChanges, tableChangesMapping := getTableStateChanges(tableStateKeysConcat)
 	slices.SortFunc(tableChanges, changeTypePrefixSortingCmp)
@@ -326,7 +328,7 @@ func DiffDbSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 		}
 	})
 
-	changes = slices.Concat(changes, typeChanges, tableChanges, colChanges, conChanges)
+	changes = slices.Concat(changes, tableChanges, colChanges, conChanges)
 
 	return changes
 }
