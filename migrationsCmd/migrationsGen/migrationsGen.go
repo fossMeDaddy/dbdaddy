@@ -47,17 +47,15 @@ func run(cmd *cobra.Command, args []string) {
 			return err
 		}
 
-		migrations, err := migrationsLib.Status(currBranch, currentState)
+		migStat, err := migrationsLib.Status(currBranch, currentState)
 		if err != nil {
 			return err
 		}
 
-		isInit := len(migrations) == 0
-
 		var latestMig *types.DbMigration
 		prevState := &types.DbSchema{}
-		if !isInit {
-			latestMig = &migrations[len(migrations)-1]
+		if !migStat.IsInit {
+			latestMig = &migStat.Migrations[len(migStat.Migrations)-1]
 			state, err := latestMig.ReadState()
 			if err != nil {
 				return err
@@ -65,8 +63,12 @@ func run(cmd *cobra.Command, args []string) {
 
 			prevState = state
 		} else {
-			initMigDirPath := path.Join(migrationsDirPath, constants.MigInitDirName)
-			initMig, err := types.NewDbMigration(initMigDirPath, prevState, "", "", "")
+			migDirId, err := libUtils.GenerateMigrationId(migrationsDirPath, titleFlag)
+			if err != nil {
+				return err
+			}
+			migDirPath := path.Join(migrationsDirPath, migDirId)
+			initMig, err := types.NewDbMigration(migDirPath, prevState, "", "", "")
 			if err != nil {
 				return err
 			}
@@ -112,7 +114,11 @@ func run(cmd *cobra.Command, args []string) {
 			return nil
 		}
 
-		migDirPath := path.Join(migrationsDirPath, libUtils.GenerateMigrationId(titleFlag))
+		migDirId, err := libUtils.GenerateMigrationId(migrationsDirPath, titleFlag)
+		if err != nil {
+			return err
+		}
+		migDirPath := path.Join(migrationsDirPath, migDirId)
 		mig, err := types.NewDbMigration(
 			migDirPath,
 			currentState,

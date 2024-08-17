@@ -2,9 +2,11 @@ package libUtils
 
 import (
 	constants "dbdaddy/const"
+	"fmt"
+	"os"
 	"path"
+	"strconv"
 	"strings"
-	"time"
 )
 
 func GetMigrationsDir(dbname string) (string, error) {
@@ -22,14 +24,30 @@ func GetMigrationsDir(dbname string) (string, error) {
 	return migDirPath, nil
 }
 
-// returns "<timestamp>__title" or "<timestamp>"
-func GenerateMigrationId(title string) string {
-	ts := time.Now().Format("2006-01-01T03_04_05")
+// returns "00069__title" or "00069"
+func GenerateMigrationId(migrationsDirPath string, title string) (string, error) {
+	dirs, err := os.ReadDir(migrationsDirPath)
+	if err != nil {
+		return "", err
+	}
+
+	latestN := 0
+	for _, dir := range dirs {
+		n, err := strconv.Atoi(dir.Name())
+		if err != nil {
+			return "", err
+		}
+
+		latestN = max(latestN, n+1)
+	}
+
+	fileNum := fmt.Sprintf("%05d", latestN)
+
 	fileTitle := strings.ReplaceAll(strings.Trim(strings.ToLower(title), " "), " ", "_")
 
 	if len(fileTitle) > 0 {
-		return ts + "__" + fileTitle
+		return fileNum + "__" + fileTitle, nil
 	}
 
-	return ts
+	return fileNum, nil
 }

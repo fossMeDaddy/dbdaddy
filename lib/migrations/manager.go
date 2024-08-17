@@ -1,7 +1,6 @@
 package migrationsLib
 
 import (
-	constants "dbdaddy/const"
 	"dbdaddy/libUtils"
 	"dbdaddy/types"
 	"fmt"
@@ -13,29 +12,26 @@ import (
 	"sync"
 )
 
-func Status(dbname string, currentState *types.DbSchema) ([]types.DbMigration, error) {
-	var wg sync.WaitGroup
-	migrations := []types.DbMigration{}
+// returns: list of migrations, the active migration index (-1 if no active migration found) and "isInit"
+// to check if the migrations directory was initialized
+func Status(dbname string, currentState *types.DbSchema) (types.MigrationStatus, error) {
+	var (
+		wg sync.WaitGroup
+		mx sync.Mutex
+	)
+
+	migStat := types.MigrationStatus{}
 
 	migDir, migDirErr := libUtils.GetMigrationsDir(dbname)
 	if migDirErr != nil {
-		return migrations, migDirErr
+		return migStat, migDirErr
 	}
 
 	dirs, err := os.ReadDir(migDir)
 	if err != nil {
-		return migrations, err
+		return migStat, err
 	}
 	slices.SortFunc(dirs, func(a, b fs.DirEntry) int {
-		// always prefer init file to be "smaller" in compare func
-		if a.Name() == constants.MigInitDirName {
-			return -1
-		}
-
-		if b.Name() == constants.MigInitDirName {
-			return 1
-		}
-
 		return strings.Compare(a.Name(), b.Name())
 	})
 
@@ -58,21 +54,26 @@ func Status(dbname string, currentState *types.DbSchema) ([]types.DbMigration, e
 			changes := DiffDbSchema(currentState, state)
 			if len(changes) == 0 {
 				mig.IsActive = true
+
+				mx.Lock()
+				migStat.ActiveMigration = mig
+				mx.Unlock()
 			}
 		})(&mig)
 
 		if i > 0 {
-			prevMig := migrations[i-1]
+			prevMig := migStat.Migrations[i-1]
 			mig.Down = &prevMig
 			prevMig.Up = &mig
 		}
 
-		migrations = append(migrations, mig)
+		migStat.Migrations = append(migStat.Migrations, mig)
 	}
+	migStat.IsInit = len(migStat.Migrations) == 0
 
 	wg.Wait()
 
-	return migrations, nil
+	return migStat, nil
 }
 
 // migrations array should be an ascendingly sorted array

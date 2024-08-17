@@ -23,8 +23,7 @@ const (
 
 // collection of migrations for each db
 const (
-	MigInitDirName = "__init__"
-	MigDirName     = "migrations"
+	MigDirName = "migrations"
 )
 
 // migration dir files e.g. "migrations/dbname/version_string/*"
