@@ -31,9 +31,9 @@ var cmd = &cobra.Command{
 }
 
 func Init() *cobra.Command {
-	cmd.Flags().BoolVarP(&shouldCreateNewBranch, "new", "n", false, "create a new branch with given branch name, the contents of the current branch will be copied over (tables, columns, column properties, data, etc.)")
+	cmd.Flags().BoolVarP(&shouldCreateNewBranch, "new", "n", false, "create a new branch with given branch name, the contents of the current branch will be copied over schema and data both")
 	cmd.Flags().BoolVarP(&shouldKeepItClean, "clean", "c", false, "the new branch created by '-n' will be independent of the current branch i.e. nothing will be copied over")
-	cmd.Flags().BoolVar(&shouldCopyOnlySchema, "only-schema", false, "create a new branch with given branch name, only the schema of the current branch will be copied over (table structure, relations, etc.)")
+	cmd.Flags().BoolVar(&shouldCopyOnlySchema, "only-schema", false, "create a new branch with given branch name, only the schema of the current branch will be copied over")
 	return cmd
 }
 

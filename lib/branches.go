@@ -50,7 +50,7 @@ func NewBranchFromCurrent(dbname string, onlySchema bool) error {
 		return err
 	}
 	if err := os.RemoveAll(dumpFilePath); err != nil {
-		panic("Unexpected error occured while removing useless dump files!\n" + err.Error())
+		return err
 	}
 	return nil
 }
