@@ -4,6 +4,7 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"path/filepath"
 	"slices"
@@ -22,10 +23,9 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:     "restore",
-	Aliases: []string{"revivemedaddy"},
-	Short:   "restores the current database branch with a given database dump file, does so by OVER-WRITING THE EXISTING CONTENTS.",
-	Run:     cmdRunFn,
+	Use:   "restore",
+	Short: "restores the current database branch with a given database dump file, does so by OVER-WRITING THE EXISTING CONTENTS.",
+	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -37,7 +37,7 @@ func run(cmd *cobra.Command, args []string) {
 		if useGlobalContext {
 			configFilePath = constants.GetGlobalConfigPath()
 		} else {
-			configFilePath, _ = lib.FindConfigFilePath()
+			configFilePath, _ = libUtils.FindConfigFilePath()
 		}
 		dbGroupedDumpFiles, err := lib.GetDbGroupedDumpFiles(configFilePath)
 		if err != nil {

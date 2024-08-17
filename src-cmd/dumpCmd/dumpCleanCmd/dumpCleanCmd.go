@@ -3,6 +3,7 @@ package dumpCleanCmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"fmt"
 	"os"
@@ -19,12 +20,12 @@ var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
 	Use:   "clean",
-	Short: "Cleans old dump files, won't touch any newly created dumps",
+	Short: "Cleans old dump files, won't touch latest dumps",
 	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
-	configFilePath, _ := lib.FindConfigFilePath()
+	configFilePath, _ := libUtils.FindConfigFilePath()
 	if useGlobalConfigFile {
 		configFilePath = constants.GetGlobalConfigPath()
 	}

@@ -5,6 +5,7 @@ import (
 	"dbdaddy/db/db_int"
 	"dbdaddy/errs"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"path"
 
@@ -20,13 +21,13 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "dumpmedaddy",
+	Use:   "dumpme",
 	Short: "Takes a dump of the current database branch, this dump file can be later used to restore the data",
 	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
-	configFilePath, _ := lib.FindConfigFilePath()
+	configFilePath, _ := libUtils.FindConfigFilePath()
 	if useGlobalFile {
 		configFilePath = constants.GetGlobalConfigPath()
 	}

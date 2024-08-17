@@ -3,6 +3,7 @@ package configCmd
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"fmt"
 	"path"
 
@@ -26,7 +27,7 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	dir, _ := path.Split(configWritePath)
-	if err := lib.DirExistsCreate(dir); err != nil {
+	if _, err := libUtils.EnsureDirExists(dir); err != nil {
 		panic("Unexpected error occured!\n" + err.Error())
 	}
 
@@ -45,7 +46,7 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	lib.OpenFileInEditor(configWritePath)
+	libUtils.OpenFileInEditor(configWritePath)
 }
 
 func InitCreateCmd() *cobra.Command {

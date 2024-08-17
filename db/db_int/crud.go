@@ -72,15 +72,24 @@ func ListTablesInDb() ([]types.Table, error) {
 	}
 }
 
-func GetTableSchema(schema string, tablename string) (types.TableSchema, error) {
+func GetTableSchema(dbname, schema, tablename string) (*types.TableSchema, error) {
 	driver := viper.GetString(constants.DbConfigDriverKey)
 	switch driver {
 	case constants.DbDriverPostgres:
-		return pg.GetTableSchema(schema, tablename)
+		return pg.GetTableSchema(dbname, schema, tablename)
 	case constants.DbDriverMySQL:
 		return msql.GetTableSchema(schema, tablename)
 	default:
-		return types.TableSchema{}, errs.ErrUnsupportedDriver
+		return nil, errs.ErrUnsupportedDriver
 	}
+}
 
+func GetDbSchema(dbname string) (*types.DbSchema, error) {
+	driver := viper.GetString(constants.DbConfigDriverKey)
+	switch driver {
+	case constants.DbDriverPostgres:
+		return pg.GetDbSchema(dbname, "", "")
+	default:
+		return nil, errs.ErrUnsupportedDriver
+	}
 }

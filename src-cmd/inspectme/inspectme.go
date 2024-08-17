@@ -22,9 +22,9 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:     "inspectmedaddy",
+	Use:     "inspect",
 	Aliases: []string{"inspectme"},
-	Short:   "prints the schema of a selected table",
+	Short:   "prints the schema of a selected table in current database",
 	Run:     cmdRunFn,
 }
 
@@ -36,9 +36,9 @@ func getColName(name string, pk bool) string {
 	return name
 }
 
-func getRelString(col types.Column) string {
-	if col.IsRelation {
-		return fmt.Sprintf("Ref: %s.%s.%s", col.ForeignTableSchema, col.ForeignTableName, col.ForeignColumnName)
+func getRelString(con *types.DbConstraint) string {
+	if con != nil {
+		return fmt.Sprintf("Ref: %s.%s.%s", con.FTableSchema, con.FTableName, con.FColName)
 	} else {
 		return ""
 	}
@@ -64,7 +64,7 @@ func run(cmd *cobra.Command, args []string) {
 		} else {
 			prompt := promptui.Select{
 				Label: "Choose table to display schema of",
-				Items: slices.Concat(dbStrTables),
+				Items: dbStrTables,
 				Searcher: func(input string, index int) bool {
 					return strings.Contains(dbStrTables[index], strings.ToLower(strings.Trim(input, " ")))
 				},
@@ -84,10 +84,12 @@ func run(cmd *cobra.Command, args []string) {
 			schema := tmp[0]
 			table := tmp[1]
 
-			tableSchema, err := db_int.GetTableSchema(schema, table)
+			tableSchema, err := db_int.GetTableSchema(currBranch, schema, table)
 			if err != nil {
 				return fmt.Errorf("Unexpected error occured while fetching table schema for %s\n"+err.Error(), tablename)
 			}
+
+			colConMapping := map[string]*types.DbConstraint{}
 
 			nColPadding := len(fmt.Sprintf("%d", len(tableSchema.Columns)))
 			colNamePadding := 0
@@ -98,19 +100,38 @@ func run(cmd *cobra.Command, args []string) {
 				colNamePadding = max(colNamePadding, len(getColName(col.Name, col.IsPrimaryKey)))
 				colDefaultPadding = max(colDefaultPadding, len(col.Default))
 				colDataTypePadding = max(colDataTypePadding, len(col.DataType))
+
+				// col constraint mapping
+				findI := slices.IndexFunc(tableSchema.Constraints, func(con *types.DbConstraint) bool {
+					return con.Type == "f" && con.ColName == col.Name
+				})
+				if findI != -1 {
+					con := tableSchema.Constraints[findI]
+					colConMapping[col.Name] = con
+				}
 			}
+
+			tableNameTmp := strings.Split(tablename, ".")
+			dbTableI := slices.IndexFunc(dbTables, func(dbTable types.Table) bool {
+				return tableNameTmp[0] == dbTable.Schema && tableNameTmp[1] == dbTable.Name
+			})
+			dbTable := dbTables[dbTableI]
 
 			cmd.Println()
 			cmd.Printf("TABLE: %s\n", tablename)
+			if dbTable.Type == constants.TableTypeView {
+				cmd.Println("INFO: TABLE IS A VIEW")
+			}
+
 			for i, col := range tableSchema.Columns {
 				cmd.Printf(
-					"%0*d - %-*s %-*s DEFAULT %-*s NULLABLE %-*t %s\n",
+					"%0*d - %-*s %-*s DEFAULT `%-*s` NULLABLE:%-*t %s\n",
 					nColPadding, i+1,
 					colNamePadding, getColName(col.Name, col.IsPrimaryKey),
 					colDataTypePadding, col.DataType,
 					colDefaultPadding, col.Default,
 					colNullablePadding, col.Nullable,
-					getRelString(col),
+					getRelString(colConMapping[col.Name]),
 				)
 			}
 		}

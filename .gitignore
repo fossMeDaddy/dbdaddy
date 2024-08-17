@@ -1,9 +1,12 @@
+.vscode/launch.json
 bin/
 
 .env
 .env.*
 
-.dbdaddy*/
+.dbdaddy/
+.dbdaddy*
 dbdaddy.config.json
 
 ignore/
+migrations/
