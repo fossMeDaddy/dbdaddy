@@ -1,7 +1,7 @@
 package migrationsCmd
 
 import (
-	migrationsGenCmd "dbdaddy/migrationsCmd/migrationsGen"
+	migrationsGenCmd "dbdaddy/src-cmd/migrations/migrationsGen"
 
 	"github.com/spf13/cobra"
 )
@@ -18,7 +18,6 @@ func run(cmd *cobra.Command, args []string) {
 
 func Init() *cobra.Command {
 	// flags
-
 	cmd.AddCommand(migrationsGenCmd.Init())
 
 	return cmd
