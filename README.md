@@ -4,6 +4,8 @@ A simple database management CLI tool.
 
 safe for production use when version = `v1.0.0`
 
+stable enough for development DB use, NOW.
+
 ## Installation
 not available on windows cuz fuck you, thats why. use wsl or something...
 ```
