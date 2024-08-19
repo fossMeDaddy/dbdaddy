@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            "args": ["migrations", "generate", "--no-info", "--dry-run"]
+            "args": ["migrations", "generate", "--dry-run"]
         }
     ]
 }

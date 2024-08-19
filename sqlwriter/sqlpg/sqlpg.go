@@ -1,15 +1,23 @@
-package migrationsLib
+package sqlpg
 
 import (
 	constants "dbdaddy/const"
+	"dbdaddy/libUtils"
 	"dbdaddy/types"
 	"fmt"
 	"strings"
 )
 
+func getSqlTableId(tableid string) string {
+	schema, tablename := libUtils.GetTableFromId(tableid)
+	return fmt.Sprintf(`"%s"."%s"`, schema, tablename)
+}
+
 func GetColDefSQL(col *types.Column) string {
+	colSql := []string{}
+
 	// name
-	colSql := []string{col.Name}
+	colSql = append(colSql, fmt.Sprintf(`"%s"`, col.Name))
 
 	// type
 	if col.CharMaxLen != -1 {
@@ -39,7 +47,8 @@ func GetColDefSQL(col *types.Column) string {
 }
 
 func GetCreateTableSQL(tableSchema *types.TableSchema) string {
-	sqlStmt := fmt.Sprintf(`CREATE TABLE %s.%s (`, tableSchema.Schema, tableSchema.Name)
+	tableid := libUtils.GetTableId(tableSchema.Schema, tableSchema.Name)
+	sqlStmt := fmt.Sprintf(`CREATE TABLE %s (`, getSqlTableId(tableid))
 	sqlStmt += fmt.Sprintln()
 
 	defer (func() {
@@ -61,21 +70,21 @@ func GetCreateTableSQL(tableSchema *types.TableSchema) string {
 
 // tableid should be of the form "schemaname"."tablename"
 func GetDropTableSQL(tableid string) string {
-	sqlStmt := fmt.Sprintf("DROP TABLE %s;", tableid)
+	sqlStmt := fmt.Sprintf("DROP TABLE %s CASCADE;", getSqlTableId(tableid))
 	sqlStmt += fmt.Sprintln()
 
 	return sqlStmt
 }
 
 func GetATDropColSQL(tableid string, colName string) string {
-	sqlStmt := fmt.Sprintf(`ALTER TABLE %s DROP COLUMN %s;`, tableid, colName)
+	sqlStmt := fmt.Sprintf(`ALTER TABLE %s DROP COLUMN %s;`, getSqlTableId(tableid), colName)
 	sqlStmt += fmt.Sprintln()
 
 	return sqlStmt
 }
 
 func GetATCreateColSQL(tableid string, col *types.Column) string {
-	sqlStmt := fmt.Sprintf(`ALTER TABLE %s`, tableid)
+	sqlStmt := fmt.Sprintf(`ALTER TABLE %s`, getSqlTableId(tableid))
 	sqlStmt += fmt.Sprintln()
 
 	sqlStmt += constants.MigFileIndentation
@@ -86,18 +95,18 @@ func GetATCreateColSQL(tableid string, col *types.Column) string {
 }
 
 func GetATDropConstraint(tableid string, conName string) string {
-	sqlStmt := fmt.Sprintf(`ALTER TABLE %s DROP CONSTRAINT %s;`, tableid, conName)
+	sqlStmt := fmt.Sprintf(`ALTER TABLE %s DROP CONSTRAINT %s;`, getSqlTableId(tableid), conName)
 	sqlStmt += fmt.Sprintln()
 
 	return sqlStmt
 }
 
 func GetATCreateConstraintSQL(tableid string, con *types.DbConstraint) string {
-	sqlStmt := fmt.Sprintf(`ALTER TABLE %s`, tableid)
+	sqlStmt := fmt.Sprintf(`ALTER TABLE %s`, getSqlTableId(tableid))
 	sqlStmt += fmt.Sprintln()
 
 	sqlStmt += constants.MigFileIndentation
-	sqlStmt += fmt.Sprintf(`ADD CONSTRAINT %s %s;`, con.ConName, con.Syntax)
+	sqlStmt += fmt.Sprintf(`ADD CONSTRAINT "%s" %s;`, con.ConName, con.Syntax)
 	sqlStmt += fmt.Sprintln()
 
 	return sqlStmt

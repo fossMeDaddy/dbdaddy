@@ -3,7 +3,6 @@ package pg
 import (
 	constants "dbdaddy/const"
 	"dbdaddy/errs"
-	"fmt"
 	"os"
 	"os/exec"
 
@@ -17,7 +16,7 @@ func PgDumpExists() bool {
 
 func DumpDb(outputFilePath string, v *viper.Viper) error {
 	if !PgDumpExists() {
-		return fmt.Errorf(errs.PG_DUMP_NOT_FOUND)
+		return errs.ErrPgDumpCmdNotFound
 	}
 
 	osCmd := exec.Command("pg_dump",

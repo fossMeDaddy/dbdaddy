@@ -7,6 +7,7 @@ import (
 	"dbdaddy/lib"
 	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
+	"errors"
 	"fmt"
 	"path"
 	"time"
@@ -40,7 +41,7 @@ func run(cmd *cobra.Command, args []string) {
 	outputFilePath := path.Join(lib.GetDriverDumpDir(configFilePath), fmt.Sprintf("%s__%s", time.Now().Local().Format("2006-01-02_15:04:05"), v.GetString(constants.DbConfigCurrentBranchKey)))
 
 	if err := db_int.DumpDb(outputFilePath, v); err != nil {
-		if err.Error() == errs.PG_DUMP_NOT_FOUND {
+		if errors.Is(err, errs.ErrPgDumpCmdNotFound) {
 			cmd.Println("Hey! we noticed you don't have 'pg_dump', then you also probably won't have 'pg_restore', we use these tools internally to perform dumps & restores... please install these tools in your OS before proceeding.")
 		} else {
 			cmd.PrintErrln("Unexpected error occured:", err)

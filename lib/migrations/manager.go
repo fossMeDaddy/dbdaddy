@@ -1,6 +1,7 @@
 package migrationsLib
 
 import (
+	"dbdaddy/db/db_int"
 	"dbdaddy/libUtils"
 	"dbdaddy/types"
 	"fmt"
@@ -35,39 +36,43 @@ func Status(dbname string, currentState *types.DbSchema) (types.MigrationStatus,
 		return strings.Compare(a.Name(), b.Name())
 	})
 
+	activeI := -1
 	for i, migDirEntry := range dirs {
 		mig := types.DbMigration{
 			DirPath: path.Join(migDir, migDirEntry.Name()),
 		}
 
-		wg.Add(1)
-		go (func(mig *types.DbMigration) {
-			defer wg.Done()
+		// wg.Add(1)
+		// go (func(mig *types.DbMigration) {
+		// defer wg.Done()
 
-			state, err := mig.ReadState()
-			if err != nil {
-				fmt.Println("WARNING: error occured while reading state file in", mig.DirPath)
-				fmt.Println(err)
-				return
-			}
+		state, err := mig.ReadState()
+		if err != nil {
+			fmt.Println("WARNING: error occured while reading state file in", mig.DirPath)
+			fmt.Println(err)
+			// return
+		}
 
-			changes := DiffDbSchema(currentState, state)
-			if len(changes) == 0 {
-				mig.IsActive = true
+		changes := DiffDbSchema(currentState, state)
+		if len(changes) == 0 {
+			mig.IsActive = true
 
-				mx.Lock()
-				migStat.ActiveMigration = mig
-				mx.Unlock()
-			}
-		})(&mig)
+			mx.Lock()
+			activeI = i
+			mx.Unlock()
+		}
+		// })(&mig)
 
 		if i > 0 {
-			prevMig := migStat.Migrations[i-1]
-			mig.Down = &prevMig
+			prevMig := &migStat.Migrations[i-1]
+			mig.Down = prevMig
 			prevMig.Up = &mig
 		}
 
 		migStat.Migrations = append(migStat.Migrations, mig)
+	}
+	if activeI != -1 {
+		migStat.ActiveMigration = &migStat.Migrations[activeI]
 	}
 	migStat.IsInit = len(migStat.Migrations) == 0
 
@@ -76,12 +81,39 @@ func Status(dbname string, currentState *types.DbSchema) (types.MigrationStatus,
 	return migStat, nil
 }
 
-// migrations array should be an ascendingly sorted array
-// returns -1 if no migration is set active
-func GetActiveMigration(migrations []types.DbMigration) int {
-	findI := slices.IndexFunc(migrations, func(mig types.DbMigration) bool {
-		return mig.IsActive
-	})
+func ApplyMigrationSQL(migStat types.MigrationStatus, isUpMigration bool) error {
+	if migStat.ActiveMigration == nil {
+		return fmt.Errorf("no active migration found, please run 'migrations generate' to update migrations")
+	}
 
-	return findI
+	var sqlStr string
+	if isUpMigration {
+		if migStat.ActiveMigration.Up == nil {
+			return fmt.Errorf("already on the latest migration, can't go into future")
+		}
+
+		upSql, err := migStat.ActiveMigration.GetUpQuery()
+		if err != nil {
+			return err
+		}
+
+		sqlStr = upSql
+	} else {
+		if migStat.ActiveMigration.Down == nil {
+			return fmt.Errorf("can't go down from here, on the initial migration")
+		}
+
+		downSql, err := migStat.ActiveMigration.GetDownQuery()
+		if err != nil {
+			return err
+		}
+
+		sqlStr = downSql
+	}
+
+	if err := db_int.ExecuteStatements(sqlStr); err != nil {
+		return err
+	}
+
+	return nil
 }

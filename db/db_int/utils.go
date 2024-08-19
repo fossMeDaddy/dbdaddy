@@ -1,9 +1,16 @@
 package db_int
 
 import (
+	constants "dbdaddy/const"
 	"dbdaddy/db"
+	"dbdaddy/errs"
 	"dbdaddy/types"
+	"fmt"
+	"os"
+	"os/exec"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 // i dont like this
@@ -72,4 +79,49 @@ func GetRows(queryStr string) (types.QueryResult, error) {
 	}
 
 	return queryResult, nil
+}
+
+func ExecuteStatements__DEPRECATED(dbname, sqlStr string) error {
+	if _, err := exec.LookPath("psql"); err != nil {
+		return errs.ErrPsqlCmdNotFound
+	}
+
+	cmd := exec.Command("psql", "--single-transaction")
+
+	inPipe, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	if _, err := inPipe.Write([]byte(sqlStr)); err != nil {
+		return err
+	}
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	cmd.Env = append(
+		os.Environ(),
+		fmt.Sprintf("PGHOST=%s", viper.GetString(constants.DbConfigHostKey)),
+		fmt.Sprintf("PGPORT=%s", viper.GetString(constants.DbConfigPortKey)),
+		fmt.Sprintf("PGUSER=%s", viper.GetString(constants.DbConfigUserKey)),
+		fmt.Sprintf("PGPASSWORD=%s", viper.GetString(constants.DbConfigPassKey)),
+		fmt.Sprintf("PGDATABASE=%s", dbname),
+	)
+
+	return cmd.Run()
+}
+
+func ExecuteStatements(sqlStr string) error {
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	for _, stmt := range strings.Split(sqlStr, ";"+fmt.Sprintln()) {
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
