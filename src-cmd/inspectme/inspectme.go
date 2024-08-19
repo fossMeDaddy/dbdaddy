@@ -4,9 +4,11 @@ import (
 	constants "dbdaddy/const"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
+	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"dbdaddy/types"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
@@ -36,12 +38,24 @@ func getColName(name string, pk bool) string {
 	return name
 }
 
-func getRelString(con *types.DbConstraint) string {
-	if con != nil {
-		return fmt.Sprintf("Ref: %s.%s.%s", con.FTableSchema, con.FTableName, con.FColName)
-	} else {
-		return ""
+func getConstraintString(constraints []*types.DbConstraint) string {
+	conStr := ""
+	if len(constraints) == 0 {
+		return conStr
 	}
+
+	for _, con := range constraints {
+		switch con.Type {
+		case "f":
+			conStr += fmt.Sprintf("FK(%s.%s.%s)", con.FTableSchema, con.FTableName, con.FColName)
+		case "u":
+			conStr += "UNIQUE"
+		case "c":
+			conStr += strings.ReplaceAll(con.Syntax, fmt.Sprintln(), " ")
+		}
+	}
+
+	return conStr
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -56,7 +70,7 @@ func run(cmd *cobra.Command, args []string) {
 		}
 		dbStrTables := []string{}
 		for _, dbTable := range dbTables {
-			dbStrTables = append(dbStrTables, fmt.Sprintf("%s.%s", dbTable.Schema, dbTable.Name))
+			dbStrTables = append(dbStrTables, libUtils.GetTableId(dbTable.Schema, dbTable.Name))
 		}
 
 		if showAll {
@@ -79,17 +93,31 @@ func run(cmd *cobra.Command, args []string) {
 			selectedTables = append(selectedTables, result)
 		}
 
-		for _, tablename := range selectedTables {
-			tmp := strings.Split(tablename, ".")
-			schema := tmp[0]
-			table := tmp[1]
+		dbSchema, err := db_int.GetDbSchema(currBranch)
+		if err != nil {
+			return fmt.Errorf("unexpected error occured while fetching db schema")
+		}
 
-			tableSchema, err := db_int.GetTableSchema(currBranch, schema, table)
-			if err != nil {
-				return fmt.Errorf("Unexpected error occured while fetching table schema for %s\n"+err.Error(), tablename)
+		tablesViewsConcat := map[string]*types.TableSchema{}
+		maps.Copy(tablesViewsConcat, dbSchema.Tables)
+		maps.Copy(tablesViewsConcat, dbSchema.Views)
+
+		for tableid, tableSchema := range tablesViewsConcat {
+			if !slices.Contains(selectedTables, tableid) {
+				continue
 			}
 
-			colConMapping := map[string]*types.DbConstraint{}
+			isView := dbSchema.Views[tableid] != nil
+
+			// col constraint mapping
+			pKeyMapping := map[string]bool{}
+			colConMapping := map[string][]*types.DbConstraint{}
+			for _, con := range tableSchema.Constraints {
+				if con.Type == "p" {
+					pKeyMapping[con.ColName] = true
+				}
+				colConMapping[con.ColName] = append(colConMapping[con.ColName], con)
+			}
 
 			nColPadding := len(fmt.Sprintf("%d", len(tableSchema.Columns)))
 			colNamePadding := 0
@@ -97,29 +125,14 @@ func run(cmd *cobra.Command, args []string) {
 			colDataTypePadding := 0
 			colNullablePadding := 5
 			for _, col := range tableSchema.Columns {
-				colNamePadding = max(colNamePadding, len(getColName(col.Name, col.IsPrimaryKey)))
+				colNamePadding = max(colNamePadding, len(getColName(col.Name, pKeyMapping[col.Name])))
 				colDefaultPadding = max(colDefaultPadding, len(col.Default))
 				colDataTypePadding = max(colDataTypePadding, len(col.DataType))
-
-				// col constraint mapping
-				findI := slices.IndexFunc(tableSchema.Constraints, func(con *types.DbConstraint) bool {
-					return con.Type == "f" && con.ColName == col.Name
-				})
-				if findI != -1 {
-					con := tableSchema.Constraints[findI]
-					colConMapping[col.Name] = con
-				}
 			}
 
-			tableNameTmp := strings.Split(tablename, ".")
-			dbTableI := slices.IndexFunc(dbTables, func(dbTable types.Table) bool {
-				return tableNameTmp[0] == dbTable.Schema && tableNameTmp[1] == dbTable.Name
-			})
-			dbTable := dbTables[dbTableI]
-
 			cmd.Println()
-			cmd.Printf("TABLE: %s\n", tablename)
-			if dbTable.Type == constants.TableTypeView {
+			cmd.Printf("TABLE: %s\n", tableid)
+			if isView {
 				cmd.Println("INFO: TABLE IS A VIEW")
 			}
 
@@ -127,11 +140,11 @@ func run(cmd *cobra.Command, args []string) {
 				cmd.Printf(
 					"%0*d - %-*s %-*s DEFAULT `%-*s` NULLABLE:%-*t %s\n",
 					nColPadding, i+1,
-					colNamePadding, getColName(col.Name, col.IsPrimaryKey),
+					colNamePadding, getColName(col.Name, pKeyMapping[col.Name]),
 					colDataTypePadding, col.DataType,
 					colDefaultPadding, col.Default,
 					colNullablePadding, col.Nullable,
-					getRelString(colConMapping[col.Name]),
+					getConstraintString(colConMapping[col.Name]),
 				)
 			}
 		}

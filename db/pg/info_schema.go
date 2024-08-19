@@ -72,6 +72,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	}
 
 	tableSchemaMapping := map[string]*types.TableSchema{}
+	viewSchemaMapping := map[string]*types.TableSchema{}
 	dbCons := map[string][]*types.DbConstraint{}
 	dbTypes := []types.DbType{}
 
@@ -154,9 +155,10 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	}
 
 	for rows.Next() {
-		var tableschema, tablename string
+		var tabletype, tableschema, tablename string
 		column := types.Column{}
 		if err := rows.Scan(
+			&tabletype,
 			&tableschema,
 			&tablename,
 			&column.Name,
@@ -166,14 +168,31 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 			&column.CharMaxLen,
 			&column.NumericPrecision,
 			&column.NumericScale,
-			&column.IsPrimaryKey,
 		); err != nil {
 			return dbSchema, err
 		}
 
 		tableid := libUtils.GetTableId(tableschema, tablename)
 
-		tableSchema := tableSchemaMapping[tableid]
+		var schemaPtr *map[string]*types.TableSchema
+		switch tabletype {
+		case constants.TableTypeBaseTable:
+			schemaPtr = &tableSchemaMapping
+		case constants.TableTypeView:
+			schemaPtr = &viewSchemaMapping
+		}
+
+		schema := *schemaPtr
+
+		// var schema map[string]*types.TableSchema
+		// switch tabletype {
+		// case constants.TableTypeBaseTable:
+		// 	schema = tableSchemaMapping
+		// case constants.TableTypeView:
+		// 	schema = viewSchemaMapping
+		// }
+
+		tableSchema := schema[tableid]
 		tableCons := dbCons[tableid]
 		if tableSchema == nil {
 			tableSchema = &types.TableSchema{
@@ -182,7 +201,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 				Constraints: tableCons,
 			}
 
-			tableSchemaMapping[tableid] = tableSchema
+			schema[tableid] = tableSchema
 		}
 
 		tableSchema.Columns = append(tableSchema.Columns, column)
@@ -199,6 +218,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 
 	dbSchema.Types = dbTypes
 	dbSchema.Tables = tableSchemaMapping
+	dbSchema.Views = viewSchemaMapping
 
 	return dbSchema, nil
 }
