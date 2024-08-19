@@ -30,7 +30,7 @@ supported databases:
 
 ## Features
 Here are some features the CLI covers (for PG)
-- checking out to database branches, cloning & then checking out into database branches (kinda like `git`)
+- checking out to database branches, cloning & then checking out into database branches (kinda like `git` but way inferior)
 - inspecting database/table schema
 - deleting said databases
 - dumping databases
