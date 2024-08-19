@@ -54,3 +54,15 @@ from your database & then re-create it with SQL column definition such that the 
 ---
 > DISCLAIMER:
 > you might draw a conclusion that these docs are mean to read, and you're not wrong! but that's the whole satire :)
+---
+### Message to people who installed `DBDaddy`
+
+okay first of all thank you! issues tab is always open for any bug encountered or contribution...
+
+and second,
+
+did you even read the fuckin source code?
+
+it could've been a fuckin malware...
+
+bro wtf?!
