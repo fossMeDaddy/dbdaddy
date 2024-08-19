@@ -76,6 +76,9 @@ func GetDropTableSQL(tableid string) string {
 	return sqlStmt
 }
 
+func GetCreateViewSQL(viewid string, viewSchema *types.TableSchema) string {
+}
+
 func GetATDropColSQL(tableid string, colName string) string {
 	sqlStmt := fmt.Sprintf(`ALTER TABLE %s DROP COLUMN %s;`, getSqlTableId(tableid), colName)
 	sqlStmt += fmt.Sprintln()

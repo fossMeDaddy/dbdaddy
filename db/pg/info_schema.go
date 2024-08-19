@@ -184,14 +184,6 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 
 		schema := *schemaPtr
 
-		// var schema map[string]*types.TableSchema
-		// switch tabletype {
-		// case constants.TableTypeBaseTable:
-		// 	schema = tableSchemaMapping
-		// case constants.TableTypeView:
-		// 	schema = viewSchemaMapping
-		// }
-
 		tableSchema := schema[tableid]
 		tableCons := dbCons[tableid]
 		if tableSchema == nil {
