@@ -6,6 +6,7 @@ import (
 	"dbdaddy/lib"
 	migrationsLib "dbdaddy/lib/migrations"
 	"fmt"
+	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -35,8 +36,10 @@ func run(cmd *cobra.Command, args []string) {
 			return err
 		}
 
-		cmd.Println("Up migration ran successfully.")
+		_, currentMigName := path.Split(migStat.ActiveMigration.Up.DirPath)
 
+		cmd.Println("Up migration ran successfully.")
+		cmd.Println("Currently at migration state:", currentMigName)
 		return nil
 	})
 	if err != nil {
