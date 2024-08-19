@@ -40,6 +40,7 @@ Here are some features the CLI covers (for PG)
 
 In Progress:
 - project structure & schema definition
+- switch migrations to manual mode because you are a competent developer & would like some control over your own database
 
 ## Migrations
 it's actually simpler than most people would think... so simple in fact that I would NOT recommend it for production use (for now).
