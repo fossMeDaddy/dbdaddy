@@ -46,6 +46,11 @@ In Progress:
 - project structure & schema definition
 - switch migrations to manual mode because you are a competent developer & would like some control over your own database
 
+Planned:
+- `studio` feature, obviously because no theo-following soydev with a $1000 clerk subscription would use a CLI for more than 10s
+- db visualize feature, have you seen dbdiagram.io? great website to visualize db connections, got the idea from them
+- testing suite, i haven't written any tests for this thing :p
+
 ## Migrations
 it's actually simpler than most people would think... so simple in fact that I would NOT recommend it for production use (for now).
 
