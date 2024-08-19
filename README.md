@@ -50,3 +50,7 @@ indexes, triggers & custom types are not supported.
 constraints, columns, tables & views are diffed and tracked for changes but there is no modification support as of now for any of them,
 which means that, let's say if you make a field nullable in SQL, this tool will generate migrations to remove the column
 from your database & then re-create it with SQL column definition such that the field is now nullable. DATA WILL BE LOST.
+
+---
+> DISCLAIMER:
+> you might draw a conclusion that these docs are mean to read, and you're not wrong! but that's the whole satire :)
