@@ -37,6 +37,7 @@ type Column struct {
 type TableSchema struct {
 	Schema      string
 	Name        string
+	DefSyntax   string // populated for only views
 	Columns     []Column
 	Constraints []*DbConstraint
 }

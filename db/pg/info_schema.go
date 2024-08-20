@@ -76,7 +76,8 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	dbCons := map[string][]*types.DbConstraint{}
 	dbTypes := []types.DbType{}
 
-	wg.Add(1)
+	wg.Add(2)
+
 	var (
 		typeErr error
 	)
@@ -115,49 +116,55 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		}
 	})()
 
-	conRows, conErr := db.DB.Query(pgq.QGetConstraints(tableid))
-	if conErr != nil {
-		return dbSchema, conErr
-	}
+	var (
+		conErr error
+	)
+	go (func() {
+		defer wg.Done()
 
-	for conRows.Next() {
-		con := types.DbConstraint{}
-		err := conRows.Scan(
-			&con.ConName,
-			&con.ConSchema,
-			&con.Type,
-			&con.UpdateActionType,
-			&con.DeleteActionType,
-			&con.Syntax,
-			&con.TableSchema,
-			&con.TableName,
-			&con.ColName,
-			&con.FTableSchema,
-			&con.FTableName,
-			&con.FColName,
-		)
-		if err != nil {
-			fmt.Println(err)
-			return dbSchema, err
+		conRows, _conErr := db.DB.Query(pgq.QGetConstraints(tableid))
+		if _conErr != nil {
+			conErr = _conErr
+			return
 		}
+		for conRows.Next() {
+			con := types.DbConstraint{}
+			err := conRows.Scan(
+				&con.ConName,
+				&con.ConSchema,
+				&con.Type,
+				&con.UpdateActionType,
+				&con.DeleteActionType,
+				&con.Syntax,
+				&con.TableSchema,
+				&con.TableName,
+				&con.ColName,
+				&con.FTableSchema,
+				&con.FTableName,
+				&con.FColName,
+			)
+			if err != nil {
+				conErr = err
+				return
+			}
 
-		tableid := libUtils.GetTableId(con.TableSchema, con.TableName)
+			tableid := libUtils.GetTableId(con.TableSchema, con.TableName)
 
-		if dbCons[tableid] == nil {
-			dbCons[tableid] = []*types.DbConstraint{}
+			if dbCons[tableid] == nil {
+				dbCons[tableid] = []*types.DbConstraint{}
+			}
+			dbCons[tableid] = append(dbCons[tableid], &con)
 		}
-		dbCons[tableid] = append(dbCons[tableid], &con)
-	}
+	})()
 
-	rows, err := db.DB.Query(pgq.QGetSchema(tableid))
-	if err != nil {
-		return dbSchema, err
+	schemaRows, schemaErr := db.DB.Query(pgq.QGetSchema(tableid))
+	if schemaErr != nil {
+		return dbSchema, schemaErr
 	}
-
-	for rows.Next() {
+	for schemaRows.Next() {
 		var tabletype, tableschema, tablename string
 		column := types.Column{}
-		if err := rows.Scan(
+		if err := schemaRows.Scan(
 			&tabletype,
 			&tableschema,
 			&tablename,
@@ -169,7 +176,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 			&column.NumericPrecision,
 			&column.NumericScale,
 		); err != nil {
-			return dbSchema, err
+			return dbSchema, schemaErr
 		}
 
 		tableid := libUtils.GetTableId(tableschema, tablename)
@@ -199,6 +206,35 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		tableSchema.Columns = append(tableSchema.Columns, column)
 	}
 
+	wg.Add(1)
+	var (
+		viewErr error
+	)
+	go (func() {
+		defer wg.Done()
+
+		rows, err := db.DB.Query(pgq.QGetViews())
+		if err != nil {
+			viewErr = err
+			return
+		}
+		for rows.Next() {
+			var viewschema, viewname, syntax string
+			err := rows.Scan(
+				&viewschema,
+				&viewname,
+				&syntax,
+			)
+			if err != nil {
+				viewErr = err
+				return
+			}
+
+			viewSchema := viewSchemaMapping[libUtils.GetTableId(viewschema, viewname)]
+			viewSchema.DefSyntax = syntax
+		}
+	})()
+
 	wg.Wait()
 
 	if typeErr != nil {
@@ -206,6 +242,12 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	}
 	if conErr != nil {
 		return dbSchema, typeErr
+	}
+	if schemaErr != nil {
+		return dbSchema, schemaErr
+	}
+	if viewErr != nil {
+		return dbSchema, viewErr
 	}
 
 	dbSchema.Types = dbTypes
