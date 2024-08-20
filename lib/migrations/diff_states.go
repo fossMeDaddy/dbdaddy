@@ -72,7 +72,7 @@ func getKeysFromState(state *types.DbSchema, tag string) (keyType, keyType, keyT
 			for viewKey := range state.Views {
 				viewSchema := state.Views[viewKey]
 
-				viewKey := []string{tag, state.DbName, viewSchema.Schema, viewSchema.Name}
+				viewKey := []string{tag, state.DbName, viewSchema.Schema, viewSchema.Name, viewSchema.DefSyntax}
 				viewKeys = append(viewKeys, viewKey)
 			}
 		})()
