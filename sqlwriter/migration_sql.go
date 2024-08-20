@@ -63,6 +63,24 @@ func GetDropTableSQL(tableid string) string {
 	}
 }
 
+func GetCreateViewSQL(viewSchema *types.TableSchema) string {
+	switch getDriver() {
+	case constants.DbDriverPostgres:
+		return sqlpg.GetCreateViewSQL(viewSchema)
+	default:
+		panic("unsupported driver")
+	}
+}
+
+func GetDropViewSQL(viewid string) string {
+	switch getDriver() {
+	case constants.DbDriverPostgres:
+		return sqlpg.GetDropViewSQL(viewid)
+	default:
+		panic("unsupported driver")
+	}
+}
+
 func GetATDropColSQL(tableid string, colName string) string {
 	switch getDriver() {
 	case constants.DbDriverPostgres:

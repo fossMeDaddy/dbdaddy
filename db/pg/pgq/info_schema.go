@@ -19,6 +19,7 @@ func QGetSchema(tableid string) string {
 
 	return fmt.Sprintf(`
         select
+            inftable.table_type,
             infcol.table_schema,
             infcol.table_name,
             infcol.column_name as column_name,
@@ -54,11 +55,7 @@ func QGetSchema(tableid string) string {
 					infcol.numeric_scale = 0
 				THEN -1
 				ELSE infcol.numeric_scale
-			END AS numeric_scale,
-            CASE
-                WHEN relcon.contype = 'p' then true
-                ELSE false
-            END as is_primary_key
+			END AS numeric_scale
         from information_schema.columns infcol
 
         LEFT JOIN information_schema.element_types releltype
@@ -73,8 +70,22 @@ func QGetSchema(tableid string) string {
             relcon.connamespace = relnsp.oid and
             relcon.conkey[1] = infcol.ordinal_position and
             relcon.contype = 'p'
+		left join information_schema.tables as inftable on
+			inftable.table_schema = infcol.table_schema and
+			inftable.table_name = infcol.table_name
 
         where
             %s
     `, whereClause)
+}
+
+func QGetViews() string {
+	return `
+        select
+            table_schema,
+            table_name,
+            view_definition
+        from information_schema.views
+        where table_schema not in ('pg_catalog', 'information_schema')
+    `
 }

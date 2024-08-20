@@ -14,6 +14,9 @@ const (
 
 	MigActionCreateConstraint = "CREATE_CONSTRAINT"
 	MigActionDropConstraint   = "DROP_CONSTRAINT"
+
+	MigActionCreateView = "CREATE_VIEW"
+	MigActionDropView   = "DROP_VIEW"
 )
 
 // Default SQL migration file indentation

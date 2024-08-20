@@ -36,7 +36,7 @@ func run(cmd *cobra.Command, args []string) {
 			return err
 		}
 
-		_, currentMigName := path.Split(migStat.ActiveMigration.DirPath)
+		_, currentMigName := path.Split(migStat.ActiveMigration.Down.DirPath)
 
 		cmd.Println("Down migration ran successfully.")
 		cmd.Println("Currently at migration state:", currentMigName)

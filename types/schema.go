@@ -8,7 +8,7 @@ type DbType struct {
 type DbConstraint struct {
 	ConName          string
 	ConSchema        string
-	Type             string
+	Type             string // can be 'p', 'f', 'c' or 'u'
 	UpdateActionType string
 	DeleteActionType string
 	Syntax           string
@@ -32,14 +32,12 @@ type Column struct {
 	CharMaxLen       int
 	NumericPrecision int
 	NumericScale     int
-
-	// OnlyFrontend (only for use by frontend-loving buttplug furries)
-	IsPrimaryKey bool
 }
 
 type TableSchema struct {
 	Schema      string
 	Name        string
+	DefSyntax   string // populated for only views
 	Columns     []Column
 	Constraints []*DbConstraint
 }
@@ -47,12 +45,15 @@ type TableSchema struct {
 type Table struct {
 	Name   string
 	Schema string
-	Type   string // IMP: possible values to be put in from constants 'TableType*'
+
+	// IMP: possible values to be put in from constants 'TableType*'
+	Type string
 }
 
 // the string key is of format "schema.table"
 type DbSchema struct {
 	DbName string
 	Tables map[string]*TableSchema
+	Views  map[string]*TableSchema
 	Types  []DbType
 }

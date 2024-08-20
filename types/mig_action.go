@@ -7,6 +7,8 @@ type MigAction struct {
 	/*
 		if table: `["CS | PS", "dbname", "schemaname", "tablename"]`
 
+		else if view: `["CS | PS", "dbname", "schemaname", "tablename"]`
+
 		else if column: `["CS | PS", "dbname", "schemaname", "tablename", "columnname"]`
 
 		else if type: ["CS | PS", "dbname", "schemaname", "typename"]

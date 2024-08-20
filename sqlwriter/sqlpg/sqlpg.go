@@ -76,6 +76,25 @@ func GetDropTableSQL(tableid string) string {
 	return sqlStmt
 }
 
+func GetCreateViewSQL(viewSchema *types.TableSchema) string {
+	sqlStmt := fmt.Sprintf(`CREATE VIEW "%s"."%s" AS`, viewSchema.Schema, viewSchema.Name)
+	sqlStmt += fmt.Sprintln()
+
+	// in pg, apparently the viewdef has a semi-colon
+	sqlStmt += viewSchema.DefSyntax
+	sqlStmt += fmt.Sprintln()
+
+	return sqlStmt
+}
+
+func GetDropViewSQL(viewid string) string {
+	viewschema, viewname := libUtils.GetTableFromId(viewid)
+	sqlStmt := fmt.Sprintf(`DROP VIEW "%s"."%s";`, viewschema, viewname)
+	sqlStmt += fmt.Sprintln()
+
+	return sqlStmt
+}
+
 func GetATDropColSQL(tableid string, colName string) string {
 	sqlStmt := fmt.Sprintf(`ALTER TABLE %s DROP COLUMN %s;`, getSqlTableId(tableid), colName)
 	sqlStmt += fmt.Sprintln()

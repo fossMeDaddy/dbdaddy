@@ -22,6 +22,19 @@ func getTableSchemaFromEntity(entity []string, currentState, prevState *types.Db
 	return tableSchema
 }
 
+func getViewSchemaFromEntity(entity []string, currentState, prevState *types.DbSchema) *types.TableSchema {
+	var viewSchema *types.TableSchema
+
+	viewid := libUtils.GetTableId(entity[2], entity[3])
+	if entity[0] == currentStateTag {
+		viewSchema = currentState.Views[viewid]
+	} else {
+		viewSchema = prevState.Views[viewid]
+	}
+
+	return viewSchema
+}
+
 func getConstraintFromEntity(entityId []string, currentState, prevState *types.DbSchema) *types.DbConstraint {
 	tableSchema := getTableSchemaFromEntity(entityId, currentState, prevState)
 	findI := slices.IndexFunc(tableSchema.Constraints, func(con *types.DbConstraint) bool {
@@ -60,6 +73,15 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 				libUtils.GetTableId(tableSchema.Schema, tableSchema.Name),
 				&tableSchema.Columns[findI],
 			)
+
+		// CREATE VIEW
+		case constants.MigActionDropView:
+			viewid := libUtils.GetTableId(change.EntityId[2], change.EntityId[3])
+			sqlFile += sqlwriter.GetDropViewSQL(viewid)
+		// DROP VIEW
+		case constants.MigActionCreateView:
+			viewSchema := getViewSchemaFromEntity(change.EntityId, currentState, prevState)
+			sqlFile += sqlwriter.GetCreateViewSQL(viewSchema)
 
 		// CONSTRAINT CHANGES (ALTER TABLE)
 		case constants.MigActionDropConstraint:
