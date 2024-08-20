@@ -7,9 +7,15 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	"golang.org/x/exp/maps"
 )
 
-type keyType [][]string
+type (
+	keyType [][]string
+
+	groupedActionsType map[string][]types.MigAction
+)
 
 var (
 	changeTypePrefixSortingOrder = map[string]int{
@@ -283,6 +289,38 @@ func changeTypePrefixSortingCmp(a, b types.MigAction) int {
 	return changeTypePrefixSortingOrder[aPrefix] - changeTypePrefixSortingOrder[bPrefix]
 }
 
+func groupActionsByType(changes []types.MigAction) groupedActionsType {
+	groupedActions := groupedActionsType{}
+	for _, action := range changes {
+		groupedActions[action.Type] = append(groupedActions[action.Type], action)
+	}
+
+	return groupedActions
+}
+
+func pickActionGroups(keys []string, actions []types.MigAction) ([]types.MigAction, []types.MigAction) {
+	groupedActions := groupActionsByType(actions)
+
+	segment := []types.MigAction{}
+	antiSegment := []types.MigAction{}
+
+	allKeys := maps.Keys(groupedActions)
+	keyPresenceMapping := map[string]bool{}
+	for _, key := range keys {
+		keyPresenceMapping[key] = true
+	}
+
+	for _, key := range allKeys {
+		if keyPresenceMapping[key] {
+			segment = slices.Concat(segment, groupedActions[key])
+		} else {
+			antiSegment = slices.Concat(antiSegment, groupedActions[key])
+		}
+	}
+
+	return segment, antiSegment
+}
+
 /*
 give changes to be done on 'prevState' in order to move from 'prevState' to 'currentState'
 
@@ -367,8 +405,10 @@ func DiffDbSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 	tableChanges, tableChangesMapping := getTableStateChanges(tableStateKeysConcat)
 	slices.SortFunc(tableChanges, changeTypePrefixSortingCmp)
 
-	viewChanges := getViewStateChanges(viewStateKeysConcat, tableChangesMapping)
-	slices.SortFunc(viewChanges, changeTypePrefixSortingCmp)
+	dropViewChanges, otherViewChanges := pickActionGroups(
+		[]string{constants.MigActionDropView},
+		getViewStateChanges(viewStateKeysConcat, tableChangesMapping),
+	)
 
 	colChanges := getColStateChanges(colStateKeysConcat, tableChangesMapping)
 	slices.SortFunc(colChanges, changeTypePrefixSortingCmp)
@@ -392,7 +432,13 @@ func DiffDbSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 		}
 	})
 
-	changes = slices.Concat(changes, tableChanges, colChanges, viewChanges, conChanges)
+	changes = slices.Concat(
+		dropViewChanges,
+		tableChanges,
+		colChanges,
+		otherViewChanges,
+		conChanges,
+	)
 
 	return changes
 }
