@@ -19,6 +19,3 @@ type MigAction struct {
 	*/
 	EntityId []string
 }
-
-// mapping(action type => [actions...])
-type DiffChanges map[string][]MigAction
