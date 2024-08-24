@@ -142,13 +142,6 @@ func getViewStateChanges(viewStateKeysConcat keyType, tableChangesMapping map[st
 			csViewKey := slices.Concat([]string{currentStateTag}, viewKey[1:])
 			_, found := slices.BinarySearchFunc(viewStateKeysConcat, csViewKey, slices.Compare)
 			if !found {
-				// if table was removed, with "CASCADE" added (which we're doing currently)
-				// dependent views also will be removed
-				tableid := libUtils.GetTableId(viewKey[2], viewKey[3])
-				if getChangeTypePrefix(tableChangesMapping[tableid]) == "DROP" {
-					continue
-				}
-
 				// DROP
 				action := types.MigAction{
 					Type:     constants.MigActionDropView,
