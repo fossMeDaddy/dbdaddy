@@ -2,12 +2,14 @@ package migrationsLib
 
 import (
 	"dbdaddy/types"
+	"fmt"
 	"reflect"
 	"slices"
 
 	"golang.org/x/exp/maps"
 )
 
+// WILL PANIC IF "entity" is a pointer!!!
 func getDiffKey(entity interface{}, entityType types.EntityType, stateTag types.StateTag) types.DiffKey {
 	diffKey := types.DiffKey{
 		EntityType: entityType,
@@ -22,14 +24,14 @@ func getDiffKey(entity interface{}, entityType types.EntityType, stateTag types.
 	return diffKey
 }
 
-func diffCompareFunc(a, b types.DiffKey) int {
-	aSlice := slices.Concat([]string{string(a.StateTag)}, a.EntityId)
-	bSlice := slices.Concat([]string{string(b.StateTag)}, b.EntityId)
+func diffKeyCompareFunc(a, b types.DiffKey) int {
+	aSlice := slices.Concat([]string{fmt.Sprint(len(a.DepIds)), string(a.StateTag)}, a.EntityId)
+	bSlice := slices.Concat([]string{fmt.Sprint(len(b.DepIds)), string(b.StateTag)}, b.EntityId)
 
 	return slices.Compare(aSlice, bSlice)
 }
 
-func getKeysFromStates(currentState, prevState *types.DbSchema) ([]types.DiffKey, []types.DiffKey, []types.DiffKey, []types.DiffKey) {
+func getKeysFromStates(currentState, prevState *types.DbSchema) []types.DiffKey {
 	// TYPE KEYS
 	typeDiffKeysConcat := []types.DiffKey{}
 	for _, dbType := range currentState.Types {
@@ -39,7 +41,8 @@ func getKeysFromStates(currentState, prevState *types.DbSchema) ([]types.DiffKey
 		typeDiffKeysConcat = append(typeDiffKeysConcat, getDiffKey(dbType, types.EntityTypeType, types.StateTagPS))
 	}
 
-	// TABLE, VIEW & COL KEYS
+	// TABLE, VIEW, CONSTRAINT & COL KEYS
+	conDiffKeysConcat := []types.DiffKey{}
 	tableDiffKeysConcat := []types.DiffKey{}
 	viewDiffKeysConcat := []types.DiffKey{}
 	colDiffKeysConcat := []types.DiffKey{}
@@ -73,9 +76,9 @@ func getKeysFromStates(currentState, prevState *types.DbSchema) ([]types.DiffKey
 		}
 
 		if entityType == types.EntityTypeTable {
-			tableDiffKeysConcat = append(tableDiffKeysConcat, getDiffKey(dbTable, entityType, tableStateTag))
+			tableDiffKeysConcat = append(tableDiffKeysConcat, getDiffKey(*dbTable, entityType, tableStateTag))
 		} else {
-			viewDiffKeysConcat = append(viewDiffKeysConcat, getDiffKey(dbTable, entityType, tableStateTag))
+			viewDiffKeysConcat = append(viewDiffKeysConcat, getDiffKey(*dbTable, entityType, tableStateTag))
 			continue // DONT NEED COL TRACKING ON VIEWS
 		}
 
@@ -92,18 +95,28 @@ func getKeysFromStates(currentState, prevState *types.DbSchema) ([]types.DiffKey
 				}, types.EntityTypeColumn, tableStateTag),
 			)
 		}
+
+		for _, con := range dbTable.Constraints {
+			conDiffKeysConcat = append(conDiffKeysConcat, getDiffKey(*con, types.EntityTypeConstraint, tableStateTag))
+		}
 	}
 
-	// sort keys for binary searchability
-	slices.SortFunc(typeDiffKeysConcat, diffCompareFunc)
-	slices.SortFunc(tableDiffKeysConcat, diffCompareFunc)
-	slices.SortFunc(colDiffKeysConcat, diffCompareFunc)
-	slices.SortFunc(viewDiffKeysConcat, diffCompareFunc)
+	diffKeys := slices.Concat(
+		typeDiffKeysConcat,
+		tableDiffKeysConcat,
+		viewDiffKeysConcat,
+		colDiffKeysConcat,
+		conDiffKeysConcat,
+	)
 
-	return typeDiffKeysConcat, tableDiffKeysConcat, viewDiffKeysConcat, colDiffKeysConcat
+	slices.SortFunc(diffKeys, diffKeyCompareFunc)
+
+	return diffKeys
 }
 
-func DiffDBSchema(currentState, prevState *types.DbSchema) {
-	typeDiffKeysConcat, tableDiffKeysConcat, viewDiffKeysConcat, colDiffKeysConcat := getKeysFromStates(currentState, prevState)
+func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
+	diffKeys := getKeysFromStates(currentState, prevState)
+	fmt.Println(diffKeys)
 
+	return []types.MigAction{}
 }

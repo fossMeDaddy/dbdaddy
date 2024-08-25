@@ -53,7 +53,7 @@ func Status(dbname string, currentState *types.DbSchema) (types.MigrationStatus,
 			// return
 		}
 
-		changes := DiffDbSchema_DEPR(currentState, state)
+		changes := DiffDBSchema(currentState, state)
 		if len(changes) == 0 {
 			mig.IsActive = true
 

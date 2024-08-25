@@ -51,7 +51,7 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 	sqlFile += fmt.Sprintln()
 
 	for _, change := range changes {
-		switch change.Type {
+		switch change.ActionType {
 		// TABLE CHANGES
 		case constants.MigActionDropTable:
 			tableSchema := getTableSchemaFromEntity(change.EntityId, currentState, prevState)

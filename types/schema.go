@@ -6,16 +6,16 @@ type DbType struct {
 }
 
 type DbConstraint struct {
+	// on table
+	TableSchema string
+	TableName   string
+	ColName     string
+
 	ConName          string
 	ConSchema        string
 	Type             string // can be 'p', 'f', 'c' or 'u'
 	UpdateActionType string
 	DeleteActionType string
-
-	// on table
-	TableSchema string
-	TableName   string
-	ColName     string
 
 	// foreign table
 	FTableSchema string
@@ -44,8 +44,8 @@ type TableSchema struct {
 }
 
 type Table struct {
-	Name   string
 	Schema string
+	Name   string
 
 	// IMP: possible values to be put in from constants 'TableType*'
 	Type string

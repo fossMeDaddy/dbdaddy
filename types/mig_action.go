@@ -8,11 +8,12 @@ const (
 	MigActionTypeCreate ActionType = "CREATE"
 	MigActionTypeDrop   ActionType = "DROP"
 
-	EntityTypeSchema EntityType = "SCHEMA"
-	EntityTypeType   EntityType = "TYPE"
-	EntityTypeTable  EntityType = "TABLE"
-	EntityTypeColumn EntityType = "COLUMN"
-	EntityTypeView   EntityType = "VIEW"
+	EntityTypeSchema     EntityType = "SCHEMA"
+	EntityTypeType       EntityType = "TYPE"
+	EntityTypeTable      EntityType = "TABLE"
+	EntityTypeColumn     EntityType = "COLUMN"
+	EntityTypeConstraint EntityType = "CONST"
+	EntityTypeView       EntityType = "VIEW"
 
 	StateTagCS StateTag = "CS"
 	StateTagPS StateTag = "PS"
@@ -29,4 +30,9 @@ type DiffKey struct {
 	EntityType EntityType
 	StateTag   StateTag
 	EntityId   []string
+
+	/*
+		For table, dep id is "schema.table", for col it's "schema.table.colname", for constraint/type it's "schema.name"
+	*/
+	DepIds []string
 }
