@@ -88,13 +88,13 @@ func run(cmd *cobra.Command, args []string) {
 
 			go (func() {
 				defer wg.Done()
-				upChanges = migrationsLib.DiffDbSchema(currentState, prevState)
+				upChanges = migrationsLib.DiffDBSchema(currentState, prevState)
 				upSqlScript = migrationsLib.GetSQLFromDiffChanges(currentState, prevState, upChanges)
 			})()
 
 			go (func() {
 				defer wg.Done()
-				downChanges = migrationsLib.DiffDbSchema(prevState, currentState)
+				downChanges = migrationsLib.DiffDBSchema(prevState, currentState)
 				downSqlScript = migrationsLib.GetSQLFromDiffChanges(prevState, currentState, downChanges)
 			})()
 		})()

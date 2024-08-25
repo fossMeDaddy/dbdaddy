@@ -11,7 +11,6 @@ type DbConstraint struct {
 	Type             string // can be 'p', 'f', 'c' or 'u'
 	UpdateActionType string
 	DeleteActionType string
-	Syntax           string
 
 	// on table
 	TableSchema string
@@ -22,6 +21,8 @@ type DbConstraint struct {
 	FTableSchema string
 	FTableName   string
 	FColName     string
+
+	Syntax string
 }
 
 type Column struct {
