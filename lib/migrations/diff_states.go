@@ -1,44 +1,70 @@
 package migrationsLib
 
 import (
+	"dbdaddy/libUtils"
 	"dbdaddy/types"
-	"fmt"
-	"reflect"
 	"slices"
 
 	"golang.org/x/exp/maps"
 )
 
-// WILL PANIC IF "entity" is a pointer!!!
-func getDiffKey(entity interface{}, entityType types.EntityType, stateTag types.StateTag) types.DiffKey {
-	diffKey := types.DiffKey{
-		EntityType: entityType,
-		StateTag:   stateTag,
+var (
+	actionTypeSortingOrder = map[types.ActionType]int{
+		types.MigActionTypeDrop:   1,
+		types.MigActionTypeCreate: 2,
 	}
 
-	entityReflect := reflect.ValueOf(entity)
-	for i := 0; i < entityReflect.NumField(); i++ {
-		diffKey.EntityId = append(diffKey.EntityId, entityReflect.Field(i).String())
+	entityTypeSortingOrder = map[types.EntityType]int{
+		types.EntityTypeView:       1,
+		types.EntityTypeConstraint: 2,
+		types.EntityTypeColumn:     3,
+		types.EntityTypeTable:      4,
+		types.EntityTypeType:       5,
+		types.EntityTypeSchema:     6,
+	}
+
+	conSortingOrder = map[string]int{
+		"p": 1,
+		"u": 2,
+		"c": 3,
+		"f": 4,
+	}
+)
+
+// entityPtr, is a pointer!!
+func getDiffKey(entityPtr interface{}, entityType types.EntityType, stateTag types.StateTag) types.DiffKey {
+	diffKey := types.DiffKey{
+		Entity:   types.NewEntity(entityType, entityPtr),
+		StateTag: stateTag,
 	}
 
 	return diffKey
 }
 
 func diffKeyCompareFunc(a, b types.DiffKey) int {
-	aSlice := slices.Concat([]string{fmt.Sprint(len(a.DepIds)), string(a.StateTag)}, a.EntityId)
-	bSlice := slices.Concat([]string{fmt.Sprint(len(b.DepIds)), string(b.StateTag)}, b.EntityId)
+	aSlice := slices.Concat([]string{string(a.StateTag)}, a.Entity.Id)
+	bSlice := slices.Concat([]string{string(b.StateTag)}, b.Entity.Id)
 
 	return slices.Compare(aSlice, bSlice)
 }
 
-func getKeysFromStates(currentState, prevState *types.DbSchema) []types.DiffKey {
+func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.DiffKey {
+	// SCHEMA KEYS
+	schemaDiffKeysConcat := []types.DiffKey{}
+	for _, schema := range currentState.Schemas {
+		schemaDiffKeysConcat = append(schemaDiffKeysConcat, getDiffKey(&schema, types.EntityTypeSchema, types.StateTagCS))
+	}
+	for _, schema := range prevState.Schemas {
+		schemaDiffKeysConcat = append(schemaDiffKeysConcat, getDiffKey(&schema, types.EntityTypeSchema, types.StateTagPS))
+	}
+
 	// TYPE KEYS
 	typeDiffKeysConcat := []types.DiffKey{}
 	for _, dbType := range currentState.Types {
-		typeDiffKeysConcat = append(typeDiffKeysConcat, getDiffKey(dbType, types.EntityTypeType, types.StateTagCS))
+		typeDiffKeysConcat = append(typeDiffKeysConcat, getDiffKey(&dbType, types.EntityTypeType, types.StateTagCS))
 	}
 	for _, dbType := range prevState.Types {
-		typeDiffKeysConcat = append(typeDiffKeysConcat, getDiffKey(dbType, types.EntityTypeType, types.StateTagPS))
+		typeDiffKeysConcat = append(typeDiffKeysConcat, getDiffKey(&dbType, types.EntityTypeType, types.StateTagPS))
 	}
 
 	// TABLE, VIEW, CONSTRAINT & COL KEYS
@@ -76,28 +102,20 @@ func getKeysFromStates(currentState, prevState *types.DbSchema) []types.DiffKey 
 		}
 
 		if entityType == types.EntityTypeTable {
-			tableDiffKeysConcat = append(tableDiffKeysConcat, getDiffKey(*dbTable, entityType, tableStateTag))
+			tableDiffKeysConcat = append(tableDiffKeysConcat, getDiffKey(dbTable, entityType, tableStateTag))
 		} else {
-			viewDiffKeysConcat = append(viewDiffKeysConcat, getDiffKey(*dbTable, entityType, tableStateTag))
+			viewDiffKeysConcat = append(viewDiffKeysConcat, getDiffKey(dbTable, entityType, tableStateTag))
 			continue // DONT NEED COL TRACKING ON VIEWS
 		}
 
 		for _, col := range dbTable.Columns {
 			colDiffKeysConcat = append(colDiffKeysConcat,
-				getDiffKey(struct {
-					Schemaname string
-					Tablename  string
-					types.Column
-				}{
-					Schemaname: dbTable.Schema,
-					Tablename:  dbTable.Name,
-					Column:     col,
-				}, types.EntityTypeColumn, tableStateTag),
+				getDiffKey(&col, types.EntityTypeColumn, tableStateTag),
 			)
 		}
 
 		for _, con := range dbTable.Constraints {
-			conDiffKeysConcat = append(conDiffKeysConcat, getDiffKey(*con, types.EntityTypeConstraint, tableStateTag))
+			conDiffKeysConcat = append(conDiffKeysConcat, getDiffKey(con, types.EntityTypeConstraint, tableStateTag))
 		}
 	}
 
@@ -114,9 +132,124 @@ func getKeysFromStates(currentState, prevState *types.DbSchema) []types.DiffKey 
 	return diffKeys
 }
 
-func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
-	diffKeys := getKeysFromStates(currentState, prevState)
-	fmt.Println(diffKeys)
+func getChangesSortCompareKey(action types.MigAction) []int {
+	entityTypeSorting := 1
+	if action.ActionType == types.MigActionTypeCreate {
+		entityTypeSorting = -1
+	}
+	sortingKey := []int{
+		actionTypeSortingOrder[action.ActionType],
+		entityTypeSortingOrder[action.Entity.Type] * entityTypeSorting,
+	}
+	if action.Entity.Type == types.EntityTypeConstraint {
+		con := action.Entity.Ptr.(*types.DbConstraint)
+		sortingKey = append(sortingKey, conSortingOrder[con.Type])
+	}
 
-	return []types.MigAction{}
+	return sortingKey
+}
+
+func changesSortCompareFunc(a, b types.MigAction) int {
+	return slices.Compare(
+		getChangesSortCompareKey(a),
+		getChangesSortCompareKey(b),
+	)
+}
+
+func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
+	changes := []types.MigAction{}
+	diffKeys := getDiffKeysFromStates(currentState, prevState)
+
+	// action entity type bucket
+	entityTypeGroupedActions := map[types.EntityType][]types.MigAction{}
+
+	// changes mapping for avoiding creating dependent changes (e.g dropping a column from table if table is already dropped)
+	schemaChangesMapping := map[string]*types.MigAction{}
+	tableChangesMapping := map[string]*types.MigAction{}
+
+	for _, diffKey := range diffKeys {
+		targetDiffKey := diffKey
+		if diffKey.StateTag == types.StateTagCS {
+			targetDiffKey.StateTag = types.StateTagPS
+		} else {
+			targetDiffKey.StateTag = types.StateTagCS
+		}
+
+		if _, found := slices.BinarySearchFunc(diffKeys, targetDiffKey, diffKeyCompareFunc); !found {
+			action := types.MigAction{
+				StateTag: diffKey.StateTag,
+				Entity:   diffKey.Entity,
+			}
+			if targetDiffKey.StateTag == types.StateTagCS {
+				// could not be found in CS (ACTION: DROP)
+				action.ActionType = types.MigActionTypeDrop
+			} else {
+				// could not be found in PS (ACTION: CREATE)
+				action.ActionType = types.MigActionTypeCreate
+			}
+
+			// changes book-keeping
+			switch action.Entity.Type {
+			case types.EntityTypeSchema:
+				schema := action.Entity.Ptr.(*types.Schema)
+				schemaChangesMapping[schema.Name] = &action
+
+			case types.EntityTypeTable:
+				table := action.Entity.Ptr.(*types.TableSchema)
+				tableChangesMapping[libUtils.GetTableId(table.Schema, table.Name)] = &action
+			}
+
+			entityTypeGroupedActions[action.Entity.Type] = append(
+				entityTypeGroupedActions[action.Entity.Type],
+				action,
+			)
+		} else {
+			// MODIFICATION GOES HERE
+		}
+	}
+
+	for entityType, actions := range entityTypeGroupedActions {
+		newActions := []types.MigAction{}
+
+		switch entityType {
+		case types.EntityTypeTable:
+			for _, action := range actions {
+				tableSchema := action.Entity.Ptr.(*types.TableSchema)
+				schemaChange := schemaChangesMapping[libUtils.GetTableId(tableSchema.Schema, tableSchema.Name)]
+				if schemaChange != nil && schemaChange.ActionType == types.MigActionTypeDrop {
+					continue
+				}
+
+				newActions = append(newActions, action)
+			}
+		case types.EntityTypeColumn:
+			for _, action := range actions {
+				col := action.Entity.Ptr.(*types.Column)
+				tableChange := tableChangesMapping[libUtils.GetTableId(col.TableSchema, col.TableName)]
+				if tableChange != nil {
+					continue
+				}
+
+				newActions = append(newActions, action)
+			}
+		case types.EntityTypeConstraint:
+			for _, action := range actions {
+				con := action.Entity.Ptr.(*types.DbConstraint)
+				tableChange := tableChangesMapping[libUtils.GetTableId(con.TableSchema, con.TableName)]
+				if tableChange != nil && tableChange.ActionType == types.MigActionTypeDrop {
+					continue
+				}
+
+				newActions = append(newActions, action)
+			}
+		default:
+			newActions = actions
+		}
+
+		changes = slices.Concat(changes, newActions)
+	}
+
+	slices.SortFunc(changes, changesSortCompareFunc)
+
+	return changes
 }

@@ -8,6 +8,12 @@ import (
 	"path"
 )
 
+type MigrationStatus struct {
+	Migrations      []DbMigration
+	ActiveMigration *DbMigration
+	IsInit          bool
+}
+
 /*
 primitive DbMigration type, only containing helper function, use migrationsLib for complete use
 

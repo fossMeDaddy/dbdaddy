@@ -73,6 +73,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 
 	tableSchemaMapping := map[string]*types.TableSchema{}
 	viewSchemaMapping := map[string]*types.TableSchema{}
+	schemaPresenceMapping := map[string]bool{}
 	dbCons := map[string][]*types.DbConstraint{}
 	dbTypes := []types.DbType{}
 
@@ -180,6 +181,9 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		}
 
 		tableid := libUtils.GetTableId(tableschema, tablename)
+		column.TableSchema = tableschema
+		column.TableName = tablename
+		schemaPresenceMapping[tableschema] = true
 
 		var schemaPtr *map[string]*types.TableSchema
 		switch tabletype {
@@ -250,9 +254,17 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		return dbSchema, viewErr
 	}
 
+	schemaList := []types.Schema{}
+	for schemaname := range schemaPresenceMapping {
+		schemaList = append(schemaList, types.Schema{
+			Name: schemaname,
+		})
+	}
+
 	dbSchema.Types = dbTypes
 	dbSchema.Tables = tableSchemaMapping
 	dbSchema.Views = viewSchemaMapping
+	dbSchema.Schemas = schemaList
 
 	return dbSchema, nil
 }

@@ -26,6 +26,8 @@ type DbConstraint struct {
 }
 
 type Column struct {
+	TableSchema      string
+	TableName        string
 	Name             string
 	Default          string
 	Nullable         bool
@@ -33,6 +35,10 @@ type Column struct {
 	CharMaxLen       int
 	NumericPrecision int
 	NumericScale     int
+}
+
+type Schema struct {
+	Name string
 }
 
 type TableSchema struct {
@@ -53,8 +59,9 @@ type Table struct {
 
 // the string key is of format "schema.table"
 type DbSchema struct {
-	DbName string
-	Tables map[string]*TableSchema
-	Views  map[string]*TableSchema
-	Types  []DbType
+	DbName  string
+	Tables  map[string]*TableSchema
+	Views   map[string]*TableSchema
+	Types   []DbType
+	Schemas []Schema
 }
