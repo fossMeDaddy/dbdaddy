@@ -51,7 +51,7 @@ Planned:
 - db visualize feature, have you seen dbdiagram.io? great website to visualize db connections, got the idea from them
 - testing suite, i haven't written any tests for this thing :p
 
-## Migrations
+## Migrations [unstable]
 it's actually simpler than most people would think... so simple in fact that I would NOT recommend it for production use (for now).
 
 indexes, triggers & custom types are not supported.
