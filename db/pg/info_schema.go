@@ -73,10 +73,45 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 
 	tableSchemaMapping := map[string]*types.TableSchema{}
 	viewSchemaMapping := map[string]*types.TableSchema{}
+	schemaPresenceMapping := map[string]bool{}
 	dbCons := map[string][]*types.DbConstraint{}
 	dbTypes := []types.DbType{}
+	dbSeqs := []types.DbSequence{}
 
-	wg.Add(2)
+	wg.Add(3)
+
+	var (
+		seqErr error
+	)
+	go (func() {
+		defer wg.Done()
+
+		rows, err := db.DB.Query(pgq.QGetSequences())
+		if err != nil {
+			seqErr = err
+			return
+		}
+
+		for rows.Next() {
+			seq := types.DbSequence{}
+			if err := rows.Scan(
+				&seq.Schema,
+				&seq.Name,
+				&seq.DataType,
+				&seq.IncrementBy,
+				&seq.MinValue,
+				&seq.MaxValue,
+				&seq.StartValue,
+				&seq.CacheSize,
+				&seq.Cycle,
+			); err != nil {
+				seqErr = err
+				return
+			}
+
+			dbSeqs = append(dbSeqs, seq)
+		}
+	})()
 
 	var (
 		typeErr error
@@ -180,6 +215,9 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		}
 
 		tableid := libUtils.GetTableId(tableschema, tablename)
+		column.TableSchema = tableschema
+		column.TableName = tablename
+		schemaPresenceMapping[tableschema] = true
 
 		var schemaPtr *map[string]*types.TableSchema
 		switch tabletype {
@@ -240,6 +278,9 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	if typeErr != nil {
 		return dbSchema, typeErr
 	}
+	if seqErr != nil {
+		return dbSchema, seqErr
+	}
 	if conErr != nil {
 		return dbSchema, typeErr
 	}
@@ -250,9 +291,18 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		return dbSchema, viewErr
 	}
 
+	schemaList := []types.Schema{}
+	for schemaname := range schemaPresenceMapping {
+		schemaList = append(schemaList, types.Schema{
+			Name: schemaname,
+		})
+	}
+
 	dbSchema.Types = dbTypes
 	dbSchema.Tables = tableSchemaMapping
 	dbSchema.Views = viewSchemaMapping
+	dbSchema.Schemas = schemaList
+	dbSchema.Sequences = dbSeqs
 
 	return dbSchema, nil
 }

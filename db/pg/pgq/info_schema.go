@@ -89,3 +89,24 @@ func QGetViews() string {
         where table_schema not in ('pg_catalog', 'information_schema')
     `
 }
+
+func QGetSequences() string {
+	return `
+		select
+			infseq.sequence_schema,
+			infseq.sequence_name,
+			infseq.data_type,
+			pgseq.increment_by,
+			pgseq.min_value,
+			pgseq.max_value,
+			pgseq.start_value,
+			pgseq.cache_size,
+			CASE
+				WHEN infseq.cycle_option = 'NO' then false
+				ELSE true
+			END as cycle_option
+		from information_schema.sequences as infseq
+		inner join pg_sequences as pgseq on infseq.sequence_name = pgseq.sequencename
+		where sequence_schema not in ('pg_catalog', 'information_schema')
+	`
+}
