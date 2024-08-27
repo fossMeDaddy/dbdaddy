@@ -13,6 +13,31 @@ func getSqlTableId(tableid string) string {
 	return fmt.Sprintf(`"%s"."%s"`, schema, tablename)
 }
 
+func GetCreateSequenceSQL(seq *types.DbSequence) string {
+	seqSql := []string{}
+	seqSql = append(seqSql, fmt.Sprintf(`CREATE SEQUENCE IF NOT EXISTS "%s"."%s"`, seq.Schema, seq.Name))
+	seqSql = append(seqSql, fmt.Sprintf(`%sAS %s`, constants.MigFileIndentation, seq.DataType))
+	seqSql = append(seqSql, fmt.Sprintf(`%sINCREMENT BY %d`, constants.MigFileIndentation, seq.IncrementBy))
+	seqSql = append(seqSql, fmt.Sprintf(`%sMINVALUE %d`, constants.MigFileIndentation, seq.MinValue))
+	seqSql = append(seqSql, fmt.Sprintf(`%sMAXVALUE %d`, constants.MigFileIndentation, seq.MaxValue))
+	seqSql = append(seqSql, fmt.Sprintf(`%sSTART WITH %d`, constants.MigFileIndentation, seq.StartValue))
+	seqSql = append(seqSql, fmt.Sprintf(`%sCACHE %d`, constants.MigFileIndentation, seq.CacheSize))
+
+	if seq.Cycle {
+		seqSql = append(seqSql, fmt.Sprintf(`%sCYCLE;`, constants.MigFileIndentation))
+	} else {
+		seqSql = append(seqSql, fmt.Sprintf(`%sNO CYCLE;`, constants.MigFileIndentation))
+	}
+
+	seqSql = append(seqSql, fmt.Sprintln())
+
+	return strings.Join(seqSql, fmt.Sprintln())
+}
+
+func GetDropSequenceSQL(seq *types.DbSequence) string {
+	return fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s"."%s";`, seq.Schema, seq.Name) + fmt.Sprintln()
+}
+
 func GetColDefSQL(col *types.Column) string {
 	colSql := []string{}
 

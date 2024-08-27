@@ -7,15 +7,15 @@ type EntityType string
 type StateTag string
 
 const (
-	MigActionTypeCreate ActionType = "CREATE"
-	MigActionTypeDrop   ActionType = "DROP"
+	ActionTypeCreate ActionType = "CREATE"
+	ActionTypeDrop   ActionType = "DROP"
 
 	EntityTypeSchema     EntityType = "SCHEMA"
-	EntityTypeType       EntityType = "TYPE"
 	EntityTypeTable      EntityType = "TABLE"
 	EntityTypeColumn     EntityType = "COLUMN"
 	EntityTypeConstraint EntityType = "CONST"
 	EntityTypeView       EntityType = "VIEW"
+	EntityTypeSequence   EntityType = "SEQ"
 
 	StateTagCS StateTag = "CS"
 	StateTagPS StateTag = "PS"
@@ -50,9 +50,6 @@ func (e *Entity) GetEntityId() []string {
 	case EntityTypeSchema:
 		schemaEntity := e.Ptr.(*Schema)
 		e.Id = []string{schemaEntity.Name}
-	case EntityTypeType:
-		typeEntity := e.Ptr.(*DbType)
-		e.Id = []string{typeEntity.Schema, typeEntity.Name}
 	case EntityTypeTable, EntityTypeView:
 		tableEntity := e.Ptr.(*TableSchema)
 		e.Id = []string{tableEntity.Schema, tableEntity.Name, tableEntity.DefSyntax}
@@ -78,6 +75,18 @@ func (e *Entity) GetEntityId() []string {
 			conEntity.Syntax,
 			conEntity.UpdateActionType,
 			conEntity.DeleteActionType,
+		}
+	case EntityTypeSequence:
+		seqEntity := e.Ptr.(*DbSequence)
+		e.Id = []string{
+			seqEntity.Schema,
+			seqEntity.Name,
+			seqEntity.DataType,
+			fmt.Sprint(seqEntity.MinValue),
+			fmt.Sprint(seqEntity.MaxValue),
+			fmt.Sprint(seqEntity.IncrementBy),
+			fmt.Sprint(seqEntity.CacheSize),
+			fmt.Sprint(seqEntity.Cycle),
 		}
 	}
 

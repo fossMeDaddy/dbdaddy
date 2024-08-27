@@ -50,7 +50,7 @@ func Status(dbname string, currentState *types.DbSchema) (types.MigrationStatus,
 		if err != nil {
 			fmt.Println("WARNING: error occured while reading state file in", mig.DirPath)
 			fmt.Println(err)
-			// return
+			return migStat, err
 		}
 
 		changes := DiffDBSchema(currentState, state)

@@ -10,8 +10,8 @@ import (
 
 var (
 	actionTypeSortingOrder = map[types.ActionType]int{
-		types.MigActionTypeDrop:   1,
-		types.MigActionTypeCreate: 2,
+		types.ActionTypeDrop:   1,
+		types.ActionTypeCreate: 2,
 	}
 
 	entityTypeSortingOrder = map[types.EntityType]int{
@@ -19,7 +19,7 @@ var (
 		types.EntityTypeConstraint: 2,
 		types.EntityTypeColumn:     3,
 		types.EntityTypeTable:      4,
-		types.EntityTypeType:       5,
+		types.EntityTypeSequence:   5,
 		types.EntityTypeSchema:     6,
 	}
 
@@ -58,13 +58,13 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 		schemaDiffKeysConcat = append(schemaDiffKeysConcat, getDiffKey(&schema, types.EntityTypeSchema, types.StateTagPS))
 	}
 
-	// TYPE KEYS
-	typeDiffKeysConcat := []types.DiffKey{}
-	for _, dbType := range currentState.Types {
-		typeDiffKeysConcat = append(typeDiffKeysConcat, getDiffKey(&dbType, types.EntityTypeType, types.StateTagCS))
+	// SEQUENCE KEYS
+	seqDiffKeysConcat := []types.DiffKey{}
+	for _, seq := range currentState.Sequences {
+		seqDiffKeysConcat = append(seqDiffKeysConcat, getDiffKey(&seq, types.EntityTypeSequence, types.StateTagCS))
 	}
-	for _, dbType := range prevState.Types {
-		typeDiffKeysConcat = append(typeDiffKeysConcat, getDiffKey(&dbType, types.EntityTypeType, types.StateTagPS))
+	for _, seq := range prevState.Sequences {
+		seqDiffKeysConcat = append(seqDiffKeysConcat, getDiffKey(&seq, types.EntityTypeSequence, types.StateTagPS))
 	}
 
 	// TABLE, VIEW, CONSTRAINT & COL KEYS
@@ -72,30 +72,32 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 	tableDiffKeysConcat := []types.DiffKey{}
 	viewDiffKeysConcat := []types.DiffKey{}
 	colDiffKeysConcat := []types.DiffKey{}
-	for _, dbTableMapKey := range slices.Concat(
-		maps.Keys(currentState.Tables), maps.Keys(prevState.Tables),
-		maps.Keys(currentState.Views), maps.Keys(prevState.Views),
+
+	currentStateMaxI := len(maps.Keys(currentState.Tables)) + len(maps.Keys(currentState.Views))
+	for i, dbTableMapKey := range slices.Concat(
+		maps.Keys(currentState.Tables), maps.Keys(currentState.Views),
+		maps.Keys(prevState.Tables), maps.Keys(prevState.Views),
 	) {
 		var dbTable *types.TableSchema
 		var tableStateTag types.StateTag
 		var entityType types.EntityType
-		if currentState.Tables[dbTableMapKey] != nil {
-			// CS TABLE
-			dbTable = currentState.Tables[dbTableMapKey]
+
+		if i < currentStateMaxI {
 			tableStateTag = types.StateTagCS
+		} else {
+			tableStateTag = types.StateTagPS
+		}
+
+		if currentState.Tables[dbTableMapKey] != nil {
+			dbTable = currentState.Tables[dbTableMapKey]
 			entityType = types.EntityTypeTable
 		} else if prevState.Tables[dbTableMapKey] != nil {
-			// PS TABLE
 			dbTable = prevState.Tables[dbTableMapKey]
-			tableStateTag = types.StateTagPS
 			entityType = types.EntityTypeTable
 		} else if currentState.Views[dbTableMapKey] != nil {
-			// CS VIEW
 			dbTable = currentState.Views[dbTableMapKey]
-			tableStateTag = types.StateTagCS
 			entityType = types.EntityTypeView
 		} else {
-			// PS VIEW
 			dbTable = prevState.Views[dbTableMapKey]
 			tableStateTag = types.StateTagPS
 			entityType = types.EntityTypeView
@@ -120,13 +122,14 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 	}
 
 	diffKeys := slices.Concat(
-		typeDiffKeysConcat,
+		seqDiffKeysConcat,
 		tableDiffKeysConcat,
 		viewDiffKeysConcat,
 		colDiffKeysConcat,
 		conDiffKeysConcat,
 	)
 
+	// TODO: not using binary search, use it in future
 	slices.SortFunc(diffKeys, diffKeyCompareFunc)
 
 	return diffKeys
@@ -134,7 +137,7 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 
 func getChangesSortCompareKey(action types.MigAction) []int {
 	entityTypeSorting := 1
-	if action.ActionType == types.MigActionTypeCreate {
+	if action.ActionType == types.ActionTypeCreate {
 		entityTypeSorting = -1
 	}
 	sortingKey := []int{
@@ -175,17 +178,18 @@ func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 			targetDiffKey.StateTag = types.StateTagCS
 		}
 
-		if _, found := slices.BinarySearchFunc(diffKeys, targetDiffKey, diffKeyCompareFunc); !found {
+		_, found := slices.BinarySearchFunc(diffKeys, targetDiffKey, diffKeyCompareFunc)
+		if !found {
 			action := types.MigAction{
 				StateTag: diffKey.StateTag,
 				Entity:   diffKey.Entity,
 			}
 			if targetDiffKey.StateTag == types.StateTagCS {
 				// could not be found in CS (ACTION: DROP)
-				action.ActionType = types.MigActionTypeDrop
+				action.ActionType = types.ActionTypeDrop
 			} else {
 				// could not be found in PS (ACTION: CREATE)
-				action.ActionType = types.MigActionTypeCreate
+				action.ActionType = types.ActionTypeCreate
 			}
 
 			// changes book-keeping
@@ -216,7 +220,7 @@ func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 			for _, action := range actions {
 				tableSchema := action.Entity.Ptr.(*types.TableSchema)
 				schemaChange := schemaChangesMapping[libUtils.GetTableId(tableSchema.Schema, tableSchema.Name)]
-				if schemaChange != nil && schemaChange.ActionType == types.MigActionTypeDrop {
+				if schemaChange != nil && schemaChange.ActionType == types.ActionTypeDrop {
 					continue
 				}
 
@@ -236,7 +240,7 @@ func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 			for _, action := range actions {
 				con := action.Entity.Ptr.(*types.DbConstraint)
 				tableChange := tableChangesMapping[libUtils.GetTableId(con.TableSchema, con.TableName)]
-				if tableChange != nil && tableChange.ActionType == types.MigActionTypeDrop {
+				if tableChange != nil && tableChange.ActionType == types.ActionTypeDrop {
 					continue
 				}
 

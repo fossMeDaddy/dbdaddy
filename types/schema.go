@@ -5,6 +5,18 @@ type DbType struct {
 	Name   string
 }
 
+type DbSequence struct {
+	Schema      string
+	Name        string
+	DataType    string
+	IncrementBy int
+	MinValue    int
+	MaxValue    int
+	StartValue  int
+	CacheSize   int
+	Cycle       bool
+}
+
 type DbConstraint struct {
 	// on table
 	TableSchema string
@@ -59,9 +71,10 @@ type Table struct {
 
 // the string key is of format "schema.table"
 type DbSchema struct {
-	DbName  string
-	Tables  map[string]*TableSchema
-	Views   map[string]*TableSchema
-	Types   []DbType
-	Schemas []Schema
+	DbName    string
+	Tables    map[string]*TableSchema
+	Views     map[string]*TableSchema
+	Types     []DbType
+	Schemas   []Schema
+	Sequences []DbSequence
 }

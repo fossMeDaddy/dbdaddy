@@ -76,8 +76,42 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	schemaPresenceMapping := map[string]bool{}
 	dbCons := map[string][]*types.DbConstraint{}
 	dbTypes := []types.DbType{}
+	dbSeqs := []types.DbSequence{}
 
-	wg.Add(2)
+	wg.Add(3)
+
+	var (
+		seqErr error
+	)
+	go (func() {
+		defer wg.Done()
+
+		rows, err := db.DB.Query(pgq.QGetSequences())
+		if err != nil {
+			seqErr = err
+			return
+		}
+
+		for rows.Next() {
+			seq := types.DbSequence{}
+			if err := rows.Scan(
+				&seq.Schema,
+				&seq.Name,
+				&seq.DataType,
+				&seq.IncrementBy,
+				&seq.MinValue,
+				&seq.MaxValue,
+				&seq.StartValue,
+				&seq.CacheSize,
+				&seq.Cycle,
+			); err != nil {
+				seqErr = err
+				return
+			}
+
+			dbSeqs = append(dbSeqs, seq)
+		}
+	})()
 
 	var (
 		typeErr error
@@ -244,6 +278,9 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	if typeErr != nil {
 		return dbSchema, typeErr
 	}
+	if seqErr != nil {
+		return dbSchema, seqErr
+	}
 	if conErr != nil {
 		return dbSchema, typeErr
 	}
@@ -265,6 +302,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	dbSchema.Tables = tableSchemaMapping
 	dbSchema.Views = viewSchemaMapping
 	dbSchema.Schemas = schemaList
+	dbSchema.Sequences = dbSeqs
 
 	return dbSchema, nil
 }

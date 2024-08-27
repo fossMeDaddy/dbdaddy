@@ -8,16 +8,27 @@ import (
 )
 
 func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []types.MigAction) string {
+	skipNewLine := false
+
 	sqlFile := ""
 	sqlFile += fmt.Sprintln(sqlwriter.GetDisableConstSQL())
 	sqlFile += fmt.Sprintln()
 
 	for _, change := range changes {
 		switch change.Entity.Type {
+		// SEQUENCE CHANGES
+		case types.EntityTypeSequence:
+			seq := change.Entity.Ptr.(*types.DbSequence)
+			if change.ActionType == types.ActionTypeDrop {
+				sqlFile += sqlwriter.GetDropSequenceSQL(seq)
+			} else {
+				sqlFile += sqlwriter.GetCreateSequenceSQL(seq)
+			}
+
 		// TABLE CHANGES
 		case types.EntityTypeTable:
 			tableSchema := change.Entity.Ptr.(*types.TableSchema)
-			if change.ActionType == types.MigActionTypeDrop {
+			if change.ActionType == types.ActionTypeDrop {
 				sqlFile += sqlwriter.GetDropTableSQL(libUtils.GetTableId(tableSchema.Schema, tableSchema.Name))
 			} else {
 				sqlFile += sqlwriter.GetCreateTableSQL(tableSchema)
@@ -27,7 +38,7 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 		case types.EntityTypeColumn:
 			col := change.Entity.Ptr.(*types.Column)
 			tableid := libUtils.GetTableId(col.TableSchema, col.TableName)
-			if change.ActionType == types.MigActionTypeDrop {
+			if change.ActionType == types.ActionTypeDrop {
 				sqlFile += sqlwriter.GetATDropColSQL(tableid, col.Name)
 			} else {
 				sqlFile += sqlwriter.GetATCreateColSQL(tableid, col)
@@ -37,7 +48,7 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 		case types.EntityTypeView:
 			viewSchema := change.Entity.Ptr.(*types.TableSchema)
 			viewid := libUtils.GetTableId(viewSchema.Schema, viewSchema.Name)
-			if change.ActionType == types.MigActionTypeDrop {
+			if change.ActionType == types.ActionTypeDrop {
 				sqlFile += sqlwriter.GetDropViewSQL(viewid)
 			} else {
 				sqlFile += sqlwriter.GetCreateViewSQL(viewSchema)
@@ -47,14 +58,18 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 		case types.EntityTypeConstraint:
 			con := change.Entity.Ptr.(*types.DbConstraint)
 			tableid := libUtils.GetTableId(con.TableSchema, con.TableName)
-			if change.ActionType == types.MigActionTypeDrop {
+			if change.ActionType == types.ActionTypeDrop {
 				sqlFile += sqlwriter.GetATDropConstraint(tableid, con.ConName)
 			} else {
 				sqlFile += sqlwriter.GetATCreateConstraintSQL(tableid, con)
 			}
+		default:
+			skipNewLine = true
 		}
 
-		sqlFile += fmt.Sprintln()
+		if !skipNewLine {
+			sqlFile += fmt.Sprintln()
+		}
 	}
 
 	sqlFile += sqlwriter.GetEnableConstSQL()
