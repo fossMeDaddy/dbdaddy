@@ -14,6 +14,7 @@ var (
 		types.ActionTypeCreate: 2,
 	}
 
+	// dropping order
 	entityTypeSortingOrder = map[types.EntityType]int{
 		types.EntityTypeView:       1,
 		types.EntityTypeConstraint: 2,
@@ -122,6 +123,7 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 	}
 
 	diffKeys := slices.Concat(
+		schemaDiffKeysConcat,
 		seqDiffKeysConcat,
 		tableDiffKeysConcat,
 		viewDiffKeysConcat,

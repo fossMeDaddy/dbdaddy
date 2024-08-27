@@ -13,6 +13,14 @@ func getSqlTableId(tableid string) string {
 	return fmt.Sprintf(`"%s"."%s"`, schema, tablename)
 }
 
+func GetCreateSchemaSQL(schema *types.Schema) string {
+	return fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS "%s";`, schema.Name) + fmt.Sprintln()
+}
+
+func GetDropSchemaSQL(schema *types.Schema) string {
+	return fmt.Sprintf(`DROP SCHEMA IF EXISTS "%s";`, schema.Name) + fmt.Sprintln()
+}
+
 func GetCreateSequenceSQL(seq *types.DbSequence) string {
 	seqSql := []string{}
 	seqSql = append(seqSql, fmt.Sprintf(`CREATE SEQUENCE IF NOT EXISTS "%s"."%s"`, seq.Schema, seq.Name))

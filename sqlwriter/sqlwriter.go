@@ -35,6 +35,24 @@ func GetEnableConstSQL() string {
 	}
 }
 
+func GetDropSchemaSQL(schema *types.Schema) string {
+	switch getDriver() {
+	case constants.DbDriverPostgres:
+		return sqlpg.GetDropSchemaSQL(schema)
+	default:
+		panic("unsupported driver")
+	}
+}
+
+func GetCreateSchemaSQL(schema *types.Schema) string {
+	switch getDriver() {
+	case constants.DbDriverPostgres:
+		return sqlpg.GetCreateSchemaSQL(schema)
+	default:
+		panic("unsupported driver")
+	}
+}
+
 func GetDropSequenceSQL(seq *types.DbSequence) string {
 	switch getDriver() {
 	case constants.DbDriverPostgres:

@@ -16,6 +16,15 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 
 	for _, change := range changes {
 		switch change.Entity.Type {
+		// SCHEMA CHANGES
+		case types.EntityTypeSchema:
+			schema := change.Entity.Ptr.(*types.Schema)
+			if change.ActionType == types.ActionTypeDrop {
+				sqlFile += sqlwriter.GetDropSchemaSQL(schema)
+			} else {
+				sqlFile += sqlwriter.GetCreateSchemaSQL(schema)
+			}
+
 		// SEQUENCE CHANGES
 		case types.EntityTypeSequence:
 			seq := change.Entity.Ptr.(*types.DbSequence)
