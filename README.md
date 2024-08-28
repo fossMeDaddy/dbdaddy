@@ -76,7 +76,7 @@ did you even read the fuckin source code?
 
 it could've been a fuckin malware broooo wtf?!
 
-### Message to people who didn't installed `DBDaddy` because they're smart & don't blindly download any binary available on internet
+### Message to people who didn't install `DBDaddy` because they're smart & don't blindly download any binary available on internet
 
 trust me bro, it's safe
 
