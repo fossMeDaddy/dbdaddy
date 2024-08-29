@@ -63,8 +63,9 @@ from your database & then re-create it with SQL column definition such that the 
 ---
 > DISCLAIMER:
 > you might draw a conclusion that these docs are mean to read and a lot of leg-pulling going on, and you're not wrong! that's the whole satire :)
+> the only thing factual here is this project's usage instructions & specs
 >
-> but nothing personal or hard feelings.
+> nothing personal or hard feelings
 ---
 ### Message to people who installed `DBDaddy`
 
