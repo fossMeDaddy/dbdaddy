@@ -13,6 +13,7 @@ func GetExistingDbs() ([]string, error) {
 	}
 
 	existingDbs := []string{}
+	defer rows.Close()
 	for rows.Next() {
 		existingDb := ""
 		_ = rows.Scan(&existingDb)
@@ -27,7 +28,7 @@ func GetExistingDbs() ([]string, error) {
 }
 
 func DisconnectAllUsers(dbname string) error {
-	_, err := db.DB.Query(pgq.QDisconnectAllUsersFromDb(dbname))
+	_, err := db.DB.Exec(pgq.QDisconnectAllUsersFromDb(dbname))
 	return err
 }
 
@@ -46,7 +47,7 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 		return err
 	}
 
-	_, err = db.DB.Query(pgq.QCreateNewDbFromOldTemplate(newDbName, originalDbName))
+	_, err = db.DB.Exec(pgq.QCreateNewDbFromOldTemplate(newDbName, originalDbName))
 	if err != nil {
 		return err
 	}
@@ -55,7 +56,7 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 }
 
 func CreateDb(dbname string) error {
-	_, err := db.DB.Query(pgq.QCreateNewDb(dbname))
+	_, err := db.DB.Exec(pgq.QCreateNewDb(dbname))
 	return err
 }
 
@@ -64,7 +65,7 @@ func DeleteDb(dbname string) error {
 		return err
 	}
 
-	_, err := db.DB.Query(pgq.QDeleteDb(dbname))
+	_, err := db.DB.Exec(pgq.QDeleteDb(dbname))
 	if err != nil {
 		return err
 	}

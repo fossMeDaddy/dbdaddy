@@ -44,6 +44,7 @@ func GetRows(queryStr string) (types.QueryResult, error) {
 		queryResult.Data[cols[i]] = []types.DbRow{}
 	}
 
+	defer q.Close()
 	for q.Next() {
 		err := q.Scan(vals...)
 		if err != nil {

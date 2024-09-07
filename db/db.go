@@ -52,7 +52,7 @@ func ConnectSelfDb(v *viper.Viper) (*sql.DB, error) {
 				return nil, fmt.Errorf("error connecting to your database!\n" + err.Error())
 			}
 
-			if _, err := userDb.Query(fmt.Sprintf("CREATE DATABASE %s", constants.SelfDbName)); err != nil {
+			if _, err := userDb.Exec(fmt.Sprintf("CREATE DATABASE %s", constants.SelfDbName)); err != nil {
 				if !strings.Contains(err.Error(), "already exists") {
 					return nil, fmt.Errorf("could not create database, please check your connection!\n" + err.Error())
 				}

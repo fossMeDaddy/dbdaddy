@@ -31,6 +31,7 @@ func ListTablesInDb() ([]types.Table, error) {
 		return tables, err
 	}
 
+	defer rows.Close()
 	for rows.Next() {
 		table := types.Table{}
 		if err := rows.Scan(&table.Name, &table.Schema, &table.Type); err != nil {
@@ -92,6 +93,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 			return
 		}
 
+		defer rows.Close()
 		for rows.Next() {
 			seq := types.DbSequence{}
 			if err := rows.Scan(
@@ -135,6 +137,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 			return
 		}
 
+		defer rows.Close()
 		for rows.Next() {
 			dbType := types.DbType{}
 
@@ -162,6 +165,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 			conErr = _conErr
 			return
 		}
+		defer conRows.Close()
 		for conRows.Next() {
 			con := types.DbConstraint{}
 			err := conRows.Scan(
@@ -196,6 +200,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	if schemaErr != nil {
 		return dbSchema, schemaErr
 	}
+	defer schemaRows.Close()
 	for schemaRows.Next() {
 		var tabletype, tableschema, tablename string
 		column := types.Column{}
@@ -256,6 +261,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 			viewErr = err
 			return
 		}
+		defer rows.Close()
 		for rows.Next() {
 			var viewschema, viewname, syntax string
 			err := rows.Scan(
