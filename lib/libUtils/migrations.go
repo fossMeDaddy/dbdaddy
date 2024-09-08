@@ -1,12 +1,13 @@
 package libUtils
 
 import (
-	"dbdaddy/constants"
 	"fmt"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
 )
 
 func GetMigrationsDir(dbname string) (string, error) {

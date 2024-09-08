@@ -1,16 +1,17 @@
 package migrationsGenCmd
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/db_int"
-	"dbdaddy/lib"
-	"dbdaddy/lib/libUtils"
-	migrationsLib "dbdaddy/lib/migrations"
-	"dbdaddy/middlewares"
-	"dbdaddy/types"
 	"fmt"
 	"path"
 	"sync"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	migrationsLib "github.com/fossmedaddy/dbdaddy/lib/migrations"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -82,6 +83,10 @@ func run(cmd *cobra.Command, args []string) {
 			upChanges, downChanges     []types.MigAction
 		)
 
+		var (
+			upSqlErr   error
+			downSqlErr error
+		)
 		(func() {
 			wg.Add(2)
 			defer wg.Wait()
@@ -89,15 +94,24 @@ func run(cmd *cobra.Command, args []string) {
 			go (func() {
 				defer wg.Done()
 				upChanges = migrationsLib.DiffDBSchema(currentState, prevState)
-				upSqlScript = migrationsLib.GetSQLFromDiffChanges(currentState, prevState, upChanges)
+				upSqlScript, upSqlErr = migrationsLib.GetSQLFromDiffChanges(currentState, prevState, upChanges)
 			})()
 
 			go (func() {
 				defer wg.Done()
 				downChanges = migrationsLib.DiffDBSchema(prevState, currentState)
-				downSqlScript = migrationsLib.GetSQLFromDiffChanges(prevState, currentState, downChanges)
+				downSqlScript, downSqlErr = migrationsLib.GetSQLFromDiffChanges(prevState, currentState, downChanges)
 			})()
 		})()
+		if downSqlErr != nil {
+			cmd.PrintErrln(downSqlErr)
+		}
+		if upSqlErr != nil {
+			cmd.PrintErrln(upSqlErr)
+		}
+		if downSqlErr != nil || upSqlErr != nil {
+			return nil
+		}
 
 		if len(upChanges) == 0 {
 			cmd.Println("No changes detected.")

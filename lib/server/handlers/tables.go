@@ -1,8 +1,8 @@
 package serverHandlers
 
 import (
-	"dbdaddy/db/db_int"
-	"dbdaddy/types"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/gofiber/fiber/v2"
 )

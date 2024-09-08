@@ -1,8 +1,8 @@
 package statusCmd
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

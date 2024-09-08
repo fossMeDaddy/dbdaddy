@@ -2,8 +2,9 @@
 package pgq
 
 import (
-	"dbdaddy/lib/libUtils"
 	"fmt"
+
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 )
 
 // pass "" in tableid if need to get schema for the whole db

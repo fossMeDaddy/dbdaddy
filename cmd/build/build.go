@@ -1,8 +1,9 @@
 package main
 
 import (
-	"dbdaddy/cmd/utils"
 	"sync"
+
+	"github.com/fossmedaddy/dbdaddy/cmd/utils"
 )
 
 func main() {

@@ -2,9 +2,9 @@
 package db_int
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/pg"
-	"dbdaddy/types"
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/pg"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/viper"
 )

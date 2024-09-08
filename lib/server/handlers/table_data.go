@@ -1,10 +1,11 @@
 package serverHandlers
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/db_int"
-	"dbdaddy/types"
 	"fmt"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"

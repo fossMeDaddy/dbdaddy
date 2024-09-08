@@ -1,11 +1,12 @@
 package dumpListCmd
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/lib"
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/middlewares"
 	"path"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 )

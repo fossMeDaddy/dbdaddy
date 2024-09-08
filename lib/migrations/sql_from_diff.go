@@ -1,13 +1,14 @@
 package migrationsLib
 
 import (
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/sqlwriter"
-	"dbdaddy/types"
 	"fmt"
+
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/sqlwriter"
+	"github.com/fossmedaddy/dbdaddy/types"
 )
 
-func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []types.MigAction) string {
+func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []types.MigAction) (string, error) {
 	skipNewLine := false
 
 	sqlFile := ""
@@ -20,27 +21,51 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 		case types.EntityTypeSchema:
 			schema := change.Entity.Ptr.(*types.Schema)
 			if change.ActionType == types.ActionTypeDrop {
-				sqlFile += sqlwriter.GetDropSchemaSQL(schema)
+				sqlStr, err := sqlwriter.GetDropSchemaSQL(schema)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			} else {
-				sqlFile += sqlwriter.GetCreateSchemaSQL(schema)
+				sqlStr, err := sqlwriter.GetCreateSchemaSQL(schema)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			}
 
 		// SEQUENCE CHANGES
 		case types.EntityTypeSequence:
 			seq := change.Entity.Ptr.(*types.DbSequence)
 			if change.ActionType == types.ActionTypeDrop {
-				sqlFile += sqlwriter.GetDropSequenceSQL(seq)
+				sqlStr, err := sqlwriter.GetDropSequenceSQL(seq)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			} else {
-				sqlFile += sqlwriter.GetCreateSequenceSQL(seq)
+				sqlStr, err := sqlwriter.GetCreateSequenceSQL(seq)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			}
 
 		// TABLE CHANGES
 		case types.EntityTypeTable:
 			tableSchema := change.Entity.Ptr.(*types.TableSchema)
 			if change.ActionType == types.ActionTypeDrop {
-				sqlFile += sqlwriter.GetDropTableSQL(libUtils.GetTableId(tableSchema.Schema, tableSchema.Name))
+				sqlStr, err := sqlwriter.GetDropTableSQL(libUtils.GetTableId(tableSchema.Schema, tableSchema.Name))
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			} else {
-				sqlFile += sqlwriter.GetCreateTableSQL(tableSchema)
+				sqlStr, err := sqlwriter.GetCreateTableSQL(tableSchema)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			}
 
 		// TABLE COL CHANGES (ALTER TABLE)
@@ -48,9 +73,17 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 			col := change.Entity.Ptr.(*types.Column)
 			tableid := libUtils.GetTableId(col.TableSchema, col.TableName)
 			if change.ActionType == types.ActionTypeDrop {
-				sqlFile += sqlwriter.GetATDropColSQL(tableid, col.Name)
+				sqlStr, err := sqlwriter.GetATDropColSQL(tableid, col.Name)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			} else {
-				sqlFile += sqlwriter.GetATCreateColSQL(tableid, col)
+				sqlStr, err := sqlwriter.GetATCreateColSQL(tableid, col)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			}
 
 		// CREATE VIEW
@@ -58,9 +91,17 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 			viewSchema := change.Entity.Ptr.(*types.TableSchema)
 			viewid := libUtils.GetTableId(viewSchema.Schema, viewSchema.Name)
 			if change.ActionType == types.ActionTypeDrop {
-				sqlFile += sqlwriter.GetDropViewSQL(viewid)
+				sqlStr, err := sqlwriter.GetDropViewSQL(viewid)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			} else {
-				sqlFile += sqlwriter.GetCreateViewSQL(viewSchema)
+				sqlStr, err := sqlwriter.GetCreateViewSQL(viewSchema)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			}
 
 		// CONSTRAINT CHANGES (ALTER TABLE)
@@ -68,9 +109,17 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 			con := change.Entity.Ptr.(*types.DbConstraint)
 			tableid := libUtils.GetTableId(con.TableSchema, con.TableName)
 			if change.ActionType == types.ActionTypeDrop {
-				sqlFile += sqlwriter.GetATDropConstraint(tableid, con.ConName)
+				sqlStr, err := sqlwriter.GetATDropConstraint(tableid, con.ConName)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			} else {
-				sqlFile += sqlwriter.GetATCreateConstraintSQL(tableid, con)
+				sqlStr, err := sqlwriter.GetATCreateConstraintSQL(tableid, con)
+				if err != nil {
+					return sqlFile, err
+				}
+				sqlFile += sqlStr
 			}
 		default:
 			skipNewLine = true
@@ -81,8 +130,12 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 		}
 	}
 
-	sqlFile += sqlwriter.GetEnableConstSQL()
+	sqlStr, err := sqlwriter.GetEnableConstSQL()
+	if err != nil {
+		return sqlFile, err
+	}
+	sqlFile += sqlStr
 	sqlFile += fmt.Sprintln()
 
-	return sqlFile
+	return sqlFile, nil
 }

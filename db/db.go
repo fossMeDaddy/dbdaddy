@@ -2,9 +2,10 @@ package db
 
 import (
 	"database/sql"
-	"dbdaddy/constants"
 	"fmt"
 	"strings"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/spf13/viper"

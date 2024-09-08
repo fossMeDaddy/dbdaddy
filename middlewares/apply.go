@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"dbdaddy/types"
+	"github.com/fossmedaddy/dbdaddy/types"
 )
 
 func Apply(cmdRunFn types.CobraCmdFn, middlewares ...types.MiddlewareFunc) types.CobraCmdFn {

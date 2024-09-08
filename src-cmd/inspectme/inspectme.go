@@ -1,16 +1,17 @@
 package inspectMeCmd
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/db_int"
-	"dbdaddy/lib"
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/middlewares"
-	"dbdaddy/types"
 	"fmt"
 	"maps"
 	"slices"
 	"strings"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"

@@ -1,9 +1,10 @@
 package listCmd
 
 import (
-	"dbdaddy/db/db_int"
-	"dbdaddy/middlewares"
 	"fmt"
+
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 )

@@ -1,10 +1,11 @@
 package pg
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/errs"
 	"os"
 	"os/exec"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/errs"
 
 	"github.com/spf13/viper"
 )

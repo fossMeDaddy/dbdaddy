@@ -1,10 +1,11 @@
 package libUtils
 
 import (
-	"dbdaddy/constants"
 	"fmt"
 	"os"
 	"path"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
 )
 
 func GetAbsolutePathFor(relativePath string) (string, error) {

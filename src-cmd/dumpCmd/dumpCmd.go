@@ -1,9 +1,9 @@
 package dumpCmd
 
 import (
-	"dbdaddy/middlewares"
-	"dbdaddy/src-cmd/dumpCmd/dumpCleanCmd"
-	"dbdaddy/src-cmd/dumpCmd/dumpListCmd"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/src-cmd/dumpCmd/dumpCleanCmd"
+	"github.com/fossmedaddy/dbdaddy/src-cmd/dumpCmd/dumpListCmd"
 
 	"github.com/spf13/cobra"
 )

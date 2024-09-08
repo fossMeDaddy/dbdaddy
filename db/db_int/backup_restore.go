@@ -1,8 +1,8 @@
 package db_int
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/pg"
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/pg"
 
 	"github.com/spf13/viper"
 )

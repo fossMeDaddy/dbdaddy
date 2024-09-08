@@ -1,10 +1,11 @@
 package pg
 
 import (
-	"dbdaddy/db"
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/fossmedaddy/dbdaddy/db"
 
 	"github.com/spf13/viper"
 )

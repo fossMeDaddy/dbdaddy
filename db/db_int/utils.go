@@ -1,14 +1,15 @@
 package db_int
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db"
-	"dbdaddy/errs"
-	"dbdaddy/types"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db"
+	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/viper"
 )

@@ -1,8 +1,9 @@
 package lib
 
 import (
-	"dbdaddy/db"
 	"fmt"
+
+	"github.com/fossmedaddy/dbdaddy/db"
 
 	"github.com/spf13/viper"
 )

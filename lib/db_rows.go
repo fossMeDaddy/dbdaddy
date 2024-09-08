@@ -1,9 +1,10 @@
 package lib
 
 import (
-	"dbdaddy/types"
 	"fmt"
 	"strings"
+
+	"github.com/fossmedaddy/dbdaddy/types"
 )
 
 func GetCsvString(queryResult types.QueryResult) string {

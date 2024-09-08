@@ -1,16 +1,17 @@
 package dumpMeCmd
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/db_int"
-	"dbdaddy/errs"
-	"dbdaddy/lib"
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/middlewares"
 	"errors"
 	"fmt"
 	"path"
 	"time"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

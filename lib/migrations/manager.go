@@ -1,9 +1,6 @@
 package migrationsLib
 
 import (
-	"dbdaddy/db/db_int"
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/types"
 	"fmt"
 	"io/fs"
 	"os"
@@ -11,6 +8,10 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 )
 
 // returns: list of migrations, the active migration index (-1 if no active migration found) and "isInit"

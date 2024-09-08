@@ -1,10 +1,10 @@
 package middlewares
 
 import (
-	"dbdaddy/db"
-	"dbdaddy/lib"
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/types"
+	"github.com/fossmedaddy/dbdaddy/db"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

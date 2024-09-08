@@ -1,11 +1,12 @@
 package checkoutCmd
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/db_int"
-	"dbdaddy/middlewares"
 	"fmt"
 	"strings"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

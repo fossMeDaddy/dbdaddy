@@ -1,10 +1,11 @@
 package lib
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/db_int"
 	"fmt"
 	"regexp"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
 
 	"github.com/spf13/viper"
 )

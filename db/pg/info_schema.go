@@ -1,13 +1,14 @@
 package pg
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db"
-	"dbdaddy/db/pg/pgq"
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/types"
 	"fmt"
 	"sync"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db"
+	"github.com/fossmedaddy/dbdaddy/db/pg/pgq"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/viper"
 )

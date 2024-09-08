@@ -1,11 +1,12 @@
 package types
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/lib/libUtils"
 	"encoding/json"
 	"os"
 	"path"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 )
 
 type MigrationStatus struct {

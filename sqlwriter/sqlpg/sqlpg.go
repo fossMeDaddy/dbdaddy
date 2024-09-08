@@ -1,11 +1,12 @@
 package sqlpg
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/types"
 	"fmt"
 	"strings"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 )
 
 func getSqlTableId(tableid string) string {

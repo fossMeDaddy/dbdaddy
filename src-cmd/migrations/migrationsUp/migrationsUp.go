@@ -1,12 +1,13 @@
 package migrationsUp
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/db/db_int"
-	"dbdaddy/lib"
-	migrationsLib "dbdaddy/lib/migrations"
 	"fmt"
 	"path"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	migrationsLib "github.com/fossmedaddy/dbdaddy/lib/migrations"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

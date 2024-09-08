@@ -1,11 +1,12 @@
 package lib
 
 import (
-	"dbdaddy/types"
 	"os"
 	"path"
 	"slices"
 	"strings"
+
+	"github.com/fossmedaddy/dbdaddy/types"
 )
 
 func GetDbGroupedDumpFiles(configFilePath string) (types.DbDumpFilesMap, error) {

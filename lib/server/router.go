@@ -1,7 +1,7 @@
 package libServer
 
 import (
-	serverHandlers "dbdaddy/lib/server/handlers"
+	serverHandlers "github.com/fossmedaddy/dbdaddy/lib/server/handlers"
 
 	"github.com/gofiber/fiber/v2"
 )

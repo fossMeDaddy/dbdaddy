@@ -1,9 +1,10 @@
 package migrationsLib
 
 import (
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/types"
 	"slices"
+
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"golang.org/x/exp/maps"
 )

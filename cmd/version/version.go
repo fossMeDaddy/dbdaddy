@@ -1,8 +1,9 @@
 package main
 
 import (
-	"dbdaddy/build-scripts/utils"
 	"fmt"
+
+	"github.com/fossmedaddy/dbdaddy/build-scripts/utils"
 )
 
 func main() {

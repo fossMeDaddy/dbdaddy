@@ -1,10 +1,10 @@
 package migrationsCmd
 
 import (
-	"dbdaddy/src-cmd/migrations/migrationsDown"
-	migrationsGenCmd "dbdaddy/src-cmd/migrations/migrationsGen"
-	migrationsStatusCmd "dbdaddy/src-cmd/migrations/migrationsStatus"
-	"dbdaddy/src-cmd/migrations/migrationsUp"
+	"github.com/fossmedaddy/dbdaddy/src-cmd/migrations/migrationsDown"
+	migrationsGenCmd "github.com/fossmedaddy/dbdaddy/src-cmd/migrations/migrationsGen"
+	migrationsStatusCmd "github.com/fossmedaddy/dbdaddy/src-cmd/migrations/migrationsStatus"
+	"github.com/fossmedaddy/dbdaddy/src-cmd/migrations/migrationsUp"
 
 	"github.com/spf13/cobra"
 )

@@ -1,11 +1,11 @@
 package soyMeCmd
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/lib"
-	"dbdaddy/lib/libUtils"
-	libServer "dbdaddy/lib/server"
-	"dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	libServer "github.com/fossmedaddy/dbdaddy/lib/server"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

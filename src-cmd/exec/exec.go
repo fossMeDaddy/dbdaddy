@@ -2,17 +2,18 @@ package execCmd
 
 import (
 	"bufio"
-	"dbdaddy/constants"
-	"dbdaddy/db/db_int"
-	"dbdaddy/lib"
-	"dbdaddy/lib/libUtils"
-	"dbdaddy/middlewares"
 	"fmt"
 	"math"
 	"os"
 	"path"
 	"strings"
 	"sync"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

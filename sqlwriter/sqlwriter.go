@@ -1,9 +1,11 @@
 package sqlwriter
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/sqlwriter/sqlpg"
-	"dbdaddy/types"
+	"fmt"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/sqlwriter/sqlpg"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/viper"
 )
@@ -13,142 +15,142 @@ func getDriver() string {
 	return driver
 }
 
-func GetDisableConstSQL() string {
+func GetDisableConstSQL() (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return "SET CONSTRAINTS ALL DEFERRED;"
+		return "SET CONSTRAINTS ALL DEFERRED;", nil
 	case constants.DbDriverMySQL:
-		return "SET FOREIGN_KEY_CHECKS = 0;"
+		return "SET FOREIGN_KEY_CHECKS = 0;", nil
 	default:
-		panic("")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetEnableConstSQL() string {
+func GetEnableConstSQL() (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return "SET CONSTRAINTS ALL IMMEDIATE;"
+		return "SET CONSTRAINTS ALL IMMEDIATE;", nil
 	case constants.DbDriverMySQL:
-		return "SET FOREIGN_KEY_CHECKS = 1;"
+		return "SET FOREIGN_KEY_CHECKS = 1;", nil
 	default:
-		panic("")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetDropSchemaSQL(schema *types.Schema) string {
+func GetDropSchemaSQL(schema *types.Schema) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetDropSchemaSQL(schema)
+		return sqlpg.GetDropSchemaSQL(schema), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetCreateSchemaSQL(schema *types.Schema) string {
+func GetCreateSchemaSQL(schema *types.Schema) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetCreateSchemaSQL(schema)
+		return sqlpg.GetCreateSchemaSQL(schema), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetDropSequenceSQL(seq *types.DbSequence) string {
+func GetDropSequenceSQL(seq *types.DbSequence) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetDropSequenceSQL(seq)
+		return sqlpg.GetDropSequenceSQL(seq), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetCreateSequenceSQL(seq *types.DbSequence) string {
+func GetCreateSequenceSQL(seq *types.DbSequence) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetCreateSequenceSQL(seq)
+		return sqlpg.GetCreateSequenceSQL(seq), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetColDefSQL(col *types.Column) string {
+func GetColDefSQL(col *types.Column) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetColDefSQL(col)
+		return sqlpg.GetColDefSQL(col), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetCreateTableSQL(tableSchema *types.TableSchema) string {
+func GetCreateTableSQL(tableSchema *types.TableSchema) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetCreateTableSQL(tableSchema)
+		return sqlpg.GetCreateTableSQL(tableSchema), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
 // tableid should be of the form "schemaname"."tablename"
-func GetDropTableSQL(tableid string) string {
+func GetDropTableSQL(tableid string) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetDropTableSQL(tableid)
+		return sqlpg.GetDropTableSQL(tableid), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetCreateViewSQL(viewSchema *types.TableSchema) string {
+func GetCreateViewSQL(viewSchema *types.TableSchema) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetCreateViewSQL(viewSchema)
+		return sqlpg.GetCreateViewSQL(viewSchema), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetDropViewSQL(viewid string) string {
+func GetDropViewSQL(viewid string) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetDropViewSQL(viewid)
+		return sqlpg.GetDropViewSQL(viewid), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetATDropColSQL(tableid string, colName string) string {
+func GetATDropColSQL(tableid string, colName string) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetATDropColSQL(tableid, colName)
+		return sqlpg.GetATDropColSQL(tableid, colName), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetATCreateColSQL(tableid string, col *types.Column) string {
+func GetATCreateColSQL(tableid string, col *types.Column) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetATCreateColSQL(tableid, col)
+		return sqlpg.GetATCreateColSQL(tableid, col), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetATDropConstraint(tableid string, conName string) string {
+func GetATDropConstraint(tableid string, conName string) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetATDropConstraint(tableid, conName)
+		return sqlpg.GetATDropConstraint(tableid, conName), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }
 
-func GetATCreateConstraintSQL(tableid string, con *types.DbConstraint) string {
+func GetATCreateConstraintSQL(tableid string, con *types.DbConstraint) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetATCreateConstraintSQL(tableid, con)
+		return sqlpg.GetATCreateConstraintSQL(tableid, con), nil
 	default:
-		panic("unsupported driver")
+		return "", fmt.Errorf("unsupported driver")
 	}
 }

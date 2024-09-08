@@ -1,9 +1,10 @@
 package lib
 
 import (
-	"dbdaddy/constants"
-	"dbdaddy/lib/libUtils"
 	"path"
+
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 
 	"github.com/spf13/viper"
 )

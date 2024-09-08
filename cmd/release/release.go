@@ -1,6 +1,6 @@
 package main
 
-import "dbdaddy/build-scripts/utils"
+import "github.com/fossmedaddy/dbdaddy/build-scripts/utils"
 
 func main() {
 	v := utils.GetCurrentVersion()
