@@ -1,10 +1,10 @@
 package inspectMeCmd
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"dbdaddy/middlewares"
 	"dbdaddy/types"
 	"fmt"

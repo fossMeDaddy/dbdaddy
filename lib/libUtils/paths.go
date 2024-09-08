@@ -1,7 +1,7 @@
 package libUtils
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"fmt"
 	"os"
 	"path"

@@ -1,8 +1,8 @@
 package sqlpg
 
 import (
-	constants "dbdaddy/const"
-	"dbdaddy/libUtils"
+	"dbdaddy/constants"
+	"dbdaddy/lib/libUtils"
 	"dbdaddy/types"
 	"fmt"
 	"strings"

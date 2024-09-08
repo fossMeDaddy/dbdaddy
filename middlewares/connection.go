@@ -3,7 +3,7 @@ package middlewares
 import (
 	"dbdaddy/db"
 	"dbdaddy/lib"
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"dbdaddy/types"
 
 	"github.com/spf13/cobra"

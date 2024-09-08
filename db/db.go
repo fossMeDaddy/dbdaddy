@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"fmt"
 	"strings"
 

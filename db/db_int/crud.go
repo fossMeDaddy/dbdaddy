@@ -2,7 +2,7 @@
 package db_int
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db/pg"
 	"dbdaddy/types"
 

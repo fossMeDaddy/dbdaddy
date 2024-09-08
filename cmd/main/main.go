@@ -1,9 +1,9 @@
 package main
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/lib"
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	checkoutCmd "dbdaddy/src-cmd/checkout"
 	configCmd "dbdaddy/src-cmd/config"
 	deleteCmd "dbdaddy/src-cmd/delete"
@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/jackc/pgx/v5"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

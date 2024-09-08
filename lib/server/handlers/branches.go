@@ -1,7 +1,7 @@
 package serverHandlers
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"

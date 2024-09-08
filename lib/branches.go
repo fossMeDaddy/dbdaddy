@@ -1,7 +1,7 @@
 package lib
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db/db_int"
 	"fmt"
 	"regexp"

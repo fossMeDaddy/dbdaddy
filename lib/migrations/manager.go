@@ -2,7 +2,7 @@ package migrationsLib
 
 import (
 	"dbdaddy/db/db_int"
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"dbdaddy/types"
 	"fmt"
 	"io/fs"

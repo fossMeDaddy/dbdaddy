@@ -1,9 +1,9 @@
 package configCmd
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/lib"
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"fmt"
 	"path"
 

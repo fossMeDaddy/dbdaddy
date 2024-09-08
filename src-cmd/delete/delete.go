@@ -1,7 +1,7 @@
 package deleteCmd
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db/db_int"
 	"dbdaddy/middlewares"
 	"fmt"

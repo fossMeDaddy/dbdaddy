@@ -1,7 +1,7 @@
 package pgq
 
 import (
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"fmt"
 )
 
@@ -51,7 +51,7 @@ func QGetConstraints(tableid string) string {
             relcon.conkey[1] = infcol.ordinal_position and
             relcon.contype in ('p', 'f', 'c', 'u')
 		inner join pg_namespace as relconnsp on relcon.connamespace = relconnsp.oid
-		
+
 		-- FOREIGN KEYS START --
         left join pg_class as f_relcls on relcon.conrelid = f_relcls.oid
         left join pg_namespace as f_relnsp on relcon.connamespace = f_relnsp.oid

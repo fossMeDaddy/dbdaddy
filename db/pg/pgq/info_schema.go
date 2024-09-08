@@ -2,7 +2,7 @@
 package pgq
 
 import (
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"fmt"
 )
 

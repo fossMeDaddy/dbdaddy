@@ -1,7 +1,7 @@
 package pg
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/errs"
 	"os"
 	"os/exec"

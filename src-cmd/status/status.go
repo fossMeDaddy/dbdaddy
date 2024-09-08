@@ -1,7 +1,7 @@
 package statusCmd
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"

@@ -1,11 +1,11 @@
 package migrationsGenCmd
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
+	"dbdaddy/lib/libUtils"
 	migrationsLib "dbdaddy/lib/migrations"
-	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 	"dbdaddy/types"
 	"fmt"

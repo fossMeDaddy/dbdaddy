@@ -3,6 +3,9 @@
 run:
 	go run cmd/main/main.go $(ARGS)
 
+vet:
+	go vet cmd/main/main.go $(ARGS)
+
 build:
 	go run cmd/build/build.go
 

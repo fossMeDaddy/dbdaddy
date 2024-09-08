@@ -1,7 +1,7 @@
 package migrationsLib
 
 import (
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"dbdaddy/sqlwriter"
 	"dbdaddy/types"
 	"fmt"

@@ -1,8 +1,8 @@
 package configCmd
 
 import (
-	constants "dbdaddy/const"
-	"dbdaddy/libUtils"
+	"dbdaddy/constants"
+	"dbdaddy/lib/libUtils"
 	"fmt"
 
 	"github.com/spf13/cobra"

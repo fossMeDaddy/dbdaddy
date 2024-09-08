@@ -1,8 +1,8 @@
 package types
 
 import (
-	constants "dbdaddy/const"
-	"dbdaddy/libUtils"
+	"dbdaddy/constants"
+	"dbdaddy/lib/libUtils"
 	"encoding/json"
 	"os"
 	"path"

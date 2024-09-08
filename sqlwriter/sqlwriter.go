@@ -1,7 +1,7 @@
 package sqlwriter
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/sqlwriter/sqlpg"
 	"dbdaddy/types"
 

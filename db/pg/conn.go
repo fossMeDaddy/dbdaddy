@@ -1,7 +1,7 @@
 package pg
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"fmt"
 
 	"github.com/spf13/viper"

@@ -1,10 +1,10 @@
 package soyMeCmd
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/lib"
+	"dbdaddy/lib/libUtils"
 	libServer "dbdaddy/lib/server"
-	"dbdaddy/libUtils"
 	"dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"

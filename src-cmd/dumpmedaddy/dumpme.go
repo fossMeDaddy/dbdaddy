@@ -1,11 +1,11 @@
 package dumpMeCmd
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db/db_int"
 	"dbdaddy/errs"
 	"dbdaddy/lib"
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"dbdaddy/middlewares"
 	"errors"
 	"fmt"

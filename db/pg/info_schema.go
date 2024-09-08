@@ -1,10 +1,10 @@
 package pg
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db"
 	"dbdaddy/db/pg/pgq"
-	"dbdaddy/libUtils"
+	"dbdaddy/lib/libUtils"
 	"dbdaddy/types"
 	"fmt"
 	"sync"

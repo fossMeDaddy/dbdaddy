@@ -1,7 +1,7 @@
 package migrationsUp
 
 import (
-	constants "dbdaddy/const"
+	"dbdaddy/constants"
 	"dbdaddy/db/db_int"
 	"dbdaddy/lib"
 	migrationsLib "dbdaddy/lib/migrations"
