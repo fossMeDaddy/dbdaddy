@@ -1,10 +1,13 @@
 # needs to be run in a go environment
 
+run:
+	go run cmd/main/main.go $(ARGS)
+
 build:
-	go run build-scripts/build/build.go
+	go run cmd/build/build.go
 
 release:
-	go run build-scripts/release/release.go
+	go run cmd/release/release.go
 
 get_version:
-	go run build-scripts/version/version.go
+	go run cmd/version/version.go

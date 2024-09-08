@@ -40,7 +40,7 @@ func Build(goos string, goarch string) {
 
 	outFile := path.Join("bin", fmt.Sprintf("dbdaddy-%s-%s", GOOS, GOARCH))
 
-	cmd := exec.Command("go", "build", "-o", outFile, ".")
+	cmd := exec.Command("go", "build", "-o", outFile, "cmd/main/main.go")
 	cmd.Env = append(os.Environ(), "GOOS="+GOOS, "GOARCH="+GOARCH)
 	cmdErr := cmd.Run()
 	if cmdErr != nil {

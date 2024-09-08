@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	constants "dbdaddy/const"
@@ -35,7 +35,7 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 	cmd.Help()
 }
 
-func Execute() {
+func main() {
 	if lib.IsFirstTimeUser() {
 		fmt.Println("Daddy's home baby.")
 		fmt.Println("I'll create a global config for ya, let me know your database url here")

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"dbdaddy/build-scripts/utils"
+	"dbdaddy/cmd/utils"
 	"sync"
 )
 
