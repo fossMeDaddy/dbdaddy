@@ -79,21 +79,3 @@ indexes, triggers & custom types are not supported.
 constraints, columns, tables & views are diffed and tracked for changes but there is no modification support as of now for any of them,
 which means that, let's say if you make a field nullable in SQL, this tool will generate migrations to remove the column
 from your database & then re-create it with SQL column definition such that the field is now nullable. DATA WILL BE LOST.
-
-**Message to people who installed `DBDaddy`:**
-
-okay first of all thank you! issues tab is always open for any bug encountered or contribution...
-
-and second,
-
-did you read the source code?
-
-it could've been malware...
-
-**Message to people who didn't install `DBDaddy` because they're smart & don't blindly download any binary available on the internet**
-
-trust me bro, it's safe
-
-your boy is barely capable of writing software that works let alone a freakin virus that steals your information
-
-I AM A JAVASCRIPT DEV FOR GOD SAKES, just the idea of it makes me laugh out loud.
