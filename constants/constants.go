@@ -4,8 +4,9 @@ const (
 	DbConfigDefaultPostgresUrl = "postgresql://postgres:postgres@localhost:5342/postgres"
 
 	// Self
-	SelfGlobalDirName = ".dbdaddy"
-	SelfDbName        = "__daddys_home"
+	SelfGlobalDirName  = ".dbdaddy"
+	SelfConfigFileName = "dbdaddy.config.json"
+	SelfDbName         = "__daddys_home"
 
 	//  Config keys
 	DbConfigDriverKey        = "connection.driver"
@@ -26,8 +27,9 @@ const (
 	MySqlDumpDir  = "mysql_dumps"
 	SqliteDumpDir = "sqlite_dumps"
 
-	// migrations
-	MigrationDir = "migrations"
+	// project
+	ScriptsDirName = "scripts"
+	SchemaDirName  = "schema"
 
 	// tmp
 	TmpDir          = "tmp"

@@ -11,7 +11,7 @@ func GetGlobalConfigPath() string {
 		panic(err)
 	}
 
-	return filepath.Join(homeDir, SelfGlobalDirName, "dbdaddy.config.json")
+	return filepath.Join(homeDir, SelfGlobalDirName, SelfConfigFileName)
 }
 
 func GetLocalConfigPath() string {
@@ -20,7 +20,7 @@ func GetLocalConfigPath() string {
 		panic(err)
 	}
 
-	return filepath.Join(cwd, SelfGlobalDirName, "dbdaddy.config.json")
+	return filepath.Join(cwd, SelfGlobalDirName, SelfConfigFileName)
 }
 
 func GetGlobalDirPath() string {
