@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/fossmedaddy/dbdaddy/build-scripts/utils"
+	"github.com/fossmedaddy/dbdaddy/cmd/utils"
 )
 
 func main() {
