@@ -19,14 +19,14 @@ jobs:
         run: gh auth login --with-token <<< "${{ github.token }}"
 
       - uses: actions/checkout@v4
-        
+
       - name: "Build binaries"
         run: make build
 
       - name: Get latest tag
         id: get_latest_tag
         run: |
-          latest_tag=$(go run build-scripts/version/version.go)
+          latest_tag=$(go run cmd/version/version.go)
           echo "Latest tag: $latest_tag"
           echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
 
