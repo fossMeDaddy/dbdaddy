@@ -12,7 +12,7 @@ not available on windows cuz fuck you, thats why. use wsl or something...
 curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | bash
 ```
 
-## Usage instructions
+## Usage Instructions
 ```
 dbdaddy --help
 ```
