@@ -10,6 +10,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/cli/dumpCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/dumpMeCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/execCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/initCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/inspectMeCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/listCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd"
@@ -76,6 +77,7 @@ func main() {
 	rootCmd.AddCommand(studioCmd.Init())
 	rootCmd.AddCommand(execCmd.Init())
 	rootCmd.AddCommand(migrationsCmd.Init())
+	rootCmd.AddCommand(initCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
