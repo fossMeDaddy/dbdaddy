@@ -4,21 +4,23 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fossmedaddy/dbdaddy/cli/checkoutCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/configCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/deleteCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/dumpCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/dumpMeCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/execCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/inspectMeCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/listCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/restoreCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/statusCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/studioCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/versionCmd"
 	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
-	checkoutCmd "github.com/fossmedaddy/dbdaddy/src-cmd/checkout"
-	configCmd "github.com/fossmedaddy/dbdaddy/src-cmd/config"
-	deleteCmd "github.com/fossmedaddy/dbdaddy/src-cmd/delete"
-	"github.com/fossmedaddy/dbdaddy/src-cmd/dumpCmd"
-	dumpMeCmd "github.com/fossmedaddy/dbdaddy/src-cmd/dumpmedaddy"
-	execCmd "github.com/fossmedaddy/dbdaddy/src-cmd/exec"
-	inspectMeCmd "github.com/fossmedaddy/dbdaddy/src-cmd/inspectme"
-	listCmd "github.com/fossmedaddy/dbdaddy/src-cmd/list"
-	migrationsCmd "github.com/fossmedaddy/dbdaddy/src-cmd/migrations"
-	restoreCmd "github.com/fossmedaddy/dbdaddy/src-cmd/restore"
-	statusCmd "github.com/fossmedaddy/dbdaddy/src-cmd/status"
-	studioCmd "github.com/fossmedaddy/dbdaddy/src-cmd/studio"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -37,8 +39,8 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 
 func main() {
 	if lib.IsFirstTimeUser() {
-		fmt.Println("Daddy's home baby.")
-		fmt.Println("I'll create a global config for ya, let me know your database url here")
+		rootCmd.Println(fmt.Sprintf("Daddy's home baby. (version: %s)", globals.Version) + fmt.Sprintln())
+		rootCmd.Println("I'll create a global config for ya, let me know your database url here")
 
 		configFilePath := constants.GetGlobalConfigPath()
 		libUtils.EnsureDirExists(constants.GetGlobalDirPath())
@@ -50,7 +52,7 @@ func main() {
 
 		_, err := dbUrlPrompt.Run()
 		if err != nil {
-			fmt.Println("Cancelling initialization...")
+			rootCmd.Println("Cancelling initialization...")
 			os.Exit(1)
 		}
 
@@ -61,6 +63,7 @@ func main() {
 		lib.EnsureSupportedDbDriver()
 	}
 
+	rootCmd.AddCommand(versionCmd.Init())
 	rootCmd.AddCommand(checkoutCmd.Init())
 	rootCmd.AddCommand(statusCmd.Init())
 	rootCmd.AddCommand(deleteCmd.Init())

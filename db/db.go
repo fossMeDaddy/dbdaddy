@@ -6,16 +6,10 @@ import (
 	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/globals"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/spf13/viper"
-)
-
-// global DB related vars (please dont fuck with them)
-var (
-	DB *sql.DB
-
-	ConnDbName string
 )
 
 func GetPgConnUriFromViper(v *viper.Viper, dbname string) string {
@@ -71,10 +65,10 @@ func ConnectSelfDb(v *viper.Viper) (*sql.DB, error) {
 			fnLocalDb = db
 		}
 
-		ConnDbName = constants.SelfDbName
-		DB = fnLocalDb
+		globals.ConnDbName = constants.SelfDbName
+		globals.DB = fnLocalDb
 
-		return DB, nil
+		return globals.DB, nil
 	}
 
 	fmt.Println(viper.Get(constants.DbConfigDriverKey), constants.SupportedDrivers)
@@ -88,10 +82,10 @@ func ConnectDb(v *viper.Viper, dbname string) (*sql.DB, error) {
 			return nil, fmt.Errorf("unexpected error occured!\n" + err.Error())
 		}
 
-		ConnDbName = dbname
-		DB = db
+		globals.ConnDbName = dbname
+		globals.DB = db
 
-		return DB, nil
+		return globals.DB, nil
 	}
 
 	fmt.Println(v.Get(constants.DbConfigDriverKey), constants.SupportedDrivers)

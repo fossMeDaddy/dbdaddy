@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
-	"github.com/fossmedaddy/dbdaddy/db"
 	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/viper"
@@ -20,7 +20,7 @@ func GetRows(queryStr string) (types.QueryResult, error) {
 		Data: types.DbRows{},
 	}
 
-	q, err := db.DB.Query(queryStr)
+	q, err := globals.DB.Query(queryStr)
 	if err != nil {
 		return queryResult, err
 	}
@@ -114,7 +114,7 @@ func ExecuteStatements__DEPRECATED(dbname, sqlStr string) error {
 }
 
 func ExecuteStatements(sqlStr string) error {
-	tx, err := db.DB.Begin()
+	tx, err := globals.DB.Begin()
 	if err != nil {
 		return err
 	}

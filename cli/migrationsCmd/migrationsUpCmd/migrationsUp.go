@@ -1,4 +1,4 @@
-package migrationsUp
+package migrationsUpCmd
 
 import (
 	"fmt"

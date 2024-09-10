@@ -8,4 +8,5 @@
 dbdaddy.config.json
 
 /ignore/
+/tmp/
 /migrations/

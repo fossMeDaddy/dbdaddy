@@ -1,4 +1,4 @@
-package soyMeCmd
+package studioCmd
 
 import (
 	"github.com/fossmedaddy/dbdaddy/constants"

@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
-	"github.com/fossmedaddy/dbdaddy/db"
 	"github.com/fossmedaddy/dbdaddy/db/pg/pgq"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/types"
 
@@ -15,7 +15,7 @@ import (
 
 func ListTablesInDb() ([]types.Table, error) {
 	tables := []types.Table{}
-	rows, err := db.DB.Query(`
+	rows, err := globals.DB.Query(`
 		select
 			table_name as name,
 			table_schema as schema,
@@ -88,7 +88,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	go (func() {
 		defer wg.Done()
 
-		rows, err := db.DB.Query(pgq.QGetSequences())
+		rows, err := globals.DB.Query(pgq.QGetSequences())
 		if err != nil {
 			seqErr = err
 			return
@@ -122,7 +122,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	go (func() {
 		defer wg.Done()
 
-		rows, err := db.DB.Query(`
+		rows, err := globals.DB.Query(`
 			select nsp.nspname, typ.typname from pg_type as typ
 
 			inner join pg_namespace as nsp on
@@ -161,7 +161,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	go (func() {
 		defer wg.Done()
 
-		conRows, _conErr := db.DB.Query(pgq.QGetConstraints(tableid))
+		conRows, _conErr := globals.DB.Query(pgq.QGetConstraints(tableid))
 		if _conErr != nil {
 			conErr = _conErr
 			return
@@ -197,7 +197,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		}
 	})()
 
-	schemaRows, schemaErr := db.DB.Query(pgq.QGetSchema(tableid))
+	schemaRows, schemaErr := globals.DB.Query(pgq.QGetSchema(tableid))
 	if schemaErr != nil {
 		return dbSchema, schemaErr
 	}
@@ -257,7 +257,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 	go (func() {
 		defer wg.Done()
 
-		rows, err := db.DB.Query(pgq.QGetViews())
+		rows, err := globals.DB.Query(pgq.QGetViews())
 		if err != nil {
 			viewErr = err
 			return

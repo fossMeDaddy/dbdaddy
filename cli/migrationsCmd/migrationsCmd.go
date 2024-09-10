@@ -1,10 +1,10 @@
 package migrationsCmd
 
 import (
-	"github.com/fossmedaddy/dbdaddy/src-cmd/migrations/migrationsDown"
-	migrationsGenCmd "github.com/fossmedaddy/dbdaddy/src-cmd/migrations/migrationsGen"
-	migrationsStatusCmd "github.com/fossmedaddy/dbdaddy/src-cmd/migrations/migrationsStatus"
-	"github.com/fossmedaddy/dbdaddy/src-cmd/migrations/migrationsUp"
+	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsDownCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsGenCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsStatusCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsUpCmd"
 
 	"github.com/spf13/cobra"
 )
@@ -25,8 +25,8 @@ func Init() *cobra.Command {
 	// commands
 	cmd.AddCommand(migrationsGenCmd.Init())
 	cmd.AddCommand(migrationsStatusCmd.Init())
-	cmd.AddCommand(migrationsUp.Init())
-	cmd.AddCommand(migrationsDown.Init())
+	cmd.AddCommand(migrationsUpCmd.Init())
+	cmd.AddCommand(migrationsDownCmd.Init())
 
 	return cmd
 }

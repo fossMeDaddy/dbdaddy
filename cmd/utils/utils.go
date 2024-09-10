@@ -40,8 +40,17 @@ func Build(goos string, goarch string) {
 
 	outFile := path.Join("bin", fmt.Sprintf("dbdaddy-%s-%s", GOOS, GOARCH))
 
-	cmd := exec.Command("go", "build", "-o", outFile, "cmd/main/main.go")
+	cmd := exec.Command(
+		"go",
+		"build",
+		"-ldflags",
+		fmt.Sprintf("-X 'github.com/fossmedaddy/dbdaddy/globals.Version=%s'", GetCurrentVersion()),
+		"-o",
+		outFile,
+		"cmd/main/main.go",
+	)
 	cmd.Env = append(os.Environ(), "GOOS="+GOOS, "GOARCH="+GOARCH)
+	cmd.Stdout = os.Stdout
 	cmdErr := cmd.Run()
 	if cmdErr != nil {
 		fmt.Println("ERR:", cmdErr)

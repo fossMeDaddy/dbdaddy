@@ -2,12 +2,12 @@ package pg
 
 import (
 	"github.com/fossmedaddy/dbdaddy/constants"
-	"github.com/fossmedaddy/dbdaddy/db"
 	"github.com/fossmedaddy/dbdaddy/db/pg/pgq"
+	"github.com/fossmedaddy/dbdaddy/globals"
 )
 
 func GetExistingDbs() ([]string, error) {
-	rows, err := db.DB.Query(pgq.QGetExistingDbs())
+	rows, err := globals.DB.Query(pgq.QGetExistingDbs())
 	if err != nil {
 		return nil, err
 	}
@@ -28,12 +28,12 @@ func GetExistingDbs() ([]string, error) {
 }
 
 func DisconnectAllUsers(dbname string) error {
-	_, err := db.DB.Exec(pgq.QDisconnectAllUsersFromDb(dbname))
+	_, err := globals.DB.Exec(pgq.QDisconnectAllUsersFromDb(dbname))
 	return err
 }
 
 func DbExists(dbname string) bool {
-	row := db.DB.QueryRow(pgq.QCheckDbExists(dbname))
+	row := globals.DB.QueryRow(pgq.QCheckDbExists(dbname))
 
 	exists := false
 	_ = row.Scan(&exists)
@@ -47,7 +47,7 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 		return err
 	}
 
-	_, err = db.DB.Exec(pgq.QCreateNewDbFromOldTemplate(newDbName, originalDbName))
+	_, err = globals.DB.Exec(pgq.QCreateNewDbFromOldTemplate(newDbName, originalDbName))
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 }
 
 func CreateDb(dbname string) error {
-	_, err := db.DB.Exec(pgq.QCreateNewDb(dbname))
+	_, err := globals.DB.Exec(pgq.QCreateNewDb(dbname))
 	return err
 }
 
@@ -65,7 +65,7 @@ func DeleteDb(dbname string) error {
 		return err
 	}
 
-	_, err := db.DB.Exec(pgq.QDeleteDb(dbname))
+	_, err := globals.DB.Exec(pgq.QDeleteDb(dbname))
 	if err != nil {
 		return err
 	}

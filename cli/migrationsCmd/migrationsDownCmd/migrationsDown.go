@@ -1,4 +1,4 @@
-package migrationsDown
+package migrationsDownCmd
 
 import (
 	"fmt"
