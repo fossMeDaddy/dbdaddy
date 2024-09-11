@@ -55,7 +55,7 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func Init() *cobra.Command {
-	cmd.Flags().BoolVar(&cleanAll, "all", false, fmt.Sprintf("delete ALL dump files in the '%s' config dir", constants.SelfGlobalDirName))
+	cmd.Flags().BoolVar(&cleanAll, "all", false, fmt.Sprintf("delete ALL dump files in the '%s' config dir", constants.SelfConfigDirName))
 	cmd.Flags().BoolVarP(&useGlobalConfigFile, "global", "g", false, "explicitly use the global config file to list the dumps")
 
 	return cmd

@@ -11,7 +11,7 @@ func GetGlobalConfigPath() string {
 		panic(err)
 	}
 
-	return filepath.Join(homeDir, SelfGlobalDirName, SelfConfigFileName)
+	return filepath.Join(homeDir, SelfConfigDirName, SelfConfigFileName)
 }
 
 func GetLocalConfigPath() string {
@@ -20,7 +20,7 @@ func GetLocalConfigPath() string {
 		panic(err)
 	}
 
-	return filepath.Join(cwd, SelfGlobalDirName, SelfConfigFileName)
+	return filepath.Join(cwd, SelfConfigDirName, SelfConfigFileName)
 }
 
 func GetGlobalDirPath() string {
@@ -29,5 +29,5 @@ func GetGlobalDirPath() string {
 		panic(err)
 	}
 
-	return filepath.Join(homeDir, SelfGlobalDirName)
+	return filepath.Join(homeDir, SelfConfigDirName)
 }

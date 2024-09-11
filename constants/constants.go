@@ -4,7 +4,7 @@ const (
 	DbConfigDefaultPostgresUrl = "postgresql://postgres:postgres@localhost:5342/postgres"
 
 	// Self
-	SelfGlobalDirName  = ".dbdaddy"
+	SelfConfigDirName  = ".dbdaddy"
 	SelfConfigFileName = "dbdaddy.config.json"
 	SelfDbName         = "__daddys_home"
 

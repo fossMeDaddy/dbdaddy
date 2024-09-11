@@ -113,6 +113,8 @@ func ExecuteStatements__DEPRECATED(dbname, sqlStr string) error {
 	return cmd.Run()
 }
 
+// takes in a sql string & differentiates between multiple executable statements
+// by a ";" followed by a newline.
 func ExecuteStatements(sqlStr string) error {
 	tx, err := globals.DB.Begin()
 	if err != nil {

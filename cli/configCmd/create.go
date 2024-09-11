@@ -27,14 +27,14 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 		configWritePath = constants.GetGlobalConfigPath()
 	}
 
-	dir, _ := path.Split(configWritePath)
-	if _, err := libUtils.EnsureDirExists(dir); err != nil {
+	configWriteDirPath, _ := path.Split(configWritePath)
+	if _, err := libUtils.EnsureDirExists(configWriteDirPath); err != nil {
 		panic("Unexpected error occured!\n" + err.Error())
 	}
 
 	if overrideExisting {
 		v := viper.New()
-		lib.InitConfigFile(v, configWritePath, false)
+		lib.InitConfigFile(v, configWriteDirPath, false)
 
 		if err := v.WriteConfigAs(configWritePath); err != nil {
 			cmd.PrintErrln("Error occured while writing config file!\n" + err.Error())

@@ -40,12 +40,12 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 
 func main() {
 	if lib.IsFirstTimeUser() {
-		rootCmd.Println(fmt.Sprintf("Daddy's home baby. (version: %s)", globals.Version) + fmt.Sprintln())
+		rootCmd.Println(fmt.Sprintf("Daddy's home baby. (version: %s)", globals.Version))
 		rootCmd.Println("I'll create a global config for ya, let me know your database url here")
 
-		configFilePath := constants.GetGlobalConfigPath()
-		libUtils.EnsureDirExists(constants.GetGlobalDirPath())
-		lib.InitConfigFile(viper.GetViper(), configFilePath, true)
+		configDirPath := constants.GetGlobalDirPath()
+		libUtils.EnsureDirExists(configDirPath)
+		lib.InitConfigFile(viper.GetViper(), configDirPath, true)
 
 		dbUrlPrompt := promptui.Prompt{
 			Label: "Press enter to open the config file in a CLI-based text editor",
@@ -57,6 +57,7 @@ func main() {
 			os.Exit(1)
 		}
 
+		configFilePath := constants.GetGlobalConfigPath()
 		libUtils.OpenFileInEditor(configFilePath)
 	} else {
 		configFilePath, _ := libUtils.FindConfigFilePath()

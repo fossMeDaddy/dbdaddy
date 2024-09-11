@@ -2,10 +2,14 @@ package initCmd
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"golang.org/x/exp/slices"
 )
 
 var cmdManual = fmt.Sprintf(`
@@ -80,22 +84,56 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	_, cwdIsProject, err := libUtils.CwdIsProject()
+	cwd, cwdIsProject, err := libUtils.CwdIsProject()
 	if err != nil {
 		cmd.Println(err)
 		return
 	}
+
 	if cwdIsProject {
-		cmd.Println("CWD is already a project, cannot re-initialize.")
+		cmd.PrintErrln("CWD is already a project, cannot re-initialize.")
+		return
+	} else if _, dirname := path.Split(cwd); dirname == constants.SelfConfigDirName {
+		cmd.PrintErrln(
+			fmt.Sprintf(
+				"Can't create a project in %s, please choose any other directory",
+				constants.SelfConfigDirName,
+			),
+		)
+		return
+	} else if configPath, _ := libUtils.FindConfigDirPath(); configPath == path.Join(cwd, constants.SelfConfigDirName) {
+		cmd.PrintErrln(
+			fmt.Sprintf(
+				"A local '%s' configuration exists in this directory, please choose another directory",
+				constants.SelfConfigDirName,
+			),
+		)
 		return
 	}
 
-	// configFilePath, _ := libUtils.FindConfigFilePath()
-	// copy from this path
-	// write to cwd config json
+	return
 
-	// create required directories (queries, migrations, schema, dbdaddy.config.json)
-	// instruct to run "help init" to know more about each of the generated folders
+	lib.InitConfigFile(viper.New(), cwd, true)
+
+	_, migErr := libUtils.EnsureDirExists(path.Join(constants.MigDirName))
+	_, schemaErr := libUtils.EnsureDirExists(path.Join(constants.SchemaDirName))
+	_, scriptsErr := libUtils.EnsureDirExists(path.Join(constants.ScriptsDirName))
+	if migErr != nil {
+		cmd.PrintErrln(migErr)
+	}
+	if schemaErr != nil {
+		cmd.PrintErrln(schemaErr)
+	}
+	if scriptsErr != nil {
+		cmd.PrintErrln(scriptsErr)
+	}
+	if !slices.Contains([]error{migErr, schemaErr, scriptsErr}, nil) {
+		return
+	}
+
+	cmd.Println(fmt.Sprintf("Created project at: %s", cwd))
+	cmd.Println("run 'help init' to know more about each of the newly created directories.")
+	cmd.Println("happy database querying!")
 }
 
 func Init() *cobra.Command {

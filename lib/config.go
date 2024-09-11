@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"path"
 	"slices"
 	"strings"
 
@@ -16,12 +17,13 @@ func IsFirstTimeUser() bool {
 	return err != nil
 }
 
-func InitConfigFile(v *viper.Viper, configPath string, write bool) {
-	tmp := strings.Split(configPath, "/")
-	viperConfigPath := strings.Join(tmp[:len(tmp)-1], "/")
+func InitConfigFile(v *viper.Viper, configDirPath string, write bool) {
+	viperConfigPath, _ := path.Split(configDirPath)
 
-	v.SetConfigName("dbdaddy.config")
-	v.SetConfigType("json")
+	configFileNameSplit := strings.Split(constants.SelfConfigFileName, ".")
+
+	v.SetConfigName(strings.Join(configFileNameSplit[:len(configFileNameSplit)-1], "."))
+	v.SetConfigType(configFileNameSplit[len(configFileNameSplit)-1])
 	v.AddConfigPath(viperConfigPath)
 
 	// setup default values for PG connection
@@ -35,7 +37,7 @@ func InitConfigFile(v *viper.Viper, configPath string, write bool) {
 
 	// setup default values for PG connection
 	if write {
-		v.WriteConfigAs(configPath)
+		v.WriteConfigAs(path.Join(configDirPath, constants.SelfConfigFileName))
 	}
 }
 
