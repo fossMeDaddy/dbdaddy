@@ -45,7 +45,7 @@ here's how you can do it WITHOUT AN ORM:
 2. get good at SQL, bruh
 3. amazing tools like `sqlc` for type-safe SQL queries
 
-I hope now that you understand, `DBDaddy` is not just a tool, it's an opinion.
+`DBDaddy` is not just a tool, it's an opinion.
 
 ## Features
 supported databases:
