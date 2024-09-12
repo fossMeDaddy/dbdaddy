@@ -13,7 +13,7 @@ import (
 func GetMigrationsDir(dbname string) (string, error) {
 	var migDirPath string
 
-	dirPath, _ := FindConfigDirPath()
+	dirPath, _ := FindConfigFilePath()
 
 	configParentDir := path.Dir(dirPath)
 	migDirPath = path.Join(configParentDir, constants.MigDirName, dbname)

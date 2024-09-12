@@ -114,7 +114,7 @@ func run(cmd *cobra.Command, args []string) {
 		}
 
 		if len(upChanges) == 0 {
-			cmd.Println("No changes detected.")
+			cmd.Println("no changes detected.")
 			return nil
 		}
 
@@ -155,10 +155,11 @@ func run(cmd *cobra.Command, args []string) {
 			}
 		}
 
+		cmd.Println("migration SQL generated successfully.")
 		return nil
 	})
 	if err != nil {
-		cmd.PrintErrln("Unexpected error occured!")
+		cmd.PrintErrln("unexpected error occured!")
 		cmd.PrintErrln(err)
 		return
 	}
