@@ -116,7 +116,7 @@ func ExecuteStatements__DEPRECATED(dbname, sqlStr string) error {
 // takes in a sql string & differentiates between multiple executable statements
 // by a ";" followed by a newline.
 // EXPECTS AN INPUT GENERATED FROM 'libUtils.GetSqlStmts()' func
-func ExecuteStatements(stmts []string) error {
+func ExecuteStatementsTx(stmts []string) error {
 	tx, err := globals.DB.Begin()
 	if err != nil {
 		return err
@@ -130,4 +130,15 @@ func ExecuteStatements(stmts []string) error {
 	}
 
 	return tx.Commit()
+}
+
+// no transactions, rawdawg them queries right in the DB
+func ExecuteStatements(stmts []string) error {
+	for _, stmt := range stmts {
+		if _, err := globals.DB.Exec(stmt); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

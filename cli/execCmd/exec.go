@@ -22,9 +22,9 @@ import (
 )
 
 var (
-	outFileFlag    string
-	queryFlag      string
-	noTruncateFlag bool
+	noTx        bool
+	outFileFlag string
+	queryFlag   string
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -83,8 +83,15 @@ func runFile(cmd *cobra.Command, filename string) error {
 	stmts := libUtils.GetSQLStmts(sqlStr)
 
 	if len(stmts) > 1 {
-		err := db_int.ExecuteStatements(stmts)
+		var err error
+		if noTx {
+			err = db_int.ExecuteStatements(stmts)
+		} else {
+			err = db_int.ExecuteStatementsTx(stmts)
+		}
+
 		if err != nil {
+			cmd.PrintErrln("Error occured while running SQL")
 			return err
 		}
 
@@ -106,13 +113,6 @@ func runQuery(cmd *cobra.Command, query string) error {
 	}
 
 	query = strings.ToLower(strings.TrimRight(query, ";"))
-
-	if !strings.Contains(query, "limit") && !noTruncateFlag {
-		query += " limit 50"
-		cmd.Println()
-		cmd.Println("no 'LIMIT' clause found in query, limiting to 50 items.")
-		cmd.Println("use the no truncate flag to get ALL ROWS or use a custom 'LIMIT' clause in the query.")
-	}
 
 	results, err := db_int.GetRows(query)
 	if err != nil {
@@ -160,7 +160,7 @@ func runQuery(cmd *cobra.Command, query string) error {
 	formattedOutput := lib.GetFormattedColumns(results)
 	outputW := strings.Index(formattedOutput, fmt.Sprintln()) + 1
 
-	if w >= outputW {
+	if outputW <= w || results.RowCount < 100 {
 		cmd.Println(formattedOutput)
 	} else {
 		tmpDir, tmpDirErr := libUtils.FindTmpDirPath()
@@ -174,7 +174,7 @@ func runQuery(cmd *cobra.Command, query string) error {
 			return err
 		}
 
-		cmd.Println("Formatted output too long to display here. See temp. file:", tmpFilePath)
+		cmd.Println("Formatted output too long to display here. See tmp output file:", tmpFilePath)
 	}
 
 	return nil
@@ -237,9 +237,9 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func Init() *cobra.Command {
-	cmd.Flags().StringVarP(&queryFlag, "query", "q", "", "Enter text here to execute a one-off query")
-	cmd.Flags().StringVarP(&outFileFlag, "output", "o", "", "Specify CSV-formatted output file path here. supplied along with '-q'")
-	cmd.Flags().BoolVar(&noTruncateFlag, "no-truncate", false, "In table formatted output, row items are truncated by default, use this to disable it.")
+	cmd.Flags().BoolVar(&noTx, "no-tx", false, "when running a SQL file, by default queries are run in a transaction block, use this to disable this behaviour")
+	cmd.Flags().StringVarP(&queryFlag, "query", "q", "", "enter text here to execute a one-off query")
+	cmd.Flags().StringVarP(&outFileFlag, "output", "o", "", "specify CSV-formatted output file path here. supplied along with '-q'")
 
 	return cmd
 }

@@ -113,7 +113,7 @@ func ApplyMigrationSQL(migStat types.MigrationStatus, isUpMigration bool) error 
 	}
 
 	stmts := libUtils.GetSQLStmts(sqlStr)
-	if err := db_int.ExecuteStatements(stmts); err != nil {
+	if err := db_int.ExecuteStatementsTx(stmts); err != nil {
 		return err
 	}
 
