@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func OpenFileInEditor(filePath string) {
+func OpenFileInEditor(filePath string) error {
 	vimOsCmd := exec.Command("vim", filePath)
 	vimOsCmd.Stdin = os.Stdin
 	vimOsCmd.Stdout = os.Stdout
@@ -26,7 +26,9 @@ func OpenFileInEditor(filePath string) {
 			fmt.Println("Holy shit bro?! wtf are you using for an OS? no vim, no nano, is this what, an alpine docker container?")
 			fmt.Println("nano command gave the error:\n" + nanoErr.Error())
 			fmt.Println("vim command gave the error:\n" + vimErr.Error())
-			os.Exit(1)
+			return fmt.Errorf("vim error: %s%snano error: %s", vimErr.Error(), fmt.Sprintln(), nanoErr.Error())
 		}
 	}
+
+	return nil
 }

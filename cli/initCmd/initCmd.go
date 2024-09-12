@@ -111,9 +111,19 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	return
-
-	lib.InitConfigFile(viper.New(), cwd, true)
+	v := viper.New()
+	existingConfigFilePath, _ := libUtils.FindConfigFilePath()
+	if err := lib.ReadConfig(v, existingConfigFilePath); err != nil {
+		cmd.PrintErrln("unexpected error occured!")
+		cmd.PrintErrln(err)
+		return
+	}
+	configFilePath := path.Join(cwd, constants.SelfConfigFileName)
+	if err := v.WriteConfigAs(configFilePath); err != nil {
+		cmd.PrintErrln("unexpected error occured!")
+		cmd.PrintErrln(err)
+		return
+	}
 
 	_, migErr := libUtils.EnsureDirExists(path.Join(constants.MigDirName))
 	_, schemaErr := libUtils.EnsureDirExists(path.Join(constants.SchemaDirName))
@@ -131,13 +141,14 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	cmd.Println(fmt.Sprintf("Opening config file at '%s' via vim...", configFilePath))
+	libUtils.OpenFileInEditor(configFilePath)
+
 	cmd.Println(fmt.Sprintf("Created project at: %s", cwd))
 	cmd.Println("run 'help init' to know more about each of the newly created directories.")
-	cmd.Println("happy database querying!")
+	cmd.Println("happy databasing!")
 }
 
 func Init() *cobra.Command {
-	// flags here
-
 	return cmd
 }

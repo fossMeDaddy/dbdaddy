@@ -18,13 +18,11 @@ func IsFirstTimeUser() bool {
 }
 
 func InitConfigFile(v *viper.Viper, configDirPath string, write bool) {
-	viperConfigPath, _ := path.Split(configDirPath)
-
 	configFileNameSplit := strings.Split(constants.SelfConfigFileName, ".")
 
 	v.SetConfigName(strings.Join(configFileNameSplit[:len(configFileNameSplit)-1], "."))
 	v.SetConfigType(configFileNameSplit[len(configFileNameSplit)-1])
-	v.AddConfigPath(viperConfigPath)
+	v.AddConfigPath(configDirPath)
 
 	// setup default values for PG connection
 	v.SetDefault(constants.DbConfigHostKey, "localhost")
@@ -41,13 +39,13 @@ func InitConfigFile(v *viper.Viper, configDirPath string, write bool) {
 	}
 }
 
-func ReadConfig(v *viper.Viper, configPath string) error {
-	tmp := strings.Split(configPath, "/")
-	viperConfigPath := strings.Join(tmp[:len(tmp)-1], "/")
+func ReadConfig(v *viper.Viper, configFilePath string) error {
+	configDirPath, _ := path.Split(configFilePath)
+	configFileNameSplit := strings.Split(constants.SelfConfigFileName, ".")
 
-	v.SetConfigName("dbdaddy.config")
-	v.SetConfigType("json")
-	v.AddConfigPath(viperConfigPath)
+	v.SetConfigName(strings.Join(configFileNameSplit[:len(configFileNameSplit)-1], "."))
+	v.SetConfigType(configFileNameSplit[len(configFileNameSplit)-1])
+	v.AddConfigPath(configDirPath)
 
 	return v.ReadInConfig()
 }

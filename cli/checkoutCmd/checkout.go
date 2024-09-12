@@ -6,6 +6,7 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
@@ -36,6 +37,16 @@ func Init() *cobra.Command {
 
 func run(cmd *cobra.Command, args []string) {
 	branchname := args[0]
+
+	if _, cwdIsProject, err := libUtils.CwdIsProject(); err != nil {
+		cmd.PrintErrln("unexpected error occured!")
+		cmd.PrintErrln(err)
+		return
+	} else if cwdIsProject {
+		cmd.Println("in a project, can't switch branches!")
+		cmd.Println("a project is attached to ONLY ONE DATABASE")
+		return
+	}
 
 	// flags validation
 	if shouldKeepItClean && !shouldCreateNewBranch {

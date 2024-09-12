@@ -45,6 +45,12 @@ func FindConfigFilePath() (string, error) {
 	_, cwdFileErr := os.Stat(constants.GetLocalConfigPath())
 	_, globalFileErr := os.Stat(constants.GetGlobalConfigPath())
 
+	if cwd, cwdIsProject, err := CwdIsProject(); err != nil {
+		return "", err
+	} else if cwdIsProject {
+		return path.Join(cwd, constants.SelfConfigFileName), nil
+	}
+
 	if os.IsNotExist(cwdFileErr) && os.IsNotExist(globalFileErr) {
 		return "", fmt.Errorf(globalFileErr.Error() + "\n" + cwdFileErr.Error())
 	}

@@ -115,13 +115,15 @@ func ExecuteStatements__DEPRECATED(dbname, sqlStr string) error {
 
 // takes in a sql string & differentiates between multiple executable statements
 // by a ";" followed by a newline.
-func ExecuteStatements(sqlStr string) error {
+// EXPECTS AN INPUT GENERATED FROM 'libUtils.GetSqlStmts()' func
+func ExecuteStatements(stmts []string) error {
 	tx, err := globals.DB.Begin()
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 
-	for _, stmt := range strings.Split(sqlStr, ";"+fmt.Sprintln()) {
+	for _, stmt := range stmts {
 		if _, err := tx.Exec(stmt); err != nil {
 			return err
 		}
