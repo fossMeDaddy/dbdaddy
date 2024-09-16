@@ -3,6 +3,7 @@ package pg
 import (
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/pg/pgq"
+	"github.com/fossmedaddy/dbdaddy/db/sharedq"
 	"github.com/fossmedaddy/dbdaddy/globals"
 )
 
@@ -41,7 +42,8 @@ func DbExists(dbname string) bool {
 	return exists
 }
 
-func NewDbFromOriginal(originalDbName string, newDbName string) error {
+// DO NOT USE, disconnects all users while creating new db
+func NewDbFromOriginal_DEPRECATED(originalDbName string, newDbName string) error {
 	err := DisconnectAllUsers(originalDbName)
 	if err != nil {
 		return err
@@ -56,7 +58,7 @@ func NewDbFromOriginal(originalDbName string, newDbName string) error {
 }
 
 func CreateDb(dbname string) error {
-	_, err := globals.DB.Exec(pgq.QCreateNewDb(dbname))
+	_, err := globals.DB.Exec(sharedq.QCreateNewDb(dbname))
 	return err
 }
 
@@ -65,7 +67,7 @@ func DeleteDb(dbname string) error {
 		return err
 	}
 
-	_, err := globals.DB.Exec(pgq.QDeleteDb(dbname))
+	_, err := globals.DB.Exec(sharedq.QDeleteDb(dbname))
 	if err != nil {
 		return err
 	}

@@ -43,4 +43,4 @@ var DriverDumpDirNames = map[string]string{
 	DbDriverSqlite:   SqliteDumpDir,
 }
 
-var SupportedDrivers = []string{DbDriverPostgres}
+var SupportedDrivers = []string{DbDriverPostgres, DbDriverMySQL}
