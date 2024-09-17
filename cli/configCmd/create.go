@@ -41,6 +41,8 @@ func createCmdRun(cmd *cobra.Command, args []string) {
 			return
 		}
 	} else {
+		lib.InitConfigFile(viper.GetViper(), configWriteDirPath, false)
+
 		if err := viper.SafeWriteConfigAs(configWritePath); err != nil {
 			cmd.PrintErrln(err.Error())
 			return

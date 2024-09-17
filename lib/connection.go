@@ -3,8 +3,10 @@ package lib
 import (
 	"fmt"
 
+	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db"
 	"github.com/fossmedaddy/dbdaddy/globals"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/viper"
 )
@@ -24,9 +26,17 @@ func PingDB() error {
 
 // error can be returned if callback function errors or there is a connection error to the DB
 func SwitchDB(v *viper.Viper, dbname string, fn func() error) error {
-	defer db.ConnectDb(viper.GetViper(), globals.ConnDbName)
+	prevConnConfig := types.ConnConfig{}
+	if err := v.UnmarshalKey(constants.DbConfigConnSubkey, &prevConnConfig); err != nil {
+		return err
+	}
+	prevConnConfig.Database = globals.ConnDbName
 
-	_, err := db.ConnectDb(v, dbname)
+	defer db.ConnectDb(prevConnConfig)
+
+	connConfig := prevConnConfig
+	connConfig.Database = dbname
+	_, err := db.ConnectDb(connConfig)
 	if err != nil {
 		return err
 	}

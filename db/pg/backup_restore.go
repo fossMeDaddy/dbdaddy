@@ -7,6 +7,7 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db"
+	"github.com/fossmedaddy/dbdaddy/types"
 	"github.com/spf13/viper"
 )
 
@@ -52,12 +53,18 @@ func RestoreDb(dbname string, v *viper.Viper, dumpFilePath string, override bool
 		}
 	}
 
+	connConfig := types.ConnConfig{}
+	if err := v.UnmarshalKey(constants.DbConfigConnSubkey, &connConfig); err != nil {
+		return err
+	}
+	connConfig.Database = dbname
+
 	// run restore command
 	osCmd := exec.Command(
 		"pg_restore",
 		"--clean",
 		"--if-exists",
-		fmt.Sprintf("--dbname=%s", db.GetPgConnUriFromViper(v, dbname)),
+		fmt.Sprintf("--dbname=%s", db.GetPgConnUriFromConnConfig(connConfig)),
 		dumpFilePath,
 	)
 

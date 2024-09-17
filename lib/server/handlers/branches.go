@@ -51,7 +51,13 @@ func HandlePutCurrentBranch(c *fiber.Ctx) error {
 		})
 	}
 
-	_, err := db.ConnectDb(viper.GetViper(), reqBody.BranchName)
+	connConfig := types.ConnConfig{}
+	if err := viper.UnmarshalKey(constants.DbConfigConnSubkey, &connConfig); err != nil {
+		return err
+	}
+	connConfig.Database = reqBody.BranchName
+
+	_, err := db.ConnectDb(connConfig)
 	if err != nil {
 		return err
 	}

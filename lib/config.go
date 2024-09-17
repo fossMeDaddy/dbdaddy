@@ -8,6 +8,7 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/viper"
 )
@@ -24,16 +25,11 @@ func InitConfigFile(v *viper.Viper, configDirPath string, write bool) {
 	v.SetConfigType(configFileNameSplit[len(configFileNameSplit)-1])
 	v.AddConfigPath(configDirPath)
 
-	// setup default values for PG connection
-	v.SetDefault(constants.DbConfigHostKey, "127.0.0.1")
-	v.SetDefault(constants.DbConfigPortKey, 5432)
-	v.SetDefault(constants.DbConfigUserKey, "postgres")
-	v.SetDefault(constants.DbConfigPassKey, "postgres")
-	v.SetDefault(constants.DbConfigDriverKey, constants.DbDriverPostgres)
-	v.SetDefault(constants.DbConfigDbNameKey, "postgres")
+	connConfig := types.NewDefaultPgConnConfig()
+	v.SetDefault(constants.DbConfigConnSubkey, connConfig)
 	v.SetDefault(constants.DbConfigCurrentBranchKey, "postgres")
+	v.SetDefault(constants.DbConfigOriginsKey, map[string]types.ConnConfig{})
 
-	// setup default values for PG connection
 	if write {
 		v.WriteConfigAs(path.Join(configDirPath, constants.SelfConfigFileName))
 	}
@@ -50,10 +46,12 @@ func ReadConfig(v *viper.Viper, configFilePath string) error {
 	return v.ReadInConfig()
 }
 
-func EnsureSupportedDbDriver() {
+func EnsureSupportedDbDriver() error {
 	driver := viper.GetString(constants.DbConfigDriverKey)
 
 	if !slices.Contains(constants.SupportedDrivers, driver) {
-		panic(fmt.Sprintf("Unsupported database driver '%s'", driver))
+		return fmt.Errorf("Unsupported database driver '%s'", driver)
 	}
+
+	return nil
 }

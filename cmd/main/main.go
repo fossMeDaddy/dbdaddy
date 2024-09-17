@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/cli/checkoutCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/configCmd"
@@ -14,6 +15,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/cli/inspectMeCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/listCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/remoteCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/restoreCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/statusCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/studioCmd"
@@ -29,9 +31,24 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "dbdaddy",
-	Short: "DBDaddy is a helper tool to use your local databases as if they were managed by Git... in branches.",
-	Run:   rootCmdRun,
+	Use:               "dbdaddy",
+	Short:             "DBDaddy is a helper tool to use your local databases as if they were managed by Git... in branches.",
+	Run:               rootCmdRun,
+	PersistentPreRunE: rootPreRun,
+}
+
+func rootPreRun(cmd *cobra.Command, args []string) error {
+	fullCmdPath := strings.Split(cmd.CommandPath(), " ")
+	if len(fullCmdPath) <= 1 {
+		return nil
+	}
+
+	cmdPath := strings.Join(fullCmdPath[1:], " ")
+	if !strings.HasPrefix(cmdPath, "config") {
+		return lib.EnsureSupportedDbDriver()
+	}
+
+	return nil
 }
 
 func rootCmdRun(cmd *cobra.Command, args []string) {
@@ -62,7 +79,6 @@ func main() {
 	} else {
 		configFilePath, _ := libUtils.FindConfigFilePath()
 		lib.ReadConfig(viper.GetViper(), configFilePath)
-		lib.EnsureSupportedDbDriver()
 	}
 
 	rootCmd.AddCommand(versionCmd.Init())
@@ -79,6 +95,7 @@ func main() {
 	rootCmd.AddCommand(execCmd.Init())
 	rootCmd.AddCommand(migrationsCmd.Init())
 	rootCmd.AddCommand(initCmd.Init())
+	rootCmd.AddCommand(remoteCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
