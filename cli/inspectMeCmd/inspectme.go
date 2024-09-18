@@ -62,7 +62,7 @@ func getConstraintString(constraints []*types.DbConstraint) string {
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
-	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {
+	err := lib.TmpSwitchDB(currBranch, func() error {
 		selectedTables := []string{}
 
 		dbTables, err := db_int.ListTablesInDb()

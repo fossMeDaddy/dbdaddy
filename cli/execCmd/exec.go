@@ -182,7 +182,7 @@ func runQuery(cmd *cobra.Command, query string) error {
 
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
-	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {
+	err := lib.TmpSwitchDB(currBranch, func() error {
 		if len(args) > 0 {
 			return runFile(cmd, args[0])
 		}

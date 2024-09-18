@@ -3,6 +3,7 @@ package pg
 import (
 	"fmt"
 
+	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/types"
 	"github.com/jackc/pgx/v5"
 )
@@ -21,6 +22,7 @@ func GetConnConfigFromUri(uri string) (types.ConnConfig, error) {
 	connConfig.Port = fmt.Sprint(dbConfig.Port)
 	connConfig.Database = dbConfig.Database
 	connConfig.Params = dbConfig.RuntimeParams
+	connConfig.Driver = constants.DbDriverPostgres
 
 	return connConfig, nil
 }

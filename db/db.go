@@ -64,7 +64,7 @@ func ConnectSelfDb(v *viper.Viper) (*sql.DB, error) {
 		fnLocalDb = db
 	}
 
-	globals.ConnDbName = constants.SelfDbName
+	globals.CurrentConnConfig = selfConnConfig
 	globals.DB = fnLocalDb
 
 	return globals.DB, nil
@@ -87,7 +87,7 @@ func ConnectDb(connConfig types.ConnConfig) (*sql.DB, error) {
 		return db, err
 	}
 
-	globals.ConnDbName = connConfig.Database
+	globals.CurrentConnConfig = connConfig
 	globals.DB = db
 
 	return globals.DB, nil

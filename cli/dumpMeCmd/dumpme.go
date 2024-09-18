@@ -7,6 +7,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
 	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
@@ -39,7 +40,9 @@ func run(cmd *cobra.Command, args []string) {
 
 	outputFilePath := path.Join(lib.GetDriverDumpDir(configFilePath), constants.GetDumpFileName(v.GetString(constants.DbConfigCurrentBranchKey)))
 
-	if err := db_int.DumpDb(outputFilePath, v, false); err != nil {
+	connConfig := globals.CurrentConnConfig
+	connConfig.Database = v.GetString(constants.DbConfigCurrentBranchKey)
+	if err := db_int.DumpDb(outputFilePath, connConfig, false); err != nil {
 		if errors.Is(err, errs.ErrPgDumpCmdNotFound) {
 			cmd.Println("Hey! we noticed you don't have 'pg_dump', then you also probably won't have 'pg_restore', we use these tools internally to perform dumps & restores... please install these tools in your OS before proceeding.")
 		} else {

@@ -9,6 +9,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
 	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 
 	"github.com/spf13/viper"
@@ -44,11 +45,17 @@ func NewBranchFromCurrent(dbname string, onlySchema bool) error {
 		GetDriverDumpDir(configFilePath),
 		constants.GetDumpFileName(viper.GetString(constants.DbConfigCurrentBranchKey)),
 	)
-	if err := db_int.DumpDb(dumpFilePath, viper.GetViper(), onlySchema); err != nil {
+
+	connConfig := globals.CurrentConnConfig
+	connConfig.Database = viper.GetString(constants.DbConfigCurrentBranchKey)
+
+	if err := db_int.DumpDb(dumpFilePath, connConfig, onlySchema); err != nil {
 		return err
 	}
 
-	if err := db_int.RestoreDb(dbname, viper.GetViper(), dumpFilePath, true); err != nil {
+	restoreDbConnConfig := connConfig
+	restoreDbConnConfig.Database = dbname
+	if err := db_int.RestoreDb(restoreDbConnConfig, dumpFilePath, true); err != nil {
 		return err
 	}
 	if err := os.RemoveAll(dumpFilePath); err != nil {

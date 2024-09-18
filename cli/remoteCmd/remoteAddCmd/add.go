@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/maps"
@@ -14,11 +16,13 @@ var (
 	forceFlag bool
 )
 
+var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
+
 var cmd = &cobra.Command{
 	Use:     "add",
 	Short:   "add an origin by a providing a name and a db connection uri for the origin",
 	Example: "add origin postgresql://user:pwd@localhost:5432/dbname",
-	Run:     run,
+	Run:     cmdRunFn,
 	Args:    cobra.ExactArgs(2),
 }
 
@@ -29,6 +33,13 @@ func run(cmd *cobra.Command, args []string) {
 	connConfig, uriErr := db_int.GetConnConfigFromUri(connUri)
 	if uriErr != nil {
 		cmd.PrintErrln(uriErr)
+		return
+	}
+
+	if err := lib.TmpSwitchConn(connConfig, func() error {
+		return nil
+	}); err != nil {
+		cmd.PrintErrln(err)
 		return
 	}
 

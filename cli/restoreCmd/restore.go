@@ -7,6 +7,7 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
@@ -76,8 +77,11 @@ func run(cmd *cobra.Command, args []string) {
 		dumpFilePath = path
 	}
 
+	connConfig := globals.CurrentConnConfig
+	connConfig.Database = currBranch
+
 	cmd.Printf("Attempting restore on db: '%s' using backup dump file: '%s' ...\n", currBranch, dumpFilePath)
-	if err := db_int.RestoreDb(currBranch, viper.GetViper(), dumpFilePath, true); err != nil {
+	if err := db_int.RestoreDb(connConfig, dumpFilePath, true); err != nil {
 		cmd.PrintErrln("error occured while restoring db\n", err)
 		return
 	}

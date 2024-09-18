@@ -26,7 +26,7 @@ func run(cmd *cobra.Command, args []string) {
 	v := viper.New()
 	configFile, _ := libUtils.FindConfigFilePath()
 	lib.ReadConfig(v, configFile)
-	lib.SwitchDB(v, currBranch, func() error {
+	lib.TmpSwitchDB(currBranch, func() error {
 		cmd.Println("Starting webserver at: http://127.0.0.1:42069")
 		cmd.Println("Once, server is up, head towards: https://dbdaddy.hackerrizz.com/studio")
 		if err := libServer.StartServer(); err != nil {

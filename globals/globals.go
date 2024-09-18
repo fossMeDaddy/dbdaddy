@@ -1,6 +1,10 @@
 package globals
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/fossmedaddy/dbdaddy/types"
+)
 
 // global DB related vars (please dont fuck with them)
 var (
@@ -9,5 +13,5 @@ var (
 
 	DB *sql.DB
 
-	ConnDbName string
+	CurrentConnConfig types.ConnConfig
 )
