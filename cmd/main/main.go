@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/cli/checkoutCmd"
@@ -21,9 +22,11 @@ import (
 	"github.com/fossmedaddy/dbdaddy/cli/statusCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/studioCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/versionCmd"
+	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 	"github.com/manifoldco/promptui"
 
 	"github.com/spf13/cobra"
@@ -60,26 +63,44 @@ func rootPreRun(cmd *cobra.Command, args []string) error {
 	if strings.HasPrefix(cmdPath, "init") {
 		return nil
 	}
+	if strings.HasPrefix(cmdPath, "version") {
+		return nil
+	}
 
 	if lib.IsFirstTimeUser() {
 		cmd.Println(fmt.Sprintf("Daddy's home baby. (version: %s)", globals.Version))
-		cmd.Println("I'll create a global config for ya, let me know your database url here")
-
-		configDirPath := libUtils.GetGlobalDirPath()
-		libUtils.EnsureDirExists(configDirPath)
-		lib.InitConfigFile(viper.GetViper(), configDirPath, true)
+		cmd.Println("I'll create a global config for ya, let me know your database uri here...")
 
 		dbUrlPrompt := promptui.Prompt{
-			Label: "Press enter to open the config file in a CLI-based text editor",
+			Label: "database uri:",
 		}
 
-		_, err := dbUrlPrompt.Run()
+		connUri, err := dbUrlPrompt.Run()
 		if err != nil {
-			cmd.Println("Cancelling initialization...")
-			os.Exit(1)
+			cmd.PrintErrln("Cancelling initialization...")
+			return err
+		}
+
+		connConfig := types.NewDefaultPgConnConfig()
+		if len(connUri) > 0 {
+			if cc, err := libUtils.GetConnConfigFromUri(connUri); err != nil {
+				return err
+			} else {
+				connConfig = cc
+			}
 		}
 
 		configFilePath := libUtils.GetGlobalConfigPath()
+		configDirPath := path.Dir(configFilePath)
+		libUtils.EnsureDirExists(configDirPath)
+
+		lib.InitConfigFile(viper.GetViper(), configDirPath, false)
+		viper.Set(constants.DbConfigConnSubkey, connConfig)
+		if err := viper.WriteConfigAs(configFilePath); err != nil {
+			return err
+		}
+
+		cmd.Println(fmt.Sprintf("Opening config file at: '%s'", configFilePath))
 		libUtils.OpenFileInEditor(configFilePath)
 	}
 
