@@ -2,8 +2,6 @@ package middlewares
 
 import (
 	"github.com/fossmedaddy/dbdaddy/db"
-	"github.com/fossmedaddy/dbdaddy/lib"
-	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/cobra"
@@ -12,9 +10,6 @@ import (
 
 func CheckConnection(fn types.CobraCmdFn) types.CobraCmdFn {
 	return func(cmd *cobra.Command, args []string) {
-		configFilePath, _ := libUtils.FindConfigFilePath()
-		lib.ReadConfig(viper.GetViper(), configFilePath)
-
 		_, err := db.ConnectSelfDb(viper.GetViper())
 		if err != nil {
 			cmd.PrintErrln(err.Error())

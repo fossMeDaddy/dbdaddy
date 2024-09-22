@@ -32,13 +32,16 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	configFilePath, _ := libUtils.FindConfigFilePath()
 	if useGlobalFile {
-		configFilePath = constants.GetGlobalConfigPath()
+		configFilePath = libUtils.GetGlobalConfigPath()
 	}
 
 	v := viper.New()
 	lib.ReadConfig(v, configFilePath)
 
-	outputFilePath := path.Join(lib.GetDriverDumpDir(configFilePath), constants.GetDumpFileName(v.GetString(constants.DbConfigCurrentBranchKey)))
+	outputFilePath := path.Join(
+		libUtils.GetDriverDumpDir(configFilePath, v.GetString(constants.DbConfigDriverKey)),
+		libUtils.GetDumpFileName(v.GetString(constants.DbConfigCurrentBranchKey)),
+	)
 
 	connConfig := globals.CurrentConnConfig
 	connConfig.Database = v.GetString(constants.DbConfigCurrentBranchKey)

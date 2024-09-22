@@ -3,7 +3,7 @@ package remoteAddCmd
 import (
 	"fmt"
 
-	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
@@ -11,6 +11,10 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/exp/maps"
 )
+
+const cmdManual = `
+Name of the origin is same as the database name the origin is being set up of for.
+`
 
 var (
 	forceFlag bool
@@ -20,17 +24,26 @@ var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
 	Use:     "add",
-	Short:   "add an origin by a providing a name and a db connection uri for the origin",
-	Example: "add origin postgresql://user:pwd@localhost:5432/dbname",
+	Short:   "add a remote origin by a providing a name and a db connection uri for the current branch",
+	Example: "add postgresql://user:pwd@localhost:5432/dbname",
 	Run:     cmdRunFn,
-	Args:    cobra.ExactArgs(2),
+	Args:    cobra.ExactArgs(1),
 }
 
 func run(cmd *cobra.Command, args []string) {
-	originName := args[0]
-	connUri := args[1]
+	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
-	connConfig, uriErr := db_int.GetConnConfigFromUri(connUri)
+	connUri := args[0]
+
+	originConfigKey := libUtils.GetDbConfigOriginKey(currBranch)
+
+	origin := viper.GetStringMap(originConfigKey)
+	if len(maps.Keys(origin)) > 0 && !forceFlag {
+		cmd.Println(fmt.Sprintf("remote origin for '%s' already exists in the config, use force flag to override", currBranch))
+		return
+	}
+
+	connConfig, uriErr := libUtils.GetConnConfigFromUri(connUri)
 	if uriErr != nil {
 		cmd.PrintErrln(uriErr)
 		return
@@ -43,14 +56,6 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	originConfigKey := libUtils.GetDbConfigOriginKey(originName)
-
-	origin := viper.GetStringMapString(originConfigKey)
-	if len(maps.Keys(origin)) > 0 && !forceFlag {
-		cmd.Println(fmt.Sprintf("remote origin '%s' already exists in the config, use force flag to override", originName))
-		return
-	}
-
 	viper.Set(originConfigKey, connConfig)
 	err := viper.WriteConfig()
 	if err != nil {
@@ -58,7 +63,7 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	cmd.Println(fmt.Sprintf("Remote origin '%s' successfully set.", originName))
+	cmd.Println(fmt.Sprintf("remote origin for '%s' successfully set.", currBranch))
 }
 
 func Init() *cobra.Command {

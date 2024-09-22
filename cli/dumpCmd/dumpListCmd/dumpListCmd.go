@@ -9,6 +9,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -27,7 +28,7 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	configFilePath, _ := libUtils.FindConfigFilePath()
 	if useGlobalConfigFile {
-		configFilePath = constants.GetGlobalConfigPath()
+		configFilePath = libUtils.GetGlobalConfigPath()
 	}
 
 	dumpDbGroups, err := lib.GetDbGroupedDumpFiles(configFilePath)
@@ -35,7 +36,8 @@ func run(cmd *cobra.Command, args []string) {
 		panic("Unexpected error occured!\n" + err.Error())
 	}
 
-	cmd.Printf("Listing all database backups from directory: %s\n\n", lib.GetDriverDumpDir(configFilePath))
+	dumpDir := libUtils.GetDriverDumpDir(configFilePath, viper.GetString(constants.DbConfigDriverKey))
+	cmd.Printf("Listing all database backups from directory: %s\n\n", dumpDir)
 	if len(dumpDbGroups) == 0 {
 		cmd.Println("No backups found.")
 	}

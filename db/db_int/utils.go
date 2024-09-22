@@ -1,7 +1,6 @@
 package db_int
 
 import (
-	"encoding/base64"
 	"fmt"
 	"os"
 	"os/exec"
@@ -54,25 +53,6 @@ func GetRows(queryStr string) (types.QueryResult, error) {
 		for i := range vals {
 			valPtr := vals[i].(*interface{})
 			val := *valPtr
-			if b, ok := val.([]byte); ok {
-				s := string(b)
-				// Optional: You can check if the string seems to be Base64 encoded (length, valid characters)
-				if isValidBase64(s) {
-					decoded, err := base64.StdEncoding.DecodeString(s)
-					if err != nil {
-						fmt.Println("Failed to decode:", s, "Error:", err)
-						return queryResult, err
-					}
-					fmt.Println(string(decoded))
-					val = decoded
-				} else {
-					// If it's not a valid Base64, print it as is
-					fmt.Println(s)
-					val = s
-				}
-			} else {
-				fmt.Println(val)
-			}
 			if val == nil {
 				queryResult.Data[cols[i]] = append(queryResult.Data[cols[i]], types.DbRow{
 					DataType: colTypes[i].DatabaseTypeName(),

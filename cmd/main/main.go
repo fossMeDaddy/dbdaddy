@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/cli/checkoutCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/cloneCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/configCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/deleteCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/dumpCmd"
@@ -20,12 +21,11 @@ import (
 	"github.com/fossmedaddy/dbdaddy/cli/statusCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/studioCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/versionCmd"
-	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
-
 	"github.com/manifoldco/promptui"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -42,10 +42,49 @@ func rootPreRun(cmd *cobra.Command, args []string) error {
 	if len(fullCmdPath) <= 1 {
 		return nil
 	}
-
 	cmdPath := strings.Join(fullCmdPath[1:], " ")
-	if !strings.HasPrefix(cmdPath, "config") {
-		return lib.EnsureSupportedDbDriver()
+
+	// DANGEROUS, FUCKED WHEN COMMAND CHANGE
+	if strings.HasPrefix(cmdPath, "help") {
+		return nil
+	}
+	if strings.HasSuffix(cmdPath, "--help") {
+		return nil
+	}
+	if strings.HasPrefix(cmdPath, "config") {
+		return nil
+	}
+	if strings.HasPrefix(cmdPath, "clone") {
+		return nil
+	}
+	if strings.HasPrefix(cmdPath, "init") {
+		return nil
+	}
+
+	if lib.IsFirstTimeUser() {
+		cmd.Println(fmt.Sprintf("Daddy's home baby. (version: %s)", globals.Version))
+		cmd.Println("I'll create a global config for ya, let me know your database url here")
+
+		configDirPath := libUtils.GetGlobalDirPath()
+		libUtils.EnsureDirExists(configDirPath)
+		lib.InitConfigFile(viper.GetViper(), configDirPath, true)
+
+		dbUrlPrompt := promptui.Prompt{
+			Label: "Press enter to open the config file in a CLI-based text editor",
+		}
+
+		_, err := dbUrlPrompt.Run()
+		if err != nil {
+			cmd.Println("Cancelling initialization...")
+			os.Exit(1)
+		}
+
+		configFilePath := libUtils.GetGlobalConfigPath()
+		libUtils.OpenFileInEditor(configFilePath)
+	}
+
+	if err := lib.EnsureSupportedDbDriver(); err != nil {
+		return err
 	}
 
 	return nil
@@ -56,27 +95,8 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 }
 
 func main() {
-	if lib.IsFirstTimeUser() {
-		rootCmd.Println(fmt.Sprintf("Daddy's home baby. (version: %s)", globals.Version))
-		rootCmd.Println("I'll create a global config for ya, let me know your database url here")
 
-		configDirPath := constants.GetGlobalDirPath()
-		libUtils.EnsureDirExists(configDirPath)
-		lib.InitConfigFile(viper.GetViper(), configDirPath, true)
-
-		dbUrlPrompt := promptui.Prompt{
-			Label: "Press enter to open the config file in a CLI-based text editor",
-		}
-
-		_, err := dbUrlPrompt.Run()
-		if err != nil {
-			rootCmd.Println("Cancelling initialization...")
-			os.Exit(1)
-		}
-
-		configFilePath := constants.GetGlobalConfigPath()
-		libUtils.OpenFileInEditor(configFilePath)
-	} else {
+	if !lib.IsFirstTimeUser() {
 		configFilePath, _ := libUtils.FindConfigFilePath()
 		lib.ReadConfig(viper.GetViper(), configFilePath)
 	}
@@ -96,6 +116,7 @@ func main() {
 	rootCmd.AddCommand(migrationsCmd.Init())
 	rootCmd.AddCommand(initCmd.Init())
 	rootCmd.AddCommand(remoteCmd.Init())
+	rootCmd.AddCommand(cloneCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

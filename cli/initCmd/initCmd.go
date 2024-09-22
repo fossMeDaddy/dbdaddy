@@ -2,9 +2,11 @@ package initCmd
 
 import (
 	"fmt"
+	"os"
 	"path"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/db"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/spf13/cobra"
@@ -76,14 +78,27 @@ table names inside their respective schemas in postgres.
 	constants.SchemaDirName,
 )
 
+var (
+	forceFlag bool
+)
+
 var cmd = &cobra.Command{
-	Use:   "init",
-	Short: "initialize a project structure in CWD to work like a sophisticated 10x dev",
-	Long:  cmdManual,
-	Run:   run,
+	Use:     "init",
+	Short:   "initialize a project structure in CWD to work like a sophisticated 10x dev. providing a connection uri is optional.",
+	Example: "init postgresql://user:pwd@localhost:5432/dbname",
+	Long:    cmdManual,
+	Run:     run,
+	Args:    cobra.MaximumNArgs(1),
 }
 
 func run(cmd *cobra.Command, args []string) {
+	if forceFlag {
+		os.RemoveAll(constants.MigDirName)
+		os.RemoveAll(constants.SchemaDirName)
+		os.RemoveAll(constants.ScriptsDirName)
+		os.Remove(constants.SelfConfigFileName)
+	}
+
 	cwd, cwdIsProject, err := libUtils.CwdIsProject()
 	if err != nil {
 		cmd.Println(err)
@@ -96,33 +111,97 @@ func run(cmd *cobra.Command, args []string) {
 	} else if _, dirname := path.Split(cwd); dirname == constants.SelfConfigDirName {
 		cmd.PrintErrln(
 			fmt.Sprintf(
-				"Can't create a project in %s, please choose any other directory",
-				constants.SelfConfigDirName,
-			),
-		)
-		return
-	} else if configPath, _ := libUtils.FindConfigDirPath(); configPath == path.Join(cwd, constants.SelfConfigDirName) {
-		cmd.PrintErrln(
-			fmt.Sprintf(
-				"A local '%s' configuration exists in this directory, please choose another directory",
+				"can't create a project in %s, please choose any other directory",
 				constants.SelfConfigDirName,
 			),
 		)
 		return
 	}
 
-	v := viper.New()
-	existingConfigFilePath, _ := libUtils.FindConfigFilePath()
-	if err := lib.ReadConfig(v, existingConfigFilePath); err != nil {
-		cmd.PrintErrln("unexpected error occured!")
-		cmd.PrintErrln(err)
-		return
-	}
-	configFilePath := path.Join(cwd, constants.SelfConfigFileName)
-	if err := v.WriteConfigAs(configFilePath); err != nil {
-		cmd.PrintErrln("unexpected error occured!")
-		cmd.PrintErrln(err)
-		return
+	projectConfigFilePath := path.Join(cwd, constants.SelfConfigFileName)
+
+	if len(args) > 0 {
+		connUri := args[0]
+
+		connConfig, err := libUtils.GetConnConfigFromUri(connUri)
+		if err != nil {
+			cmd.PrintErrln("error occured while parsing connection uri")
+			cmd.PrintErrln(err)
+			return
+		}
+
+		if _, err := db.ConnectDb(connConfig); err != nil {
+			cmd.PrintErrln(err)
+			return
+		}
+
+		v := viper.New()
+		lib.InitConfigFile(v, cwd, false)
+		v.Set(constants.DbConfigConnSubkey, connConfig)
+		v.Set(constants.DbConfigCurrentBranchKey, connConfig.Database)
+
+		if err := v.WriteConfigAs(projectConfigFilePath); err != nil {
+			cmd.PrintErrln("unexpected error occured")
+			return
+		}
+	} else {
+		v := viper.New()
+
+		if configDirPath, _ := libUtils.FindConfigDirPath(); configDirPath == path.Join(cwd, constants.SelfConfigDirName) {
+			configFilePath := path.Join(configDirPath, constants.SelfConfigFileName)
+			if err := lib.ReadConfig(v, configFilePath); err != nil {
+				cmd.PrintErrln("unexpected error occured")
+				cmd.PrintErrln(err)
+				return
+			}
+
+			if err := v.WriteConfigAs(projectConfigFilePath); err != nil {
+				cmd.PrintErrln("unexpected error occured")
+				cmd.PrintErrln(err)
+				return
+			}
+
+			os.Remove(configFilePath)
+
+			var (
+				migMvErr, scriptsMvErr, schemaMvErr error
+			)
+
+			migDirPath := path.Join(configDirPath, constants.MigDirName)
+			if libUtils.Exists(migDirPath) {
+				migMvErr = os.Rename(migDirPath, path.Join(cwd, constants.MigDirName))
+			}
+
+			scriptsDirPath := path.Join(configDirPath, constants.ScriptsDirName)
+			if libUtils.Exists(scriptsDirPath) {
+				scriptsMvErr = os.Rename(scriptsDirPath, path.Join(cwd, constants.ScriptsDirName))
+			}
+
+			schemaDirPath := path.Join(configDirPath, constants.SchemaDirName)
+			if libUtils.Exists(schemaDirPath) {
+				schemaMvErr = os.Rename(schemaDirPath, path.Join(cwd, constants.SchemaDirName))
+			}
+
+			if migMvErr == nil {
+				os.RemoveAll(path.Join(migDirPath))
+			}
+			if scriptsMvErr == nil {
+				os.RemoveAll(scriptsDirPath)
+			}
+			if schemaMvErr == nil {
+				os.RemoveAll(schemaDirPath)
+			}
+
+			if migMvErr == nil && scriptsMvErr == nil && schemaMvErr == nil {
+				os.Remove(configDirPath)
+			}
+		} else {
+			if err := lib.InitConfigFile(v, cwd, true); err != nil {
+				cmd.PrintErrln("error occured while writing config file")
+				cmd.PrintErrln(err)
+				return
+			}
+		}
 	}
 
 	_, migErr := libUtils.EnsureDirExists(path.Join(constants.MigDirName))
@@ -141,8 +220,10 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	cmd.Println(fmt.Sprintf("Opening config file at '%s' via vim...", configFilePath))
-	libUtils.OpenFileInEditor(configFilePath)
+	if len(args) == 0 {
+		cmd.Println(fmt.Sprintf("opening config file at '%s' via vim...", projectConfigFilePath))
+		libUtils.OpenFileInEditor(projectConfigFilePath)
+	}
 
 	cmd.Println(fmt.Sprintf("Created project at: %s", cwd))
 	cmd.Println("run 'help init' to know more about each of the newly created directories.")
@@ -150,5 +231,8 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func Init() *cobra.Command {
+	// flags here
+	cmd.Flags().BoolVarP(&forceFlag, "force", "f", false, "remove project files from CWD (if any) and re-initialize project")
+
 	return cmd
 }

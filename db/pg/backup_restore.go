@@ -1,6 +1,7 @@
 package pg
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,29 +10,70 @@ import (
 	"github.com/fossmedaddy/dbdaddy/types"
 )
 
+var (
+	sharedEnv = append(os.Environ(), "PGSSLMODE=allow")
+)
+
 func DumpDb(outputFilePath string, connConfig types.ConnConfig, onlySchema bool) error {
-	args := []string{"--clean",
+	connUri := db.GetPgConnUriFromConnConfig(connConfig)
+
+	dumpAllArgs := []string{
+		"--globals-only",
+		"--clean",
+		"--if-exists",
+		"--dbname=" + connUri,
 		"--file=" + outputFilePath,
-		"--format=directory",
-		// fmt.Sprintf("--dbname=%s", db.GetPgConnUriFromConnConfig(connConfig)),
-		"--username=" + connConfig.User,
-		"--host=" + connConfig.Host,
-		"--port=" + connConfig.Port,
-		"--no-password",
-		connConfig.Database,
 	}
+	dumpAllCmd := exec.Command("pg_dumpall", dumpAllArgs...)
+
+	dumpAllCmd.Env = sharedEnv
+	dumpAllCmd.Stderr = os.Stderr
+
+	if err := dumpAllCmd.Run(); err != nil {
+		return fmt.Errorf(err.Error())
+	}
+
+	dumpArgs := []string{fmt.Sprintf("--dbname=%s", connUri)}
 	if onlySchema {
-		args = append(args, "--schema-only")
+		dumpArgs = append(dumpArgs, "--schema-only")
 	}
-	osCmd := exec.Command("pg_dump", args...)
+	dumpCmd := exec.Command("pg_dump", dumpArgs...)
 
-	osCmd.Env = append(os.Environ(), "PGPASSWORD="+connConfig.Password)
+	dumpCmd.Env = sharedEnv
+	dumpCmd.Stderr = os.Stderr
 
-	osCmd.Stdout = os.Stdout
-	osCmd.Stderr = os.Stderr
+	outputFile, fileErr := os.OpenFile(outputFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if fileErr != nil {
+		return fileErr
+	}
+	defer outputFile.Close()
 
-	err := osCmd.Run()
-	return err
+	if _, err := outputFile.WriteString(fmt.Sprintln()); err != nil {
+		return err
+	}
+
+	pipe, fileErr := dumpCmd.StdoutPipe()
+	if fileErr != nil {
+		return fileErr
+	}
+
+	if err := dumpCmd.Start(); err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(pipe)
+	for scanner.Scan() {
+		if scanner.Err() != nil {
+			return scanner.Err()
+		}
+
+		line := scanner.Text()
+		if _, err := outputFile.WriteString(line + fmt.Sprintln()); err != nil {
+			return err
+		}
+	}
+
+	return dumpCmd.Wait()
 }
 
 // creates db & restores its content from given dump
@@ -54,15 +96,18 @@ func RestoreDb(connConfig types.ConnConfig, dumpFilePath string, override bool) 
 
 	// run restore command
 	osCmd := exec.Command(
-		"pg_restore",
-		"--clean",
-		"--if-exists",
-		fmt.Sprintf("--dbname=%s", db.GetPgConnUriFromConnConfig(connConfig)),
-		dumpFilePath,
+		"psql",
+		"--dbname="+db.GetPgConnUriFromConnConfig(connConfig),
+		"--file="+dumpFilePath,
 	)
 
+	osCmd.Env = sharedEnv
 	osCmd.Stderr = os.Stderr
 
 	err := osCmd.Run()
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

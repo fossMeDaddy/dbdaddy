@@ -28,11 +28,11 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	cmd.Println("listing available origins")
+	cmd.Println("listing available origins for databases")
 
 	i := 1
 	for originKey, originConnConfig := range origins {
-		cmd.Println(fmt.Sprintf("%d. %s (%s)", i, originKey, originConnConfig.Host))
+		cmd.Println(fmt.Sprintf("%d. %s <-> %s", i, originKey, originConnConfig.Host))
 		i++
 	}
 }

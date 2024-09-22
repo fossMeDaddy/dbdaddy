@@ -37,7 +37,7 @@ func run(cmd *cobra.Command, args []string) {
 	if len(userDumpFilePath) == 0 {
 		var configFilePath string
 		if useGlobalContext {
-			configFilePath = constants.GetGlobalConfigPath()
+			configFilePath = libUtils.GetGlobalConfigPath()
 		} else {
 			configFilePath, _ = libUtils.FindConfigFilePath()
 		}

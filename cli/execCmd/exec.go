@@ -160,21 +160,23 @@ func runQuery(cmd *cobra.Command, query string) error {
 	formattedOutput := lib.GetFormattedColumns(results)
 	outputW := strings.Index(formattedOutput, fmt.Sprintln()) + 1
 
-	if outputW <= w || results.RowCount < 100 {
-		cmd.Println(formattedOutput)
-	} else {
-		tmpDir, tmpDirErr := libUtils.FindTmpDirPath()
-		if tmpDirErr != nil {
-			return err
-		}
+	if len(outFileFlag) == 0 {
+		if outputW <= w && results.RowCount < 100 {
+			cmd.Println(formattedOutput)
+		} else {
+			tmpDir, tmpDirErr := libUtils.FindTmpDirPath()
+			if tmpDirErr != nil {
+				return err
+			}
 
-		tmpFilePath := path.Join(tmpDir, constants.TextQueryOutput)
-		err := os.WriteFile(tmpFilePath, []byte(formattedOutput), 0644)
-		if err != nil {
-			return err
-		}
+			tmpFilePath := path.Join(tmpDir, constants.TextQueryOutput)
+			err := os.WriteFile(tmpFilePath, []byte(formattedOutput), 0644)
+			if err != nil {
+				return err
+			}
 
-		cmd.Println("Formatted output too long to display here. See tmp output file:", tmpFilePath)
+			cmd.Println("Formatted output too long to display here. See tmp output file:", tmpFilePath)
+		}
 	}
 
 	return nil

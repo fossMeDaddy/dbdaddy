@@ -18,7 +18,7 @@ func IsFirstTimeUser() bool {
 	return err != nil
 }
 
-func InitConfigFile(v *viper.Viper, configDirPath string, write bool) {
+func InitConfigFile(v *viper.Viper, configDirPath string, write bool) error {
 	configFileNameSplit := strings.Split(constants.SelfConfigFileName, ".")
 
 	v.SetConfigName(strings.Join(configFileNameSplit[:len(configFileNameSplit)-1], "."))
@@ -31,8 +31,10 @@ func InitConfigFile(v *viper.Viper, configDirPath string, write bool) {
 	v.SetDefault(constants.DbConfigOriginsKey, map[string]types.ConnConfig{})
 
 	if write {
-		v.WriteConfigAs(path.Join(configDirPath, constants.SelfConfigFileName))
+		return v.WriteConfigAs(path.Join(configDirPath, constants.SelfConfigFileName))
 	}
+
+	return nil
 }
 
 func ReadConfig(v *viper.Viper, configFilePath string) error {

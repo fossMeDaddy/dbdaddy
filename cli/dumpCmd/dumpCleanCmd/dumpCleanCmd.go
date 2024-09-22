@@ -28,7 +28,7 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	configFilePath, _ := libUtils.FindConfigFilePath()
 	if useGlobalConfigFile {
-		configFilePath = constants.GetGlobalConfigPath()
+		configFilePath = libUtils.GetGlobalConfigPath()
 	}
 
 	dumpDbGroupedFiles, err := lib.GetDbGroupedDumpFiles(configFilePath)
