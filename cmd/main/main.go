@@ -104,6 +104,8 @@ func rootPreRun(cmd *cobra.Command, args []string) {
 
 		lib.InitConfigFile(viper.GetViper(), configDirPath, false)
 		viper.Set(constants.DbConfigConnSubkey, connConfig)
+		viper.Set(constants.DbConfigCurrentBranchKey, connConfig.Database)
+
 		if err := viper.WriteConfigAs(configFilePath); err != nil {
 			cmd.PrintErrln("error occured while writing to config file")
 			cmd.PrintErrln(err)
