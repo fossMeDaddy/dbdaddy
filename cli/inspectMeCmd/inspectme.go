@@ -96,7 +96,7 @@ func run(cmd *cobra.Command, args []string) {
 
 		dbSchema, err := db_int.GetDbSchema(currBranch)
 		if err != nil {
-			return fmt.Errorf("unexpected error occured while fetching db schema")
+			return err
 		}
 
 		tablesViewsConcat := map[string]*types.TableSchema{}

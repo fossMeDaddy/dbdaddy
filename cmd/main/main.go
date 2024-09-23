@@ -21,6 +21,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/cli/restoreCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/statusCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/studioCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/uriCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/versionCmd"
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db"
@@ -153,6 +154,7 @@ func main() {
 	rootCmd.AddCommand(initCmd.Init())
 	rootCmd.AddCommand(remoteCmd.Init())
 	rootCmd.AddCommand(cloneCmd.Init())
+	rootCmd.AddCommand(uriCmd.Init())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
