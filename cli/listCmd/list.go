@@ -31,7 +31,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	cmd.Println("Available database branches:")
 	for i, db := range dbs {
-		dbStr := fmt.Sprintf("%-2d - %s", i+1, db)
+		dbStr := fmt.Sprintf("%d - %s", i+1, db)
 		if db == currBranch {
 			dbStr += " (current branch)"
 		}

@@ -102,18 +102,23 @@ func rootPreRun(cmd *cobra.Command, args []string) {
 		configDirPath := path.Dir(configFilePath)
 		libUtils.EnsureDirExists(configDirPath)
 
-		lib.InitConfigFile(viper.GetViper(), configDirPath, false)
-		viper.Set(constants.DbConfigConnSubkey, connConfig)
-		viper.Set(constants.DbConfigCurrentBranchKey, connConfig.Database)
+		v := viper.New()
+		lib.InitConfigFile(v, configDirPath, false)
+		v.Set(constants.DbConfigConnSubkey, connConfig)
+		v.Set(constants.DbConfigCurrentBranchKey, connConfig.Database)
 
-		if err := viper.WriteConfigAs(configFilePath); err != nil {
+		if err := v.WriteConfigAs(configFilePath); err != nil {
 			cmd.PrintErrln("error occured while writing to config file")
 			cmd.PrintErrln(err)
 			os.Exit(1)
 		}
 
+		lib.ReadConfig(viper.GetViper(), configFilePath)
+
 		cmd.Println(fmt.Sprintf("Opening config file at: '%s'", configFilePath))
 		libUtils.OpenFileInEditor(configFilePath)
+
+		cmd.Println(fmt.Sprintln())
 	}
 
 	if err := lib.EnsureSupportedDbDriver(); err != nil {
