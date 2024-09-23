@@ -43,7 +43,7 @@ func TmpSwitchDB(dbname string, fn func() error) error {
 
 func TmpSwitchConn(connConfig types.ConnConfig, fn func() error) error {
 	if globals.DB == nil {
-		return fmt.Errorf("database not connected, should not be happening here, author akill issues...")
+		return fmt.Errorf("database not connected, should not be happening here, author skill issues...")
 	}
 
 	defer db.ConnectDb(globals.CurrentConnConfig)

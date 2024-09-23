@@ -49,10 +49,13 @@ func ReadConfig(v *viper.Viper, configFilePath string) error {
 }
 
 func EnsureSupportedDbDriver() error {
-	driver := viper.GetString(constants.DbConfigDriverKey)
+	connConfig, err := libUtils.GetConnConfigFromViper(viper.GetViper())
+	if err != nil {
+		return err
+	}
 
-	if !slices.Contains(constants.SupportedDrivers, driver) {
-		return fmt.Errorf("Unsupported database driver '%s'", driver)
+	if !slices.Contains(constants.SupportedDrivers, connConfig.Driver) {
+		return fmt.Errorf("Unsupported database driver '%s'", connConfig.Driver)
 	}
 
 	return nil
