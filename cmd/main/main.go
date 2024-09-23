@@ -42,9 +42,6 @@ var rootCmd = &cobra.Command{
 
 func rootPreRun(cmd *cobra.Command, args []string) error {
 	fullCmdPath := strings.Split(cmd.CommandPath(), " ")
-	if len(fullCmdPath) <= 1 {
-		return nil
-	}
 	cmdPath := strings.Join(fullCmdPath[1:], " ")
 
 	// DANGEROUS, FUCKED WHEN COMMAND CHANGE
