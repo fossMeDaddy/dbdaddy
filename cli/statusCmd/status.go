@@ -12,7 +12,7 @@ var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
 	Use:   "status",
-	Short: "Check status of the current database branch",
+	Short: "Check status of the current database branch, also pings the database.",
 	Run:   cmdRunFn,
 }
 

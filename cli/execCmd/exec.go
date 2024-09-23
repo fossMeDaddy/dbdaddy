@@ -30,10 +30,11 @@ var (
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "exec",
-	Short: "Run SQL queries directly from CLI and get query outputs in CSV format",
-	Run:   cmdRunFn,
-	Args:  cobra.MaximumNArgs(1),
+	Use:     "exec",
+	Short:   "Run SQL queries directly from CLI and get query outputs in CSV format",
+	Example: "usage examples: 'exec my_queries/create_order_table.sql', 'exec -q \"select * from public.users\" -o ./my_exports/users.csv'",
+	Run:     cmdRunFn,
+	Args:    cobra.MaximumNArgs(1),
 }
 
 func PrettyPrint(i interface{}) string {
@@ -99,6 +100,7 @@ func runFile(cmd *cobra.Command, filename string) error {
 		return nil
 	} else if len(stmts) == 0 {
 		cmd.PrintErrln("found 0 statements to query/execute in", sqlFileName)
+		return fmt.Errorf("no statements found to execute")
 	}
 
 	return runQuery(cmd, stmts[0])
