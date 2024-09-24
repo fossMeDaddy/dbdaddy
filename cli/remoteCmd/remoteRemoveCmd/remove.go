@@ -18,7 +18,7 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	origins := map[string]types.ConnConfig{}
+	origins := types.DbConfigOrigins{}
 	parseErr := viper.UnmarshalKey(constants.DbConfigOriginsKey, &origins)
 
 	if parseErr != nil {

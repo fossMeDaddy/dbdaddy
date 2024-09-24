@@ -28,7 +28,7 @@ func InitConfigFile(v *viper.Viper, configDirPath string, write bool) error {
 	connConfig := types.NewDefaultPgConnConfig()
 	v.SetDefault(constants.DbConfigConnSubkey, connConfig)
 	v.SetDefault(constants.DbConfigCurrentBranchKey, connConfig.Database)
-	v.SetDefault(constants.DbConfigOriginsKey, map[string]types.ConnConfig{})
+	v.SetDefault(constants.DbConfigOriginsKey, types.DbConfigOrigins{})
 
 	if write {
 		return v.WriteConfigAs(path.Join(configDirPath, constants.SelfConfigFileName))

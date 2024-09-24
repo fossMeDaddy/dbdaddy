@@ -7,6 +7,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -27,12 +28,12 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	var branchname string
+	var delDbName string
 	if len(args) > 0 {
-		branchname = args[0]
+		delDbName = args[0]
 
-		if !db_int.DbExists(branchname) {
-			cmd.PrintErrf("Database branch '%s' does not exist\n", branchname)
+		if !db_int.DbExists(delDbName) {
+			cmd.PrintErrf("Database branch '%s' does not exist\n", delDbName)
 			return
 		}
 	} else {
@@ -57,12 +58,12 @@ func run(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		branchname = result
+		delDbName = result
 	}
 
 	if !silentFlag {
 		prompt := promptui.Prompt{
-			Label:     fmt.Sprintf("Deleting database: '%s' continue", branchname),
+			Label:     fmt.Sprintf("Deleting database: '%s' continue", delDbName),
 			IsConfirm: true,
 		}
 
@@ -73,15 +74,29 @@ func run(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	err := db_int.DeleteDb(branchname)
+	err := db_int.DeleteDb(delDbName)
 	if err != nil {
 		cmd.PrintErrln("Error deleting database\n" + err.Error())
 		return
 	}
 
-	cmd.Printf("Successfully deleted db '%s'\n", branchname)
+	origins := types.DbConfigOrigins{}
+	if err := viper.UnmarshalKey(constants.DbConfigOriginsKey, &origins); err != nil {
+		cmd.PrintErrln("error occured while reading remote origins")
+		cmd.PrintErrln(err)
+		return
+	}
+	delete(origins, delDbName)
 
-	if viper.GetString(constants.DbConfigCurrentBranchKey) == branchname {
+	viper.Set(constants.DbConfigOriginsKey, origins)
+	if err := viper.WriteConfig(); err != nil {
+		cmd.PrintErrln(err)
+		return
+	}
+
+	cmd.Printf("Successfully deleted db '%s'\n", delDbName)
+
+	if viper.GetString(constants.DbConfigCurrentBranchKey) == delDbName {
 		existingDbs, err := db_int.GetExistingDbs()
 		if err != nil {
 			panic("Something went wrong!\n" + err.Error())

@@ -15,6 +15,8 @@ type DbRow struct {
 	Value    interface{}
 }
 
+type DbConfigOrigins = map[string]ConnConfig
+
 type DbRows = map[string][]DbRow
 
 type QueryResult struct {

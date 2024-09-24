@@ -16,7 +16,7 @@ var cmd = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) {
-	origins := map[string]types.ConnConfig{}
+	origins := types.DbConfigOrigins{}
 	if err := viper.UnmarshalKey(constants.DbConfigOriginsKey, &origins); err != nil {
 		cmd.PrintErrln("error occured while parsing origins")
 		cmd.PrintErrln(err)
@@ -32,7 +32,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	i := 1
 	for originKey, originConnConfig := range origins {
-		cmd.Println(fmt.Sprintf("%d. %s <-> %s", i, originKey, originConnConfig.Host))
+		cmd.Println(fmt.Sprintf("%d. %s <-> %s:%s/%s", i, originKey, originConnConfig.Host, originConnConfig.Port, originKey))
 		i++
 	}
 }
