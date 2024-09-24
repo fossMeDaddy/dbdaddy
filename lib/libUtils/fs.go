@@ -26,6 +26,6 @@ func EnsureDirExists(dirName string) (bool, error) {
 }
 
 func Exists(path string) bool {
-	info, _ := os.Stat(path)
-	return info != nil
+	_, err := os.Stat(path)
+	return err == nil
 }

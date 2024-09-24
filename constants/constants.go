@@ -4,16 +4,20 @@ const (
 	DbConfigDefaultPostgresUrl = "postgresql://postgres:postgres@localhost:5342/postgres"
 
 	// Self
-	SelfGlobalDirName = ".dbdaddy"
-	SelfDbName        = "__daddys_home"
+	SelfConfigDirName  = ".dbdaddy"
+	SelfConfigFileName = "dbdaddy.config.json"
+	SelfDbName         = "__daddys_home"
 
 	//  Config keys
-	DbConfigDriverKey        = "connection.driver"
-	DbConfigHostKey          = "connection.host"
-	DbConfigPortKey          = "connection.port"
-	DbConfigDbNameKey        = "connection.dbname"
-	DbConfigUserKey          = "connection.user"
-	DbConfigPassKey          = "connection.password"
+	DbConfigOriginsKey       = "origins"
+	DbConfigConnSubkey       = "connection"
+	DbConfigDriverKey        = DbConfigConnSubkey + ".driver"
+	DbConfigHostKey          = DbConfigConnSubkey + ".host"
+	DbConfigPortKey          = DbConfigConnSubkey + ".port"
+	DbConfigDbNameKey        = DbConfigConnSubkey + ".dbname"
+	DbConfigUserKey          = DbConfigConnSubkey + ".user"
+	DbConfigPassKey          = DbConfigConnSubkey + ".password"
+	DbConfigParamsKey        = DbConfigConnSubkey + ".params"
 	DbConfigCurrentBranchKey = "status.currentBranch"
 
 	// Config possible driver values
@@ -26,8 +30,9 @@ const (
 	MySqlDumpDir  = "mysql_dumps"
 	SqliteDumpDir = "sqlite_dumps"
 
-	// migrations
-	MigrationDir = "migrations"
+	// project
+	ScriptsDirName = "scripts"
+	SchemaDirName  = "schema"
 
 	// tmp
 	TmpDir          = "tmp"
@@ -41,4 +46,4 @@ var DriverDumpDirNames = map[string]string{
 	DbDriverSqlite:   SqliteDumpDir,
 }
 
-var SupportedDrivers = []string{DbDriverPostgres}
+var SupportedDrivers = []string{DbDriverPostgres, DbDriverMySQL}

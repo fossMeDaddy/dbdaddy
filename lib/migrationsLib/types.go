@@ -1,4 +1,4 @@
-package types
+package migrationsLib
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 )
 
 type MigrationStatus struct {
@@ -35,8 +36,8 @@ type DbMigration struct {
 	Down     *DbMigration
 }
 
-func (mig *DbMigration) ReadState() (*DbSchema, error) {
-	var state *DbSchema
+func (mig *DbMigration) ReadState() (*types.DbSchema, error) {
+	var state *types.DbSchema
 
 	stateFileB, err := os.ReadFile(path.Join(mig.DirPath, constants.MigDirStateFile))
 	if err != nil {
@@ -128,7 +129,7 @@ func (mig *DbMigration) SetActive() error {
 
 // ensures migration dir exists and writes state, up/down sql queries & info file to disk
 // path string should look like this ".../migrations/dbname/2024-01-01T00_00_00"
-func NewDbMigration(migDirPath string, state *DbSchema, upSqlStr string, downSqlStr string, infoStr string) (*DbMigration, error) {
+func NewDbMigration(migDirPath string, state *types.DbSchema, upSqlStr string, downSqlStr string, infoStr string) (*DbMigration, error) {
 	mig := &DbMigration{
 		DirPath: migDirPath,
 	}

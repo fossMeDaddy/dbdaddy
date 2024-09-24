@@ -6,11 +6,14 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/types"
+	"github.com/spf13/viper"
 )
 
 func GetDbGroupedDumpFiles(configFilePath string) (types.DbDumpFilesMap, error) {
-	dumpDirPath := GetDriverDumpDir(configFilePath)
+	dumpDirPath := libUtils.GetDriverDumpDir(configFilePath, viper.GetString(constants.DbConfigDriverKey))
 	files, err := os.ReadDir(dumpDirPath)
 	if err != nil {
 		return nil, err

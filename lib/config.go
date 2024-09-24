@@ -2,11 +2,13 @@ package lib
 
 import (
 	"fmt"
+	"path"
 	"slices"
 	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/viper"
 )
@@ -16,44 +18,45 @@ func IsFirstTimeUser() bool {
 	return err != nil
 }
 
-func InitConfigFile(v *viper.Viper, configPath string, write bool) {
-	tmp := strings.Split(configPath, "/")
-	viperConfigPath := strings.Join(tmp[:len(tmp)-1], "/")
+func InitConfigFile(v *viper.Viper, configDirPath string, write bool) error {
+	configFileNameSplit := strings.Split(constants.SelfConfigFileName, ".")
 
-	v.SetConfigName("dbdaddy.config")
-	v.SetConfigType("json")
-	v.AddConfigPath(viperConfigPath)
+	v.SetConfigName(strings.Join(configFileNameSplit[:len(configFileNameSplit)-1], "."))
+	v.SetConfigType(configFileNameSplit[len(configFileNameSplit)-1])
+	v.AddConfigPath(configDirPath)
 
-	// setup default values for PG connection
-	v.SetDefault(constants.DbConfigHostKey, "localhost")
-	v.SetDefault(constants.DbConfigPortKey, 5432)
-	v.SetDefault(constants.DbConfigUserKey, "postgres")
-	v.SetDefault(constants.DbConfigPassKey, "postgres")
-	v.SetDefault(constants.DbConfigDriverKey, constants.DbDriverPostgres)
-	v.SetDefault(constants.DbConfigDbNameKey, "postgres")
-	v.SetDefault(constants.DbConfigCurrentBranchKey, "postgres")
+	connConfig := types.NewDefaultPgConnConfig()
+	v.SetDefault(constants.DbConfigConnSubkey, connConfig)
+	v.SetDefault(constants.DbConfigCurrentBranchKey, connConfig.Database)
+	v.SetDefault(constants.DbConfigOriginsKey, types.DbConfigOrigins{})
 
-	// setup default values for PG connection
 	if write {
-		v.WriteConfigAs(configPath)
+		return v.WriteConfigAs(path.Join(configDirPath, constants.SelfConfigFileName))
 	}
+
+	return nil
 }
 
-func ReadConfig(v *viper.Viper, configPath string) error {
-	tmp := strings.Split(configPath, "/")
-	viperConfigPath := strings.Join(tmp[:len(tmp)-1], "/")
+func ReadConfig(v *viper.Viper, configFilePath string) error {
+	configDirPath, _ := path.Split(configFilePath)
+	configFileNameSplit := strings.Split(constants.SelfConfigFileName, ".")
 
-	v.SetConfigName("dbdaddy.config")
-	v.SetConfigType("json")
-	v.AddConfigPath(viperConfigPath)
+	v.SetConfigName(strings.Join(configFileNameSplit[:len(configFileNameSplit)-1], "."))
+	v.SetConfigType(configFileNameSplit[len(configFileNameSplit)-1])
+	v.AddConfigPath(configDirPath)
 
 	return v.ReadInConfig()
 }
 
-func EnsureSupportedDbDriver() {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-
-	if !slices.Contains(constants.SupportedDrivers, driver) {
-		panic(fmt.Sprintf("Unsupported database driver '%s'", driver))
+func EnsureSupportedDbDriver() error {
+	connConfig, err := libUtils.GetConnConfigFromViper(viper.GetViper())
+	if err != nil {
+		return err
 	}
+
+	if !slices.Contains(constants.SupportedDrivers, connConfig.Driver) {
+		return fmt.Errorf("Unsupported database driver '%s'", connConfig.Driver)
+	}
+
+	return nil
 }

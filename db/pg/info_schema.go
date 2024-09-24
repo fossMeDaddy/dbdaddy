@@ -197,6 +197,8 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		}
 	})()
 
+	wg.Wait()
+
 	schemaRows, schemaErr := globals.DB.Query(pgq.QGetSchema(tableid))
 	if schemaErr != nil {
 		return dbSchema, schemaErr

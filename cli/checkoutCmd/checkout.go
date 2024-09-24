@@ -1,11 +1,14 @@
 package checkoutCmd
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/lib"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
@@ -16,6 +19,7 @@ import (
 var (
 	shouldCreateNewBranch bool
 	shouldKeepItClean     bool
+	shouldCopyOnlySchema  bool
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
@@ -28,18 +32,36 @@ var cmd = &cobra.Command{
 }
 
 func Init() *cobra.Command {
-	cmd.Flags().BoolVarP(&shouldCreateNewBranch, "new", "n", false, "create a new branch with given branch name, the contents of the current branch will be copied over (tables, columns, column properties, data, etc.)")
+	cmd.Flags().BoolVarP(&shouldCreateNewBranch, "new", "n", false, "create a new branch with given branch name, the contents of the current branch will be copied over schema and data both")
 	cmd.Flags().BoolVarP(&shouldKeepItClean, "clean", "c", false, "the new branch created by '-n' will be independent of the current branch i.e. nothing will be copied over")
-
+	cmd.Flags().BoolVar(&shouldCopyOnlySchema, "only-schema", false, "create a new branch with given branch name, only the schema of the current branch will be copied over")
 	return cmd
 }
 
 func run(cmd *cobra.Command, args []string) {
 	branchname := args[0]
 
+	if _, cwdIsProject, err := libUtils.CwdIsProject(); err != nil {
+		cmd.PrintErrln("unexpected error occured!")
+		cmd.PrintErrln(err)
+		return
+	} else if cwdIsProject {
+		cmd.Println("in a project, can't switch branches!")
+		cmd.Println("a project is attached to ONLY ONE DATABASE")
+		return
+	}
+
 	// flags validation
 	if shouldKeepItClean && !shouldCreateNewBranch {
 		cmd.PrintErrln("'--clean, -c' option can only be provided when creating new branches i.e. with '-n, --new' option")
+		return
+	}
+	if shouldCopyOnlySchema && !shouldCreateNewBranch {
+		cmd.PrintErrln("'--only-schema' option can only be provided when creating new branches i.e. with '-n, --new' option")
+		return
+	}
+	if shouldCopyOnlySchema && shouldKeepItClean {
+		cmd.PrintErrln("'--clean, -c' and '--only-schema' options can not be used simultaneously")
 		return
 	}
 
@@ -48,15 +70,16 @@ func run(cmd *cobra.Command, args []string) {
 		if shouldKeepItClean {
 			err = db_int.CreateDb(branchname)
 		} else {
-			err = db_int.NewDbFromOriginal(viper.GetString(constants.DbConfigCurrentBranchKey), branchname)
+			err = lib.NewBranchFromCurrent(branchname, shouldCopyOnlySchema)
 		}
 		if err != nil {
-			if strings.Contains(err.Error(), "already exists") {
+			if errors.Is(err, errs.ErrDbAlreadyExists) {
 				cmd.PrintErrf("Could not create a new database branch with name '%s' because it already exists.\n", branchname)
 				return
 			}
 
-			panic(err)
+			cmd.PrintErrln("UNKNOWN ERROR OCCURED!", err)
+			return
 		}
 	} else {
 		if db_int.DbExists(branchname) {

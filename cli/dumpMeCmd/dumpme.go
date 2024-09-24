@@ -2,13 +2,12 @@ package dumpMeCmd
 
 import (
 	"errors"
-	"fmt"
 	"path"
-	"time"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
 	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
@@ -33,15 +32,20 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	configFilePath, _ := libUtils.FindConfigFilePath()
 	if useGlobalFile {
-		configFilePath = constants.GetGlobalConfigPath()
+		configFilePath = libUtils.GetGlobalConfigPath()
 	}
 
 	v := viper.New()
 	lib.ReadConfig(v, configFilePath)
 
-	outputFilePath := path.Join(lib.GetDriverDumpDir(configFilePath), fmt.Sprintf("%s__%s", time.Now().Local().Format("2006-01-02_15:04:05"), v.GetString(constants.DbConfigCurrentBranchKey)))
+	outputFilePath := path.Join(
+		libUtils.GetDriverDumpDir(configFilePath, v.GetString(constants.DbConfigDriverKey)),
+		libUtils.GetDumpFileName(v.GetString(constants.DbConfigCurrentBranchKey)),
+	)
 
-	if err := db_int.DumpDb(outputFilePath, v); err != nil {
+	connConfig := globals.CurrentConnConfig
+	connConfig.Database = v.GetString(constants.DbConfigCurrentBranchKey)
+	if err := db_int.DumpDb(outputFilePath, connConfig, false); err != nil {
 		if errors.Is(err, errs.ErrPgDumpCmdNotFound) {
 			cmd.Println("Hey! we noticed you don't have 'pg_dump', then you also probably won't have 'pg_restore', we use these tools internally to perform dumps & restores... please install these tools in your OS before proceeding.")
 		} else {

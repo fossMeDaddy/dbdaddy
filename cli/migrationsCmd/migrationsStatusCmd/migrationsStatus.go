@@ -6,21 +6,24 @@ import (
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
 	"github.com/fossmedaddy/dbdaddy/lib"
-	migrationsLib "github.com/fossmedaddy/dbdaddy/lib/migrations"
+	migrationsLib "github.com/fossmedaddy/dbdaddy/lib/migrationsLib"
+	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
+
 var cmd = &cobra.Command{
 	Use:   "status",
 	Short: "see migration status, see 'migrations --help' for more info.",
-	Run:   run,
+	Run:   cmdRunFn,
 }
 
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
-	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {
+	err := lib.TmpSwitchDB(currBranch, func() error {
 		currentState, err := db_int.GetDbSchema(currBranch)
 		if err != nil {
 			return err

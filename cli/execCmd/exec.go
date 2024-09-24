@@ -2,6 +2,7 @@ package execCmd
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -21,33 +22,99 @@ import (
 )
 
 var (
-	outFileFlag    string
-	queryFlag      string
-	noTruncateFlag bool
+	noTx        bool
+	outFileFlag string
+	queryFlag   string
 )
 
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
-	Use:   "exec",
-	Short: "Run SQL queries directly from CLI and get query outputs in CSV format",
-	Run:   cmdRunFn,
+	Use:     "exec",
+	Short:   "Run SQL queries directly from CLI and get query outputs in CSV format",
+	Example: "usage examples: 'exec my_queries/create_order_table.sql', 'exec -q \"select * from public.users\" -o ./my_exports/users.csv'",
+	Run:     cmdRunFn,
+	Args:    cobra.MaximumNArgs(1),
+}
+
+func PrettyPrint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	fmt.Println(string(s))
+	return string(s)
+}
+
+func runFile(cmd *cobra.Command, filename string) error {
+	cwd, cwdIsProject, err := libUtils.CwdIsProject()
+	if err != nil {
+		return err
+	}
+
+	sqlFileName := filename
+	if !strings.HasSuffix(sqlFileName, ".sql") {
+		sqlFileName += ".sql"
+	}
+
+	queryWd := cwd
+	if cwdIsProject {
+		queryWd = path.Join(queryWd, constants.ScriptsDirName)
+	}
+
+	runSqlPath := path.Join(queryWd, sqlFileName)
+	if !libUtils.Exists(runSqlPath) {
+		cmd.PrintErrln(fmt.Sprintf("file '%s' does not exist", runSqlPath))
+		if cwdIsProject && !strings.Contains(runSqlPath, constants.ScriptsDirName) {
+			cmd.PrintErr("it seems like you're in a project,")
+			cmd.PrintErrln(fmt.Sprintf("but the sql file you're referring to is not in the %s directory...", constants.ScriptsDirName))
+			cmd.PrintErrln(fmt.Sprintf("tip: when in a project, all queries & exec statements must be present in the %s dirtectory", constants.ScriptsDirName))
+		}
+
+		return fmt.Errorf("")
+	}
+
+	sqlStr := ""
+	if sqlStrB, fileErr := os.ReadFile(runSqlPath); fileErr != nil {
+		cmd.PrintErrln(fmt.Sprintf("unexpected error occured while reading '%s'", runSqlPath))
+		return err
+	} else {
+		sqlStr = string(sqlStrB)
+	}
+
+	cmd.Println("Running", runSqlPath)
+
+	stmts := libUtils.GetSQLStmts(sqlStr)
+
+	if len(stmts) > 1 {
+		var err error
+		if noTx {
+			err = db_int.ExecuteStatements(stmts)
+		} else {
+			err = db_int.ExecuteStatementsTx(stmts)
+		}
+
+		if err != nil {
+			cmd.PrintErrln("Error occured while running SQL")
+			return err
+		}
+
+		cmd.Println("SQL ran successfully.")
+		return nil
+	} else if len(stmts) == 0 {
+		cmd.PrintErrln("found 0 statements to query/execute in", sqlFileName)
+		return fmt.Errorf("no statements found to execute")
+	}
+
+	return runQuery(cmd, stmts[0])
 }
 
 func runQuery(cmd *cobra.Command, query string) error {
 	var wg sync.WaitGroup
 
 	if len(query) == 0 {
+		cmd.PrintErrln("WARNING: could not query, recieved empty string")
 		return nil
 	}
 
 	query = strings.ToLower(strings.TrimRight(query, ";"))
-
-	if !strings.Contains(query, "limit") {
-		query += " limit 50"
-		cmd.Println()
-		cmd.Println("No 'LIMIT' clause found in query, limiting to 50 items.")
-	}
 
 	results, err := db_int.GetRows(query)
 	if err != nil {
@@ -70,6 +137,7 @@ func runQuery(cmd *cobra.Command, query string) error {
 	}
 
 	wg.Add(1)
+	defer wg.Wait()
 	go (func() {
 		defer wg.Done()
 
@@ -94,30 +162,35 @@ func runQuery(cmd *cobra.Command, query string) error {
 	formattedOutput := lib.GetFormattedColumns(results)
 	outputW := strings.Index(formattedOutput, fmt.Sprintln()) + 1
 
-	if w >= outputW {
-		cmd.Println(formattedOutput)
-	} else {
-		tmpDir, tmpDirErr := libUtils.FindTmpDirPath()
-		if tmpDirErr != nil {
-			return err
-		}
+	if len(outFileFlag) == 0 {
+		if outputW <= w && results.RowCount < 100 {
+			cmd.Println(formattedOutput)
+		} else {
+			tmpDir, tmpDirErr := libUtils.FindTmpDirPath()
+			if tmpDirErr != nil {
+				return err
+			}
 
-		tmpFilePath := path.Join(tmpDir, constants.TextQueryOutput)
-		err := os.WriteFile(tmpFilePath, []byte(formattedOutput), 0644)
-		if err != nil {
-			return err
-		}
+			tmpFilePath := path.Join(tmpDir, constants.TextQueryOutput)
+			err := os.WriteFile(tmpFilePath, []byte(formattedOutput), 0644)
+			if err != nil {
+				return err
+			}
 
-		cmd.Println("Formatted output too long to display here. See temp. file:", tmpFilePath)
+			cmd.Println("Formatted output too long to display here. See tmp output file:", tmpFilePath)
+		}
 	}
 
-	wg.Wait()
 	return nil
 }
 
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
-	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {
+	err := lib.TmpSwitchDB(currBranch, func() error {
+		if len(args) > 0 {
+			return runFile(cmd, args[0])
+		}
+
 		if queryFlag != "" {
 			return runQuery(cmd, queryFlag)
 		}
@@ -168,9 +241,9 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func Init() *cobra.Command {
-	cmd.Flags().StringVarP(&queryFlag, "query", "q", "", "Enter text here to execute a one-off query")
-	cmd.Flags().StringVarP(&outFileFlag, "output", "o", "", "Specify CSV-formatted output file path here. supplied along with '-q'")
-	cmd.Flags().BoolVar(&noTruncateFlag, "no-truncate", false, "In table formatted output, row items are truncated by default, use this to disable it.")
+	cmd.Flags().BoolVar(&noTx, "no-tx", false, "when running a SQL file, by default queries are run in a transaction block, use this to disable this behaviour")
+	cmd.Flags().StringVarP(&queryFlag, "query", "q", "", "enter text here to execute a one-off query")
+	cmd.Flags().StringVarP(&outFileFlag, "output", "o", "", "specify CSV-formatted output file path here. supplied along with '-q'")
 
 	return cmd
 }

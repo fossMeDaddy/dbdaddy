@@ -3,6 +3,7 @@ package libUtils
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 func GetTableId(schemaname, tablename string) string {
@@ -22,4 +23,8 @@ func GetTableFromId(tableid string) (string, string) {
 		return "", ""
 	}
 	return table[0], table[1]
+}
+
+func GetDumpFileName(dbname string) string {
+	return fmt.Sprintf("%s__%s", time.Now().Local().Format("2006-01-02_15-04-05"), dbname)
 }

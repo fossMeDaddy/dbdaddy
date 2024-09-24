@@ -16,13 +16,13 @@ import (
 
 // returns: list of migrations, the active migration index (-1 if no active migration found) and "isInit"
 // to check if the migrations directory was initialized
-func Status(dbname string, currentState *types.DbSchema) (types.MigrationStatus, error) {
+func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error) {
 	var (
 		wg sync.WaitGroup
 		mx sync.Mutex
 	)
 
-	migStat := types.MigrationStatus{}
+	migStat := MigrationStatus{}
 
 	migDir, migDirErr := libUtils.GetMigrationsDir(dbname)
 	if migDirErr != nil {
@@ -39,7 +39,7 @@ func Status(dbname string, currentState *types.DbSchema) (types.MigrationStatus,
 
 	activeI := -1
 	for i, migDirEntry := range dirs {
-		mig := types.DbMigration{
+		mig := DbMigration{
 			DirPath: path.Join(migDir, migDirEntry.Name()),
 		}
 
@@ -82,7 +82,7 @@ func Status(dbname string, currentState *types.DbSchema) (types.MigrationStatus,
 	return migStat, nil
 }
 
-func ApplyMigrationSQL(migStat types.MigrationStatus, isUpMigration bool) error {
+func ApplyMigrationSQL(migStat MigrationStatus, isUpMigration bool) error {
 	if migStat.ActiveMigration == nil {
 		return fmt.Errorf("no active migration found, please run 'migrations generate' to update migrations")
 	}
@@ -112,7 +112,8 @@ func ApplyMigrationSQL(migStat types.MigrationStatus, isUpMigration bool) error 
 		sqlStr = downSql
 	}
 
-	if err := db_int.ExecuteStatements(sqlStr); err != nil {
+	stmts := libUtils.GetSQLStmts(sqlStr)
+	if err := db_int.ExecuteStatementsTx(stmts); err != nil {
 		return err
 	}
 

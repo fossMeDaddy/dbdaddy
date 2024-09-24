@@ -12,7 +12,11 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 	skipNewLine := false
 
 	sqlFile := ""
-	sqlFile += fmt.Sprintln(sqlwriter.GetDisableConstSQL())
+	disableConstSqlStr, err := sqlwriter.GetDisableConstSQL()
+	if err != nil {
+		return sqlFile, err
+	}
+	sqlFile += fmt.Sprintln(disableConstSqlStr)
 	sqlFile += fmt.Sprintln()
 
 	for _, change := range changes {

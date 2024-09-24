@@ -87,7 +87,9 @@ func QGetViews() string {
             table_name,
             view_definition
         from information_schema.views
-        where table_schema not in ('pg_catalog', 'information_schema')
+        where
+          table_schema not in ('pg_catalog', 'information_schema') and
+          view_definition IS NOT NULL
     `
 }
 

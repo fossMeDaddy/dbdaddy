@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 )
@@ -17,18 +18,48 @@ func GetAbsolutePathFor(relativePath string) (string, error) {
 	return path.Join(cwd, relativePath), err
 }
 
+func CwdIsProject() (string, bool, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return cwd, false, err
+	}
+
+	if _, dirname := path.Split(cwd); dirname == constants.SelfConfigDirName {
+		return cwd, false, nil
+	}
+
+	dirEntries, err := os.ReadDir(cwd)
+	if err != nil {
+		return cwd, false, err
+	}
+
+	for _, dirEntry := range dirEntries {
+		if dirEntry.Name() == constants.SelfConfigFileName {
+			return cwd, true, nil
+		}
+	}
+
+	return cwd, false, nil
+}
+
 func FindConfigFilePath() (string, error) {
-	_, cwdFileErr := os.Stat(constants.GetLocalConfigPath())
-	_, globalFileErr := os.Stat(constants.GetGlobalConfigPath())
+	_, cwdFileErr := os.Stat(GetLocalConfigPath())
+	_, globalFileErr := os.Stat(GetGlobalConfigPath())
+
+	if cwd, cwdIsProject, err := CwdIsProject(); err != nil {
+		return "", err
+	} else if cwdIsProject {
+		return path.Join(cwd, constants.SelfConfigFileName), nil
+	}
 
 	if os.IsNotExist(cwdFileErr) && os.IsNotExist(globalFileErr) {
 		return "", fmt.Errorf(globalFileErr.Error() + "\n" + cwdFileErr.Error())
 	}
 
 	if os.IsNotExist(cwdFileErr) {
-		return constants.GetGlobalConfigPath(), nil
+		return GetGlobalConfigPath(), nil
 	} else {
-		return constants.GetLocalConfigPath(), nil
+		return GetLocalConfigPath(), nil
 	}
 }
 
@@ -56,4 +87,42 @@ func FindTmpDirPath() (string, error) {
 	}
 
 	return tmpDirPath, nil
+}
+
+func GetDriverDumpDir(configFilePath string, driver string) string {
+	configDirPath := path.Dir(configFilePath)
+
+	dumpDirName := constants.DriverDumpDirNames[driver]
+
+	dumpDirPath := path.Join(configDirPath, dumpDirName)
+	EnsureDirExists(dumpDirPath)
+
+	return dumpDirPath
+}
+
+func GetGlobalConfigPath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Join(homeDir, constants.SelfConfigDirName, constants.SelfConfigFileName)
+}
+
+func GetLocalConfigPath() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Join(cwd, constants.SelfConfigDirName, constants.SelfConfigFileName)
+}
+
+func GetGlobalDirPath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Join(homeDir, constants.SelfConfigDirName)
 }

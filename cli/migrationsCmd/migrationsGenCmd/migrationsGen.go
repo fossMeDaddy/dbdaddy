@@ -9,7 +9,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
-	migrationsLib "github.com/fossmedaddy/dbdaddy/lib/migrations"
+	migrationsLib "github.com/fossmedaddy/dbdaddy/lib/migrationsLib"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
 	"github.com/fossmedaddy/dbdaddy/types"
 
@@ -37,7 +37,7 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
-	err := lib.SwitchDB(viper.GetViper(), currBranch, func() error {
+	err := lib.TmpSwitchDB(currBranch, func() error {
 		migrationsDirPath, err := libUtils.GetMigrationsDir(currBranch)
 		if err != nil {
 			return err
@@ -53,7 +53,7 @@ func run(cmd *cobra.Command, args []string) {
 			return err
 		}
 
-		var latestMig *types.DbMigration
+		var latestMig *migrationsLib.DbMigration
 		prevState := &types.DbSchema{}
 		if !migStat.IsInit {
 			latestMig = &migStat.Migrations[len(migStat.Migrations)-1]
@@ -69,7 +69,7 @@ func run(cmd *cobra.Command, args []string) {
 				return err
 			}
 			migDirPath := path.Join(migrationsDirPath, migDirId)
-			initMig, err := types.NewDbMigration(migDirPath, prevState, "", "", "")
+			initMig, err := migrationsLib.NewDbMigration(migDirPath, prevState, "", "", "")
 			if err != nil {
 				return err
 			}
@@ -114,7 +114,7 @@ func run(cmd *cobra.Command, args []string) {
 		}
 
 		if len(upChanges) == 0 {
-			cmd.Println("No changes detected.")
+			cmd.Println("no changes detected.")
 			return nil
 		}
 
@@ -133,7 +133,7 @@ func run(cmd *cobra.Command, args []string) {
 			return err
 		}
 		migDirPath := path.Join(migrationsDirPath, migDirId)
-		mig, err := types.NewDbMigration(
+		mig, err := migrationsLib.NewDbMigration(
 			migDirPath,
 			currentState,
 			"",
@@ -155,10 +155,11 @@ func run(cmd *cobra.Command, args []string) {
 			}
 		}
 
+		cmd.Println("migration SQL generated successfully.")
 		return nil
 	})
 	if err != nil {
-		cmd.PrintErrln("Unexpected error occured!")
+		cmd.PrintErrln("unexpected error occured!")
 		cmd.PrintErrln(err)
 		return
 	}

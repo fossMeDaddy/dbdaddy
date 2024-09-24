@@ -24,7 +24,6 @@ func GetRows(queryStr string) (types.QueryResult, error) {
 	if err != nil {
 		return queryResult, err
 	}
-
 	cols, err := q.Columns()
 	if err != nil {
 		return queryResult, err
@@ -51,11 +50,9 @@ func GetRows(queryStr string) (types.QueryResult, error) {
 		if err != nil {
 			return queryResult, err
 		}
-
 		for i := range vals {
 			valPtr := vals[i].(*interface{})
 			val := *valPtr
-
 			if val == nil {
 				queryResult.Data[cols[i]] = append(queryResult.Data[cols[i]], types.DbRow{
 					DataType: colTypes[i].DatabaseTypeName(),
@@ -113,17 +110,46 @@ func ExecuteStatements__DEPRECATED(dbname, sqlStr string) error {
 	return cmd.Run()
 }
 
-func ExecuteStatements(sqlStr string) error {
+// takes in a sql string & differentiates between multiple executable statements
+// by a ";" followed by a newline.
+// EXPECTS AN INPUT GENERATED FROM 'libUtils.GetSqlStmts()' func
+func ExecuteStatementsTx(stmts []string) error {
 	tx, err := globals.DB.Begin()
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 
-	for _, stmt := range strings.Split(sqlStr, ";"+fmt.Sprintln()) {
+	for _, stmt := range stmts {
 		if _, err := tx.Exec(stmt); err != nil {
 			return err
 		}
 	}
 
 	return tx.Commit()
+}
+
+// no transactions, rawdawg them queries right in the DB
+func ExecuteStatements(stmts []string) error {
+	for _, stmt := range stmts {
+		if _, err := globals.DB.Exec(stmt); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func isValidBase64(s string) bool {
+	// Basic checks: length should be a multiple of 4 and contain only valid Base64 characters
+	if len(s)%4 != 0 {
+		return false
+	}
+	for _, c := range s {
+		if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '=' {
+			continue
+		}
+		return false
+	}
+	return true
 }

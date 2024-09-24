@@ -5,8 +5,7 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/db"
 	"github.com/fossmedaddy/dbdaddy/globals"
-
-	"github.com/spf13/viper"
+	"github.com/fossmedaddy/dbdaddy/types"
 )
 
 func PingDB() error {
@@ -22,19 +21,37 @@ func PingDB() error {
 	return nil
 }
 
+// takes in the currently active connection config to switch back to, dbname and
+// function to run when connected to the "dbname" database.
 // error can be returned if callback function errors or there is a connection error to the DB
-func SwitchDB(v *viper.Viper, dbname string, fn func() error) error {
-	defer db.ConnectDb(viper.GetViper(), globals.ConnDbName)
+func TmpSwitchDB(dbname string, fn func() error) error {
+	if globals.DB == nil {
+		return fmt.Errorf("database not connected, connect before switching between databases, author skill issues...")
+	}
 
-	_, err := db.ConnectDb(v, dbname)
+	defer db.ConnectDb(globals.CurrentConnConfig)
+
+	connConfig := globals.CurrentConnConfig
+	connConfig.Database = dbname
+	_, err := db.ConnectDb(connConfig)
 	if err != nil {
 		return err
 	}
 
-	fnErr := fn()
-	if fnErr != nil {
-		return fnErr
+	return fn()
+}
+
+func TmpSwitchConn(connConfig types.ConnConfig, fn func() error) error {
+	if globals.DB == nil {
+		return fmt.Errorf("database not connected, should not be happening here, author skill issues...")
 	}
 
-	return nil
+	defer db.ConnectDb(globals.CurrentConnConfig)
+
+	_, err := db.ConnectDb(connConfig)
+	if err != nil {
+		return err
+	}
+
+	return fn()
 }
