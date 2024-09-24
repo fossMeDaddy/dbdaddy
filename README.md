@@ -19,7 +19,8 @@ curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/instal
 ```
 
 having doubts about installing a random binary from the internet? here's a remark from the author that might help:
-> i am a recovering dev (recovering from js fatigue), used to write js for a living (soydev), barely capable of writing software that works,
+> i am a recovering dev (recovering from js fatigue), used to write js for a living (soydev).
+> I am barely capable of writing software that works,
 > you really think I can bypass your anti-virus, steal your information AND get away with it?
 >
 > trust me bro.
