@@ -2,7 +2,8 @@ package utils
 
 import (
 	"fmt"
-	"os" "os/exec"
+	"os"
+	"os/exec"
 	"path"
 	"strings"
 )
