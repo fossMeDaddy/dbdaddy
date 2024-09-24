@@ -1,8 +1,6 @@
 package constants
 
 const (
-	DbConfigDefaultPostgresUrl = "postgresql://postgres:postgres@localhost:5342/postgres"
-
 	// Self
 	SelfConfigDirName  = ".dbdaddy"
 	SelfConfigFileName = "dbdaddy.config.json"
@@ -38,6 +36,9 @@ const (
 	TmpDir          = "tmp"
 	TextQueryOutput = "query.out"
 	CSVQueryOutput  = "query.csv"
+
+	// misc
+	SoftDeleteSuffix = "__DELETED"
 )
 
 var DriverDumpDirNames = map[string]string{

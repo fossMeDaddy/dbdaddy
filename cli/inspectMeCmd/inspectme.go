@@ -2,8 +2,6 @@ package inspectMeCmd
 
 import (
 	"fmt"
-	"maps"
-	"slices"
 	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
@@ -11,6 +9,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/sqlwriter"
 	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/manifoldco/promptui"
@@ -99,55 +98,50 @@ func run(cmd *cobra.Command, args []string) {
 			return err
 		}
 
-		tablesViewsConcat := map[string]*types.TableSchema{}
-		maps.Copy(tablesViewsConcat, dbSchema.Tables)
-		maps.Copy(tablesViewsConcat, dbSchema.Views)
-
-		for tableid, tableSchema := range tablesViewsConcat {
-			if !slices.Contains(selectedTables, tableid) {
-				continue
+		viewsPrintBuf := ""
+		for _, tableid := range selectedTables {
+			isView := false
+			tableSchema := dbSchema.Tables[tableid]
+			if tableSchema == nil {
+				tableSchema = dbSchema.Views[tableid]
+				isView = true
 			}
 
-			isView := dbSchema.Views[tableid] != nil
+			var getSqlFn func(*types.TableSchema) (string, error)
+			if !isView {
+				getSqlFn = sqlwriter.GetCreateTableSQL
+			} else {
+				getSqlFn = sqlwriter.GetCreateViewSQL
+			}
+			defSql, err := getSqlFn(tableSchema)
+			if err != nil {
+				return err
+			}
 
-			// col constraint mapping
-			pKeyMapping := map[string]bool{}
-			colConMapping := map[string][]*types.DbConstraint{}
-			for _, con := range tableSchema.Constraints {
-				if con.Type == "p" {
-					pKeyMapping[con.ColName] = true
+			tableConSql := ""
+			if !isView {
+				for _, con := range tableSchema.Constraints {
+					if atConSql, err := sqlwriter.GetATCreateConstraintSQL(tableid, con); err != nil {
+						return err
+					} else {
+						tableConSql += atConSql
+					}
 				}
-				colConMapping[con.ColName] = append(colConMapping[con.ColName], con)
 			}
 
-			nColPadding := len(fmt.Sprintf("%d", len(tableSchema.Columns)))
-			colNamePadding := 0
-			colDefaultPadding := 0
-			colDataTypePadding := 0
-			colNullablePadding := 5
-			for _, col := range tableSchema.Columns {
-				colNamePadding = max(colNamePadding, len(getColName(col.Name, pKeyMapping[col.Name])))
-				colDefaultPadding = max(colDefaultPadding, len(col.Default))
-				colDataTypePadding = max(colDataTypePadding, len(col.DataType))
-			}
-
-			cmd.Println()
-			cmd.Printf("TABLE: %s\n", tableid)
 			if isView {
-				cmd.Println("INFO: TABLE IS A VIEW")
+				viewsPrintBuf += fmt.Sprintln(fmt.Sprintf("--- VIEW: %s", tableid))
+				viewsPrintBuf += fmt.Sprintln(defSql + tableConSql)
+				viewsPrintBuf += fmt.Sprintln()
+			} else {
+				cmd.Println(fmt.Sprintf("--- TABLE: %s", tableid))
+				cmd.Println(defSql + tableConSql)
+				cmd.Println()
 			}
+		}
 
-			for i, col := range tableSchema.Columns {
-				cmd.Printf(
-					"%0*d - %-*s %-*s DEFAULT `%-*s` NULLABLE:%-*t %s\n",
-					nColPadding, i+1,
-					colNamePadding, getColName(col.Name, pKeyMapping[col.Name]),
-					colDataTypePadding, col.DataType,
-					colDefaultPadding, col.Default,
-					colNullablePadding, col.Nullable,
-					getConstraintString(colConMapping[col.Name]),
-				)
-			}
+		if len(viewsPrintBuf) > 0 {
+			cmd.Print(viewsPrintBuf)
 		}
 
 		return nil

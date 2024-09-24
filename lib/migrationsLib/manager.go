@@ -24,7 +24,10 @@ func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error
 
 	migStat := MigrationStatus{}
 
-	migDir, migDirErr := libUtils.GetMigrationsDir(dbname)
+	configFilePath, _ := libUtils.FindConfigFilePath()
+
+	migDir := libUtils.GetMigrationsDir(path.Dir(configFilePath), dbname)
+	_, migDirErr := libUtils.EnsureDirExists(migDir)
 	if migDirErr != nil {
 		return migStat, migDirErr
 	}

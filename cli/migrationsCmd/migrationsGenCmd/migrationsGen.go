@@ -38,7 +38,10 @@ func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
 	err := lib.TmpSwitchDB(currBranch, func() error {
-		migrationsDirPath, err := libUtils.GetMigrationsDir(currBranch)
+		configFilePath, _ := libUtils.FindConfigFilePath()
+
+		migrationsDirPath := libUtils.GetMigrationsDir(path.Dir(configFilePath), currBranch)
+		_, err := libUtils.EnsureDirExists(migrationsDirPath)
 		if err != nil {
 			return err
 		}

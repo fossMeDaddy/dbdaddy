@@ -2,10 +2,13 @@ package deleteCmd
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
 	"github.com/fossmedaddy/dbdaddy/types"
 
@@ -80,6 +83,27 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// config dir directories marking
+	configFilePath, _ := libUtils.FindConfigFilePath()
+	// dumps marking
+	driverDumpDir := path.Join(
+		libUtils.GetDriverDumpDir(configFilePath, viper.GetString(constants.DbConfigDriverKey)),
+	)
+	if dirEntries, err := os.ReadDir(driverDumpDir); err != nil {
+		cmd.PrintErrln("WARNING: database dump cleanup not possible due to unexpected error")
+	} else {
+		for _, dirEntry := range dirEntries {
+			if strings.HasSuffix(dirEntry.Name(), delDbName) {
+				dumpFilePath := path.Join(driverDumpDir, dirEntry.Name())
+				os.Rename(dumpFilePath, dumpFilePath+constants.SoftDeleteSuffix)
+			}
+		}
+	}
+	// migrations dir marking
+	migDirName := libUtils.GetMigrationsDir(path.Dir(configFilePath), delDbName)
+	os.Rename(migDirName, migDirName+constants.SoftDeleteSuffix)
+
+	// remote origin cleanup
 	origins := types.DbConfigOrigins{}
 	if err := viper.UnmarshalKey(constants.DbConfigOriginsKey, &origins); err != nil {
 		cmd.PrintErrln("error occured while reading remote origins")
@@ -87,7 +111,6 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 	delete(origins, delDbName)
-
 	viper.Set(constants.DbConfigOriginsKey, origins)
 	if err := viper.WriteConfig(); err != nil {
 		cmd.PrintErrln(err)
