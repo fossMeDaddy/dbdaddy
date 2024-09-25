@@ -54,6 +54,7 @@ func run(cmd *cobra.Command, args []string) {
 
 			cmd.Println()
 		}
+		cmd.Println()
 
 		infoStr, err := migStat.ActiveMigration.GetInfoFile()
 		if err != nil {

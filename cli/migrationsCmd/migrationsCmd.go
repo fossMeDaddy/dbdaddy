@@ -3,6 +3,7 @@ package migrationsCmd
 import (
 	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsDownCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsGenCmd"
+	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsResetCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsStatusCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/migrationsCmd/migrationsUpCmd"
 
@@ -27,6 +28,7 @@ func Init() *cobra.Command {
 	cmd.AddCommand(migrationsStatusCmd.Init())
 	cmd.AddCommand(migrationsUpCmd.Init())
 	cmd.AddCommand(migrationsDownCmd.Init())
+	cmd.AddCommand(migrationsResetCmd.Init())
 
 	return cmd
 }

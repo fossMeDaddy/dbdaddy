@@ -78,7 +78,6 @@ func run(cmd *cobra.Command, args []string) {
 			}
 
 			latestMig = initMig
-			// migrations = append(migrations, *latestMig)
 		}
 
 		var (
@@ -141,7 +140,7 @@ func run(cmd *cobra.Command, args []string) {
 			currentState,
 			"",
 			downSqlScript,
-			"",
+			migrationsLib.GetInfoTextFromDiff(upChanges),
 		)
 		if err != nil {
 			return err
@@ -172,7 +171,7 @@ func Init() *cobra.Command {
 	// flags
 	cmd.Flags().StringVarP(&titleFlag, "title", "t", "", "add a title for migration file (should not contain any special symbols)")
 	cmd.Flags().BoolVar(&emptyInfoFile, "no-info", false, "do not ask for info file input, leave it blank")
-	cmd.Flags().BoolVar(&dryRunFlag, "dry-run", false, "do not ask for info file input, leave it blank")
+	cmd.Flags().BoolVar(&dryRunFlag, "dry-run", false, "print up/down changes console instead of writing them to sql files under migrations dir")
 
 	return cmd
 }

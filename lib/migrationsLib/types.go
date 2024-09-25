@@ -100,6 +100,7 @@ func (mig *DbMigration) WriteInfoFile(infoStr string) error {
 	return os.WriteFile(path.Join(mig.DirPath, constants.MigDirInfoFile), []byte(infoStr), 0644)
 }
 
+// DEPRECATED
 // set "this" migration as active.
 // removes the active signal file from all other migrations in the parent directory
 // then creates the active signal file in the current migration

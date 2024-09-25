@@ -7,7 +7,6 @@ import (
 	"path"
 	"slices"
 	"strings"
-	"sync"
 
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
@@ -17,11 +16,6 @@ import (
 // returns: list of migrations, the active migration index (-1 if no active migration found) and "isInit"
 // to check if the migrations directory was initialized
 func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error) {
-	var (
-		wg sync.WaitGroup
-		mx sync.Mutex
-	)
-
 	migStat := MigrationStatus{}
 
 	configFilePath, _ := libUtils.FindConfigFilePath()
@@ -46,10 +40,6 @@ func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error
 			DirPath: path.Join(migDir, migDirEntry.Name()),
 		}
 
-		// wg.Add(1)
-		// go (func(mig *types.DbMigration) {
-		// defer wg.Done()
-
 		state, err := mig.ReadState()
 		if err != nil {
 			fmt.Println("WARNING: error occured while reading state file in", mig.DirPath)
@@ -61,11 +51,8 @@ func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error
 		if len(changes) == 0 {
 			mig.IsActive = true
 
-			mx.Lock()
 			activeI = i
-			mx.Unlock()
 		}
-		// })(&mig)
 
 		if i > 0 {
 			prevMig := &migStat.Migrations[i-1]
@@ -75,12 +62,12 @@ func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error
 
 		migStat.Migrations = append(migStat.Migrations, mig)
 	}
+
 	if activeI != -1 {
 		migStat.ActiveMigration = &migStat.Migrations[activeI]
 	}
-	migStat.IsInit = len(migStat.Migrations) == 0
 
-	wg.Wait()
+	migStat.IsInit = len(migStat.Migrations) == 0
 
 	return migStat, nil
 }
