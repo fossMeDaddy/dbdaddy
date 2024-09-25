@@ -116,7 +116,7 @@ dbdaddy checkout -nc my_fresh_new_db
 
 Let's take an example scenario:
 
-Your friend gave you [this pg dump file](https://gist.github.com/fossMeDaddy/60c45d0b595d9167a3bd7556c1c31332), you'd like to create a table and give it to her, let's see how you can do this with `dbdaddy`
+Your friend gave you [this pg dump file](https://gist.github.com/fossMeDaddy/60c45d0b595d9167a3bd7556c1c31332), you'd like to create a table and give it back to them, let's see how you can do this with `dbdaddy`
 
 Create a new database & checkout into it
 ```
@@ -128,7 +128,7 @@ dbdaddy checkout -nc friends_with_dbs
 
 Run the restore command with a file option
 ```
-dbdaddy restore --file /path/to/her/dump
+dbdaddy restore --file /path/to/dump
 ```
 This will execute & restore the dump in the current branch.
 
@@ -158,14 +158,12 @@ Executing the sql script, this should run successfully (again, if I didn't fuck 
 dbdaddy exec ./create_person.sql
 ```
 
-Running `inspect --all` again, (hopefully) there you have it! the newly created `person` table.
+Running `inspect --all` again, (hopefully) there you have it! a newly created `person` table.
 
-Now you can take a dump of your branch and give it to her!
-
+Now run `dumpme`
 ```
 dbdaddy dumpme
 ```
-
 This will (hopefully) take a backup of your current branch and store it at a central location for all dumps near the JSON config file for future easy searching/finding.
 
 The absolute path to this dump is also printed to the console, so you can find it and send it to your friend.
