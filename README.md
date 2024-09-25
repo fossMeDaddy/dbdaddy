@@ -87,8 +87,90 @@ constraints, columns, tables & views are diffed and tracked for changes but ther
 which means that, let's say if you make a field nullable in SQL, this tool will generate migrations to remove the column
 from your database & then re-create it with SQL column definition such that the field is now nullable. DATA WILL BE LOST.
 
-## Usage Guide
+## Quickstart Guide
 
 The CLI requires a config file: `dbdaddy.config.json` to connect with your database. It has connection credentials like host, port, params, user, password, etc.
 
 When you first install & run `dbdaddy` it asks you for a connection uri, if not provided, default PostgreSQL credentials are used that can be changed later at any point in time.
+
+`dbdaddy` handles multiple databases on your database server as "branches", there is always a "current branch"
+on which you perform read/write operations like `inspect`ing the schema, `exec`uting SQL statements, etc.
+
+You can `checkout` (change current branch) to different branches with the below command.
+
+```
+dbdaddy checkout postgres2
+```
+
+To create a new branch, copy the contents of the current branch into the new branch and checkout into it, use `checkout` with `-n`/`--new` option:
+
+```
+dbdaddy checkout -n my_new_db
+```
+
+Creating a new empty branch independent of the current branch and checking out into it looks like this (using `-c`/`--clean` option combined with `-n` option):
+
+```
+dbdaddy checkout -nc my_fresh_new_db
+```
+
+Let's take an example scenario:
+
+Your friend gave you [this pg dump file](https://gist.github.com/fossMeDaddy/60c45d0b595d9167a3bd7556c1c31332), you'd like to create a table and give it to her, let's see how you can do this with `dbdaddy`
+
+Create a new database & checkout into it
+```
+dbdaddy checkout -nc friends_with_dbs
+```
+
+> NOTE:
+> In case, `dbdaddy` hasn't been set up on your machine, you will be asked to input your local/dev database connection uri before your command is processed.
+
+Run the restore command with a file option
+```
+dbdaddy restore --file /path/to/her/dump
+```
+This will execute & restore the dump in the current branch.
+
+This should've restored your newly created database with your friend's dump (if I didn't fuck up).
+
+Now that you both have the same DB state, let's inspect it
+```
+dbdaddy inspect --all
+```
+> NOTE:
+> `--all` option prints everything, without this option, you're provided a searchable prompt to pick out a table/view and inspect its schema
+
+After inspecting through all the tables, you can't see the table `person` which is very important for very valid reasons in this sample e-commerce db schema and not just for this tutorial.
+
+Let's write a SQL script!
+```sql
+-- FILE: ./create_person.sql
+CREATE TABLE person (
+  id SERIAL PRIMARY KEY,
+  name text NOT NULL,
+  age integer CHECK (age > 18)
+);
+```
+
+Executing the sql script, this should run successfully (again, if I didn't fuck up)
+```
+dbdaddy exec ./create_person.sql
+```
+
+Running `inspect --all` again, (hopefully) there you have it! the newly created `person` table.
+
+Now you can take a dump of your branch and give it to her!
+
+```
+dbdaddy dumpme
+```
+
+This will (hopefully) take a backup of your current branch and store it at a central location for all dumps near the JSON config file for future easy searching/finding.
+
+The absolute path to this dump is also printed to the console, so you can find it and send it to your friend.
+
+HAPPY DATABASING!
+
+> NOTE:
+> the tutorial in the quickstart guide covers only a subset of all the important commands, for more detailed info, please run `dbdaddy <COMMAND> --help` and `dbdaddy help <COMMAND>`
