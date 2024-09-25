@@ -86,3 +86,9 @@ indexes, triggers & custom types are not supported.
 constraints, columns, tables & views are diffed and tracked for changes but there is no modification support as of now for any of them,
 which means that, let's say if you make a field nullable in SQL, this tool will generate migrations to remove the column
 from your database & then re-create it with SQL column definition such that the field is now nullable. DATA WILL BE LOST.
+
+## Usage Guide
+
+The CLI requires a config file: `dbdaddy.config.json` to connect with your database. It has connection credentials like host, port, params, user, password, etc.
+
+When you first install & run `dbdaddy` it asks you for a connection uri, if not provided, default PostgreSQL credentials are used that can be changed later at any point in time.
