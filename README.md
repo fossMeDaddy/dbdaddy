@@ -14,8 +14,15 @@ no windows.
 why windows?
 
 dont use windows.
+
+LATEST VERSION:
 ```
 curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | bash
+```
+
+To install a specific version from the past (e.g. `v0.5.1`) add a `VERSION` variable before the bash command.
+```
+curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | VERSION=v0.5.1 bash
 ```
 
 having doubts about installing a random binary from the internet? here's a remark from the author that might help:
