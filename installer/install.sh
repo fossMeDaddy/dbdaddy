@@ -5,7 +5,11 @@
 pkg_bin_dir="$HOME/.dbdaddy/bin"
 pkg_bin="$pkg_bin_dir/dbdaddy" # IMPORTANT: FILE PATH NOT TO BE CHANGED IN FUTURE
 
-pkg_version="$(curl --silent https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/version)"
+if [[ -n $VERSION ]]; then
+    pkg_version=$VERSION
+else
+    pkg_version="$(curl --silent https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/version)"
+fi
 
 mkdir $HOME/.dbdaddy
 mkdir $HOME/.dbdaddy/bin
@@ -25,7 +29,9 @@ else
 fi
 
 target_bin_name="dbdaddy-$os-$target_arch"
-echo "Fetching '$target_bin_name' release..."
+
+echo "Fetching '$target_bin_name' release (version: $pkg_version)"
+echo ""
 
 curl -# -f -L -o $pkg_bin https://github.com/fossMeDaddy/dbdaddy/releases/download/$pkg_version/$target_bin_name
 curl_exit_code=$?
