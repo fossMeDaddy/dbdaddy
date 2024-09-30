@@ -77,6 +77,7 @@ func QGetSchema(tableid string) string {
 
         where
             %s
+	order by infcol.ordinal_position
     `, whereClause)
 }
 
