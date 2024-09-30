@@ -1,4 +1,4 @@
-package sqlpg
+package sqlwriterpg
 
 import (
 	"fmt"

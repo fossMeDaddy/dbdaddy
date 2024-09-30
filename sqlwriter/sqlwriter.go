@@ -1,18 +1,15 @@
 package sqlwriter
 
 import (
-	"fmt"
-
 	"github.com/fossmedaddy/dbdaddy/constants"
-	"github.com/fossmedaddy/dbdaddy/sqlwriter/sqlpg"
+	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/globals"
+	"github.com/fossmedaddy/dbdaddy/sqlwriter/sqlwriterpg"
 	"github.com/fossmedaddy/dbdaddy/types"
-
-	"github.com/spf13/viper"
 )
 
 func getDriver() string {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	return driver
+	return globals.CurrentConnConfig.Driver
 }
 
 func GetDisableConstSQL() (string, error) {
@@ -22,7 +19,7 @@ func GetDisableConstSQL() (string, error) {
 	case constants.DbDriverMySQL:
 		return "SET FOREIGN_KEY_CHECKS = 0;", nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
@@ -33,61 +30,61 @@ func GetEnableConstSQL() (string, error) {
 	case constants.DbDriverMySQL:
 		return "SET FOREIGN_KEY_CHECKS = 1;", nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetDropSchemaSQL(schema *types.Schema) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetDropSchemaSQL(schema), nil
+		return sqlwriterpg.GetDropSchemaSQL(schema), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetCreateSchemaSQL(schema *types.Schema) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetCreateSchemaSQL(schema), nil
+		return sqlwriterpg.GetCreateSchemaSQL(schema), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetDropSequenceSQL(seq *types.DbSequence) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetDropSequenceSQL(seq), nil
+		return sqlwriterpg.GetDropSequenceSQL(seq), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetCreateSequenceSQL(seq *types.DbSequence) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetCreateSequenceSQL(seq), nil
+		return sqlwriterpg.GetCreateSequenceSQL(seq), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetColDefSQL(col *types.Column) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetColDefSQL(col), nil
+		return sqlwriterpg.GetColDefSQL(col), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetCreateTableSQL(tableSchema *types.TableSchema) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetCreateTableSQL(tableSchema), nil
+		return sqlwriterpg.GetCreateTableSQL(tableSchema), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
@@ -95,62 +92,62 @@ func GetCreateTableSQL(tableSchema *types.TableSchema) (string, error) {
 func GetDropTableSQL(tableid string) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetDropTableSQL(tableid), nil
+		return sqlwriterpg.GetDropTableSQL(tableid), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetCreateViewSQL(viewSchema *types.TableSchema) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetCreateViewSQL(viewSchema), nil
+		return sqlwriterpg.GetCreateViewSQL(viewSchema), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetDropViewSQL(viewid string) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetDropViewSQL(viewid), nil
+		return sqlwriterpg.GetDropViewSQL(viewid), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetATDropColSQL(tableid string, colName string) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetATDropColSQL(tableid, colName), nil
+		return sqlwriterpg.GetATDropColSQL(tableid, colName), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetATCreateColSQL(tableid string, col *types.Column) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetATCreateColSQL(tableid, col), nil
+		return sqlwriterpg.GetATCreateColSQL(tableid, col), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetATDropConstraint(tableid string, conName string) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetATDropConstraint(tableid, conName), nil
+		return sqlwriterpg.GetATDropConstraint(tableid, conName), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
 
 func GetATCreateConstraintSQL(tableid string, con *types.DbConstraint) (string, error) {
 	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return sqlpg.GetATCreateConstraintSQL(tableid, con), nil
+		return sqlwriterpg.GetATCreateConstraintSQL(tableid, con), nil
 	default:
-		return "", fmt.Errorf("unsupported driver")
+		return "", errs.ErrUnsupportedDriver
 	}
 }
