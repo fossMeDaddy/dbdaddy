@@ -20,7 +20,7 @@ LATEST VERSION:
 curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | bash
 ```
 
-To install a specific version from the past (e.g. `v0.5.1`) add a `VERSION` variable before the bash command.
+To install a specific version from the past add a `VERSION` shell variable before the bash command. Look for available releases in the releases tab.
 ```
 curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | VERSION=v0.5.1 bash
 ```
