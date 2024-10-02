@@ -137,7 +137,7 @@ func run(cmd *cobra.Command, args []string) {
 
 		v := viper.New()
 		lib.InitConfigFile(v, cwd, false)
-		v.Set(constants.DbConfigConnSubkey, connConfig)
+		v.Set(constants.DbConfigConnKey, connConfig)
 		v.Set(constants.DbConfigCurrentBranchKey, connConfig.Database)
 
 		if err := v.WriteConfigAs(projectConfigFilePath); err != nil {

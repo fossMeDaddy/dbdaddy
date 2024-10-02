@@ -4,13 +4,14 @@ package pgq
 import (
 	"fmt"
 
+	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 )
 
 // pass "" in tableid if need to get schema for the whole db
 func QGetSchema(tableid string) string {
 
-	whereClause := "infcol.table_schema not in ('pg_catalog', 'information_schema')"
+	whereClause := fmt.Sprintf("infcol.table_schema not in %s", constants.PgExcludedDbsSQLStr)
 	if len(tableid) > 0 {
 		schemaname, tablename := libUtils.GetTableFromId(tableid)
 		whereClause += fmt.Sprintf(`
@@ -66,14 +67,9 @@ func QGetSchema(tableid string) string {
         inner join pg_class as relcls on
             relcls.relname = infcol.table_name and
             relcls.relnamespace = relnsp.oid
-        left join pg_constraint as relcon on
-            relcon.conrelid = relcls.oid and
-            relcon.connamespace = relnsp.oid and
-            relcon.conkey[1] = infcol.ordinal_position and
-            relcon.contype = 'p'
-		left join information_schema.tables as inftable on
-			inftable.table_schema = infcol.table_schema and
-			inftable.table_name = infcol.table_name
+	left join information_schema.tables as inftable on
+		inftable.table_schema = infcol.table_schema and
+		inftable.table_name = infcol.table_name
 
         where
             %s

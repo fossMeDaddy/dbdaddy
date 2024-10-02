@@ -8,7 +8,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/types"
 )
 
-func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []types.MigAction) (string, error) {
+func GetSQLFromDiffChanges(changes []types.MigAction) (string, error) {
 	skipNewLine := false
 
 	sqlFile := ""
@@ -90,7 +90,7 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 				sqlFile += sqlStr
 			}
 
-		// CREATE VIEW
+		// CREATE/DROP VIEW
 		case types.EntityTypeView:
 			viewSchema := change.Entity.Ptr.(*types.TableSchema)
 			viewid := libUtils.GetTableId(viewSchema.Schema, viewSchema.Name)

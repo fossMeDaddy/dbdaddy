@@ -23,7 +23,7 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
-	dbs, err := db_int.GetExistingDbs()
+	dbs, err := db_int.GetExistingDbs(false)
 	if err != nil {
 		cmd.PrintErrln("Unexpected error occured!\n" + err.Error())
 		return

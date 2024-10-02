@@ -21,7 +21,7 @@ type DbConstraint struct {
 	// on table
 	TableSchema string
 	TableName   string
-	ColName     string
+	ColName     string // UNUSED
 
 	ConName          string
 	ConSchema        string
@@ -35,6 +35,8 @@ type DbConstraint struct {
 	FColName     string
 
 	Syntax string
+
+	MultiColConstraint bool
 }
 
 type Column struct {
@@ -54,11 +56,11 @@ type Schema struct {
 }
 
 type TableSchema struct {
-	Schema      string
-	Name        string
-	DefSyntax   string // populated for only views
-	Columns     []Column
-	Constraints []*DbConstraint
+	Schema        string
+	Name          string
+	ViewDefSyntax string // populated for only views
+	Columns       []Column
+	Constraints   []*DbConstraint
 }
 
 type Table struct {

@@ -52,7 +52,7 @@ func (e *Entity) GetEntityId() []string {
 		e.Id = []string{schemaEntity.Name}
 	case EntityTypeTable, EntityTypeView:
 		tableEntity := e.Ptr.(*TableSchema)
-		e.Id = []string{tableEntity.Schema, tableEntity.Name, tableEntity.DefSyntax}
+		e.Id = []string{tableEntity.Schema, tableEntity.Name, tableEntity.ViewDefSyntax}
 	case EntityTypeColumn:
 		colEntity := e.Ptr.(*Column)
 		e.Id = []string{

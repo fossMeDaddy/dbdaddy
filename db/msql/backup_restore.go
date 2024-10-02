@@ -12,16 +12,18 @@ import (
 )
 
 func DumpDb(outputFilePath string, v *viper.Viper, onlySchema bool) error {
-	args := []string{fmt.Sprintf("--user=%s", v.GetString(constants.DbConfigUserKey)),
-		fmt.Sprintf("--password=%s", v.GetString(constants.DbConfigPassKey)),
-		fmt.Sprintf("--host=%s", v.GetString(constants.DbConfigHostKey)),
-		fmt.Sprintf("--port=%s", v.GetString(constants.DbConfigPortKey)),
+	args := []string{
+		// fmt.Sprintf("--user=%s", v.GetString(constants.DbConfigUserKey)),
+		// fmt.Sprintf("--password=%s", v.GetString(constants.DbConfigPassKey)),
+		// fmt.Sprintf("--host=%s", v.GetString(constants.DbConfigHostKey)),
+		// fmt.Sprintf("--port=%s", v.GetString(constants.DbConfigPortKey)),
 		// fmt.Sprintf("--result-file=%s", outputFilePath),
 		"--skip-comments",
 		"--no-create-db",
 		"--no-autocommit",
 		"--databases",
-		v.GetString(constants.DbConfigCurrentBranchKey)}
+		v.GetString(constants.DbConfigCurrentBranchKey),
+	}
 	if onlySchema {
 		args = append(args, "--no-data")
 	}
@@ -86,11 +88,11 @@ func RestoreDb(dbname string, v *viper.Viper, dumpFilePath string, override bool
 
 	restoreCmd := exec.Command(
 		"mysql",
-		fmt.Sprintf("--user=%s", v.GetString(constants.DbConfigUserKey)),
-		fmt.Sprintf("--password=%s", v.GetString(constants.DbConfigPassKey)),
-		fmt.Sprintf("--host=%s", v.GetString(constants.DbConfigHostKey)),
-		fmt.Sprintf("--port=%s", v.GetString(constants.DbConfigPortKey)),
-		fmt.Sprintf("--database=%s", dbname),
+		// fmt.Sprintf("--user=%s", v.GetString(constants.DbConfigUserKey)),
+		// fmt.Sprintf("--password=%s", v.GetString(constants.DbConfigPassKey)),
+		// fmt.Sprintf("--host=%s", v.GetString(constants.DbConfigHostKey)),
+		// fmt.Sprintf("--port=%s", v.GetString(constants.DbConfigPortKey)),
+		// fmt.Sprintf("--database=%s", dbname),
 	)
 
 	restoreCmd.Stdin = dumpFile

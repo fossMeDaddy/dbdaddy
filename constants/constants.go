@@ -8,14 +8,8 @@ const (
 
 	//  Config keys
 	DbConfigOriginsKey       = "origins"
-	DbConfigConnSubkey       = "connection"
-	DbConfigDriverKey        = DbConfigConnSubkey + ".driver"
-	DbConfigHostKey          = DbConfigConnSubkey + ".host"
-	DbConfigPortKey          = DbConfigConnSubkey + ".port"
-	DbConfigDbNameKey        = DbConfigConnSubkey + ".dbname"
-	DbConfigUserKey          = DbConfigConnSubkey + ".user"
-	DbConfigPassKey          = DbConfigConnSubkey + ".password"
-	DbConfigParamsKey        = DbConfigConnSubkey + ".params"
+	DbConfigConnKey          = "connection"
+	DbConfigShadowConnKey    = "tmp_db_connection"
 	DbConfigCurrentBranchKey = "status.currentBranch"
 
 	// Config possible driver values
@@ -38,7 +32,10 @@ const (
 	CSVQueryOutput  = "query.csv"
 
 	// misc
-	SoftDeleteSuffix = "__DELETED"
+	UpSqlScriptComment   = "--- UP SQL (APPLY THIS)"
+	DownSqlScriptComment = "--- DOWN SQL (APPLY ONLY WHEN NEED TO REVERT)"
+	SoftDeleteSuffix     = "__DELETED"
+	ShadowDbPrefix       = "__shadow"
 )
 
 var DriverDumpDirNames = map[string]string{

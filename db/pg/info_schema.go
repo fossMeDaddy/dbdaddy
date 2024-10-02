@@ -15,7 +15,7 @@ import (
 
 func ListTablesInDb() ([]types.Table, error) {
 	tables := []types.Table{}
-	rows, err := globals.DB.Query(`
+	rows, err := globals.DB.Query(fmt.Sprintf(`
 		select
 			table_name as name,
 			table_schema as schema,
@@ -23,11 +23,11 @@ func ListTablesInDb() ([]types.Table, error) {
 		from information_schema.tables
 
 		where
-			table_schema not in ('information_schema', 'pg_catalog') and
+			table_schema not in %s and
 			table_type in ('BASE TABLE', 'VIEW')
 
 		order by table_name
-    `)
+    `, constants.PgExcludedDbsSQLStr))
 	if err != nil {
 		return tables, err
 	}
@@ -182,6 +182,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 				&con.FTableSchema,
 				&con.FTableName,
 				&con.FColName,
+				&con.MultiColConstraint,
 			)
 			if err != nil {
 				conErr = err
@@ -278,7 +279,7 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 			}
 
 			viewSchema := viewSchemaMapping[libUtils.GetTableId(viewschema, viewname)]
-			viewSchema.DefSyntax = syntax
+			viewSchema.ViewDefSyntax = syntax
 		}
 	})()
 
