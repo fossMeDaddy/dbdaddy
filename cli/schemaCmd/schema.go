@@ -1,6 +1,7 @@
 package schemaCmd
 
 import (
+	"github.com/fossmedaddy/dbdaddy/cli/schemaCmd/schemaPullCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/schemaCmd/schemaPushCmd"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
@@ -31,6 +32,7 @@ func run(cmd *cobra.Command, args []string) {
 
 func Init() *cobra.Command {
 	cmd.AddCommand(schemaPushCmd.Init())
+	cmd.AddCommand(schemaPullCmd.Init())
 
 	return cmd
 }

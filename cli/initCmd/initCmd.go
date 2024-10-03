@@ -7,15 +7,11 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db"
-	"github.com/fossmedaddy/dbdaddy/db/db_int"
 	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
-	"github.com/fossmedaddy/dbdaddy/lib/migrationsLib"
-	"github.com/fossmedaddy/dbdaddy/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/exp/slices"
 )
 
 var cmdManual = fmt.Sprintf(`
@@ -208,19 +204,9 @@ func run(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	_, migErr := libUtils.EnsureDirExists(path.Join(constants.MigDirName))
-	_, schemaErr := libUtils.EnsureDirExists(path.Join(constants.SchemaDirName))
-	_, scriptsErr := libUtils.EnsureDirExists(path.Join(constants.ScriptsDirName))
-	if migErr != nil {
-		cmd.PrintErrln(migErr)
-	}
-	if schemaErr != nil {
-		cmd.PrintErrln(schemaErr)
-	}
-	if scriptsErr != nil {
-		cmd.PrintErrln(scriptsErr)
-	}
-	if !slices.Contains([]error{migErr, schemaErr, scriptsErr}, nil) {
+	if err := lib.EnsureProjectDirsExist(); err != nil {
+		cmd.PrintErrln("unexpected error occured")
+		cmd.PrintErrln(err)
 		return
 	}
 
@@ -230,29 +216,15 @@ func run(cmd *cobra.Command, args []string) {
 	}
 
 	if globals.DB != nil {
-		dbSchema, schemaErr := db_int.GetDbSchema()
-		if schemaErr != nil {
-			cmd.PrintErrln("unexpected error while trying to instrospect your database")
-			cmd.PrintErrln(schemaErr)
-			return
-		}
+		schemaDirPath := path.Join(cwd, constants.SchemaDirName)
 
-		changes := migrationsLib.DiffDBSchema(dbSchema, &types.DbSchema{})
-		schemaSql, schemaErr := migrationsLib.GetSQLFromDiffChanges(changes)
-		if schemaErr != nil {
-			cmd.PrintErrln("unexpected error occured")
-			cmd.PrintErrln(schemaErr)
-			return
-		}
-
-		schemaFilePath := path.Join(cwd, constants.SchemaDirName, "schema.sql")
-		if err := os.WriteFile(schemaFilePath, []byte(schemaSql), 0644); err != nil {
-			cmd.PrintErrln("error occured while introspecting and writing to schema")
+		if err := lib.LoadDbSchemaIntoSchemaDir(schemaDirPath); err != nil {
+			cmd.PrintErrln("error occured writing schema sql into your schema dir")
 			cmd.PrintErrln(err)
 			return
 		}
 
-		cmd.Println(fmt.Sprintf("database schema introspected successfully, output written to: %s", schemaFilePath))
+		cmd.Println(fmt.Sprintf("database schema introspected successfully, explore directory '%s' to know more", schemaDirPath))
 	}
 
 	cmd.Println(fmt.Sprintf("Created project at: %s", cwd))
