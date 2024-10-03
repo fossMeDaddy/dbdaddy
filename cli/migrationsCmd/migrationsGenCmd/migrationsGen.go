@@ -1,6 +1,7 @@
 package migrationsGenCmd
 
 import (
+	"fmt"
 	"path"
 	"sync"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	migrationsLib "github.com/fossmedaddy/dbdaddy/lib/migrationsLib"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/sqlwriter"
 	"github.com/fossmedaddy/dbdaddy/types"
 
 	"github.com/spf13/cobra"
@@ -64,6 +66,17 @@ func run(cmd *cobra.Command, args []string) {
 			upChanges, downChanges     []types.MigAction
 		)
 
+		disableConstSql, disableConstErr := sqlwriter.GetDisableConstSQL()
+		if disableConstErr != nil {
+			return disableConstErr
+		}
+		enableConstSql, enableConstErr := sqlwriter.GetEnableConstSQL()
+		if enableConstErr != nil {
+			return enableConstErr
+		}
+		disableConstSql += fmt.Sprintln()
+		enableConstSql += fmt.Sprintln()
+
 		var (
 			upSqlErr   error
 			downSqlErr error
@@ -98,6 +111,8 @@ func run(cmd *cobra.Command, args []string) {
 			cmd.Println("no changes detected.")
 			return nil
 		}
+
+		downSqlScript = disableConstSql + downSqlScript + enableConstSql
 
 		if dryRunFlag {
 			cmd.Println(constants.DownSqlScriptComment)

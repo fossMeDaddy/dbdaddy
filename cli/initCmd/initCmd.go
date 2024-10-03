@@ -7,8 +7,12 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db"
+	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
+	"github.com/fossmedaddy/dbdaddy/lib/migrationsLib"
+	"github.com/fossmedaddy/dbdaddy/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
@@ -223,6 +227,32 @@ func run(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		cmd.Println(fmt.Sprintf("opening config file at '%s' via vim...", projectConfigFilePath))
 		libUtils.OpenFileInEditor(projectConfigFilePath)
+	}
+
+	if globals.DB != nil {
+		dbSchema, schemaErr := db_int.GetDbSchema()
+		if schemaErr != nil {
+			cmd.PrintErrln("unexpected error while trying to instrospect your database")
+			cmd.PrintErrln(schemaErr)
+			return
+		}
+
+		changes := migrationsLib.DiffDBSchema(dbSchema, &types.DbSchema{})
+		schemaSql, schemaErr := migrationsLib.GetSQLFromDiffChanges(changes)
+		if schemaErr != nil {
+			cmd.PrintErrln("unexpected error occured")
+			cmd.PrintErrln(schemaErr)
+			return
+		}
+
+		schemaFilePath := path.Join(cwd, constants.SchemaDirName, "schema.sql")
+		if err := os.WriteFile(schemaFilePath, []byte(schemaSql), 0644); err != nil {
+			cmd.PrintErrln("error occured while introspecting and writing to schema")
+			cmd.PrintErrln(err)
+			return
+		}
+
+		cmd.Println(fmt.Sprintf("database schema introspected successfully, output written to: %s", schemaFilePath))
 	}
 
 	cmd.Println(fmt.Sprintf("Created project at: %s", cwd))

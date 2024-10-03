@@ -16,6 +16,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/lib/migrationsLib"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
+	"github.com/fossmedaddy/dbdaddy/sqlwriter"
 	"github.com/fossmedaddy/dbdaddy/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -71,10 +72,23 @@ func run(cmd *cobra.Command, args []string) {
 			return nil
 		})
 
+		disableConstSql, disableConstErr := sqlwriter.GetDisableConstSQL()
+		if disableConstErr != nil {
+			return disableConstErr
+		}
+		enableConstSql, enableConstErr := sqlwriter.GetEnableConstSQL()
+		if enableConstErr != nil {
+			return enableConstErr
+		}
+		disableConstSql += fmt.Sprintln()
+		enableConstSql += fmt.Sprintln()
+
+		stmts = slices.Concat([]string{disableConstSql}, stmts, []string{enableConstSql})
+
 		var userDefinedSchema *types.DbSchema
 		if err := lib.TmpSwitchToShadowDB(func() error {
 			if err := db_int.ExecuteStatementsTx(stmts); err != nil {
-				cmd.Println("WARNING: error occured while executing schema sql")
+				cmd.Println("WARNING: error occured in schema definition")
 				return err
 			}
 
@@ -129,6 +143,8 @@ func run(cmd *cobra.Command, args []string) {
 			return nil
 		}
 
+		downSqlScript = disableConstSql + downSqlScript + enableConstSql
+
 		if dryRunFlag {
 			cmd.Println(constants.DownSqlScriptComment)
 			cmd.Println(downSqlScript)
@@ -139,7 +155,6 @@ func run(cmd *cobra.Command, args []string) {
 			return nil
 		}
 
-		// generate migrations
 		latestMig, isMigInit, migErr := migrationsLib.GetLatestMigrationOrInit(dbSchema, "")
 		if migErr != nil {
 			return migErr
@@ -157,7 +172,15 @@ func run(cmd *cobra.Command, args []string) {
 			}
 		}
 
-		if err := db_int.ExecuteStatementsTx(libUtils.GetSQLStmts(upSqlScript)); err != nil {
+		upStmts := []string{}
+		if sql, err := sqlwriter.GetDisableConstSQL(); err != nil {
+			return err
+		} else {
+			upStmts = append(upStmts, sql)
+		}
+		upStmts = slices.Concat(upStmts, libUtils.GetSQLStmts(upSqlScript))
+
+		if err := db_int.ExecuteStatementsTx(upStmts); err != nil {
 			return err
 		}
 

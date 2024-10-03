@@ -81,11 +81,6 @@ func ApplyMigrationSQL(migStat MigrationStatus, isUpMigration bool) error {
 		return fmt.Errorf("no active migration found, please run 'migrations generate' to update migrations")
 	}
 
-	latestMig := migStat.Migrations[len(migStat.Migrations)-1]
-	if !latestMig.IsActive {
-		return fmt.Errorf("not on latest migration, please switch to the latest migration or reset")
-	}
-
 	var sqlStr string
 	if isUpMigration {
 		if migStat.ActiveMigration.Up == nil {
