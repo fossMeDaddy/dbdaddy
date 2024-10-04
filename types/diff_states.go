@@ -3,23 +3,51 @@ package types
 import "fmt"
 
 type ActionType string
-type EntityType string
 type StateTag string
 
 const (
 	ActionTypeCreate ActionType = "CREATE"
 	ActionTypeDrop   ActionType = "DROP"
 
-	EntityTypeSchema     EntityType = "SCHEMA"
-	EntityTypeTable      EntityType = "TABLE"
-	EntityTypeColumn     EntityType = "COLUMN"
-	EntityTypeConstraint EntityType = "CONST"
-	EntityTypeView       EntityType = "VIEW"
-	EntityTypeSequence   EntityType = "SEQ"
-
 	StateTagCS StateTag = "CS"
 	StateTagPS StateTag = "PS"
 )
+
+type EntityType int
+
+const (
+	EntityTypeSchema EntityType = iota
+	EntityTypeTable
+	EntityTypeColumn
+	EntityTypeConstraint
+	EntityTypeView
+	EntityTypeSequence
+)
+
+func (e EntityType) String() string {
+	switch e {
+	case EntityTypeSchema:
+		return "SCHEMA"
+
+	case EntityTypeTable:
+		return "TABLE"
+
+	case EntityTypeColumn:
+		return "COLUMN"
+
+	case EntityTypeConstraint:
+		return "CONSTRAINT"
+
+	case EntityTypeView:
+		return "VIEW"
+
+	case EntityTypeSequence:
+		return "SEQUENCE"
+
+	default:
+		return "UNKNOWN ENTITY"
+	}
+}
 
 type MigAction struct {
 	ActionType ActionType
