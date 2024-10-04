@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"sync"
 )
 
 func GetCurrentVersion() string {
@@ -32,7 +33,7 @@ func GetOutFilePath(goos string, goarch string) string {
 	return outFile
 }
 
-func Build(goos string, goarch string) {
+func Build(goos string, goarch string, version string) {
 	fmt.Println("Starting build for", goos, goarch)
 
 	GOOS := strings.ToLower(goos)
@@ -44,7 +45,7 @@ func Build(goos string, goarch string) {
 		"go",
 		"build",
 		"-ldflags",
-		fmt.Sprintf("-X 'github.com/fossmedaddy/dbdaddy/globals.Version=%s'", GetCurrentVersion()),
+		fmt.Sprintf("-X 'github.com/fossmedaddy/dbdaddy/globals.Version=%s'", version),
 		"-o",
 		outFile,
 		"cmd/main/main.go",
@@ -59,6 +60,50 @@ func Build(goos string, goarch string) {
 
 	fmt.Println("Built binary for", goos, goarch)
 	fmt.Println()
+}
+
+func BuildAllTargets(version string) {
+	var wg sync.WaitGroup
+
+	wg.Add(8)
+
+	go (func() {
+		defer wg.Done()
+		Build("linux", "arm64", version)
+	})()
+	go (func() {
+		defer wg.Done()
+		Build("linux", "amd64", version)
+	})()
+	go (func() {
+		defer wg.Done()
+		Build("linux", "386", version)
+	})()
+
+	go (func() {
+		defer wg.Done()
+		Build("darwin", "arm64", version)
+	})()
+	go (func() {
+		defer wg.Done()
+		Build("darwin", "amd64", version)
+	})()
+
+	go (func() {
+		defer wg.Done()
+		Build("windows", "amd64", version)
+	})()
+	go (func() {
+		defer wg.Done()
+		Build("windows", "386", version)
+	})()
+
+	go (func() {
+		defer wg.Done()
+		Build("freebsd", "amd64", version)
+	})()
+
+	wg.Wait()
 }
 
 func CreateTag(version string) {

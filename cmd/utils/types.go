@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	VersionTagRegexp = regexp.MustCompile(`^[0-9A-Za-z-]+$`)
+	VersionTagRegexp = regexp.MustCompile(`^[0-9A-Za-z-\.]+$`)
 )
 
 // DO NOT initialize this struct directly
