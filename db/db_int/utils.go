@@ -1,17 +1,10 @@
 package db_int
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
 	"strings"
 
-	"github.com/fossmedaddy/dbdaddy/constants"
-	"github.com/fossmedaddy/dbdaddy/errs"
 	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/types"
-
-	"github.com/spf13/viper"
 )
 
 // i dont like this
@@ -78,36 +71,6 @@ func GetRows(queryStr string) (types.QueryResult, error) {
 	}
 
 	return queryResult, nil
-}
-
-func ExecuteStatements__DEPRECATED(dbname, sqlStr string) error {
-	if _, err := exec.LookPath("psql"); err != nil {
-		return errs.ErrPsqlCmdNotFound
-	}
-
-	cmd := exec.Command("psql", "--single-transaction")
-
-	inPipe, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-	if _, err := inPipe.Write([]byte(sqlStr)); err != nil {
-		return err
-	}
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	cmd.Env = append(
-		os.Environ(),
-		fmt.Sprintf("PGHOST=%s", viper.GetString(constants.DbConfigHostKey)),
-		fmt.Sprintf("PGPORT=%s", viper.GetString(constants.DbConfigPortKey)),
-		fmt.Sprintf("PGUSER=%s", viper.GetString(constants.DbConfigUserKey)),
-		fmt.Sprintf("PGPASSWORD=%s", viper.GetString(constants.DbConfigPassKey)),
-		fmt.Sprintf("PGDATABASE=%s", dbname),
-	)
-
-	return cmd.Run()
 }
 
 // takes in a sql string & differentiates between multiple executable statements

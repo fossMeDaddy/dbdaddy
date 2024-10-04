@@ -13,16 +13,17 @@ import (
 
 func GetConnConfigFromViper(v *viper.Viper) (types.ConnConfig, error) {
 	connConfig := types.ConnConfig{}
-	parseErr := viper.UnmarshalKey(constants.DbConfigConnSubkey, &connConfig)
+	parseErr := v.UnmarshalKey(constants.DbConfigConnKey, &connConfig)
 	if parseErr != nil {
 		return connConfig, parseErr
 	}
 
-	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
+	currBranch := v.GetString(constants.DbConfigCurrentBranchKey)
 	connConfig.Database = currBranch
 
 	return connConfig, nil
 }
+
 func GetConnConfigFromUri(uri string) (types.ConnConfig, error) {
 	connConfig := types.ConnConfig{}
 
@@ -44,4 +45,23 @@ func GetConnConfigFromUri(uri string) (types.ConnConfig, error) {
 	}
 
 	return connConfig, nil
+}
+
+func GetShadowConnConfig(v *viper.Viper) (types.ConnConfig, error) {
+	connConfig := types.ConnConfig{}
+
+	if v.IsSet(constants.DbConfigShadowConnKey) {
+		if err := v.UnmarshalKey(constants.DbConfigShadowConnKey, &connConfig); err != nil {
+			return connConfig, err
+		}
+	} else {
+		if cc, err := GetConnConfigFromViper(v); err != nil {
+			return cc, err
+		} else {
+			connConfig = cc
+		}
+	}
+
+	return connConfig, nil
+
 }

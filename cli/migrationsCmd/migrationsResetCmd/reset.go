@@ -26,12 +26,12 @@ func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
 	if err := lib.TmpSwitchDB(currBranch, func() error {
-		currentState, err := db_int.GetDbSchema(currBranch)
+		currentState, err := db_int.GetDbSchema()
 		if err != nil {
 			return err
 		}
 
-		migStat, err := migrationsLib.Status(currBranch, currentState)
+		migStat, err := migrationsLib.Status(currentState)
 		if err != nil {
 			return err
 		}

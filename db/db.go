@@ -23,7 +23,8 @@ func openConn(driverName string, dataSourceName string) (*sql.DB, error) {
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("database ping unsucessful: %s", err.Error())
+		fmt.Println("WARNING: ping failed,", err)
+		return nil, errs.ErrDbPingFailed
 	}
 
 	return db, nil
@@ -33,7 +34,7 @@ func ConnectSelfDb(v *viper.Viper) (*sql.DB, error) {
 	var fnLocalDb *sql.DB
 
 	connConfig := types.ConnConfig{}
-	if marshalErr := v.UnmarshalKey(constants.DbConfigConnSubkey, &connConfig); marshalErr != nil {
+	if marshalErr := v.UnmarshalKey(constants.DbConfigConnKey, &connConfig); marshalErr != nil {
 		return nil, marshalErr
 	}
 

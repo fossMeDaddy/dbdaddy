@@ -7,11 +7,11 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/exp/slices"
 )
 
 var cmdManual = fmt.Sprintf(`
@@ -137,7 +137,7 @@ func run(cmd *cobra.Command, args []string) {
 
 		v := viper.New()
 		lib.InitConfigFile(v, cwd, false)
-		v.Set(constants.DbConfigConnSubkey, connConfig)
+		v.Set(constants.DbConfigConnKey, connConfig)
 		v.Set(constants.DbConfigCurrentBranchKey, connConfig.Database)
 
 		if err := v.WriteConfigAs(projectConfigFilePath); err != nil {
@@ -204,25 +204,27 @@ func run(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	_, migErr := libUtils.EnsureDirExists(path.Join(constants.MigDirName))
-	_, schemaErr := libUtils.EnsureDirExists(path.Join(constants.SchemaDirName))
-	_, scriptsErr := libUtils.EnsureDirExists(path.Join(constants.ScriptsDirName))
-	if migErr != nil {
-		cmd.PrintErrln(migErr)
-	}
-	if schemaErr != nil {
-		cmd.PrintErrln(schemaErr)
-	}
-	if scriptsErr != nil {
-		cmd.PrintErrln(scriptsErr)
-	}
-	if !slices.Contains([]error{migErr, schemaErr, scriptsErr}, nil) {
+	if err := lib.EnsureProjectDirsExist(); err != nil {
+		cmd.PrintErrln("unexpected error occured")
+		cmd.PrintErrln(err)
 		return
 	}
 
 	if len(args) == 0 {
 		cmd.Println(fmt.Sprintf("opening config file at '%s' via vim...", projectConfigFilePath))
 		libUtils.OpenFileInEditor(projectConfigFilePath)
+	}
+
+	if globals.DB != nil {
+		schemaDirPath := path.Join(cwd, constants.SchemaDirName)
+
+		if err := lib.LoadDbSchemaIntoSchemaDir(schemaDirPath); err != nil {
+			cmd.PrintErrln("error occured writing schema sql into your schema dir")
+			cmd.PrintErrln(err)
+			return
+		}
+
+		cmd.Println(fmt.Sprintf("database schema introspected successfully, explore directory '%s' to know more", schemaDirPath))
 	}
 
 	cmd.Println(fmt.Sprintf("Created project at: %s", cwd))

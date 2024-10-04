@@ -1,4 +1,4 @@
-package sqlpg
+package sqlwriterpg
 
 import (
 	"fmt"
@@ -115,7 +115,7 @@ func GetCreateViewSQL(viewSchema *types.TableSchema) string {
 	sqlStmt += fmt.Sprintln()
 
 	// in pg, apparently the viewdef has a semi-colon
-	sqlStmt += viewSchema.DefSyntax
+	sqlStmt += viewSchema.ViewDefSyntax
 	sqlStmt += fmt.Sprintln()
 
 	return sqlStmt

@@ -38,26 +38,6 @@ func getColName(name string, pk bool) string {
 	return name
 }
 
-func getConstraintString(constraints []*types.DbConstraint) string {
-	conStr := ""
-	if len(constraints) == 0 {
-		return conStr
-	}
-
-	for _, con := range constraints {
-		switch con.Type {
-		case "f":
-			conStr += fmt.Sprintf("FK(%s.%s.%s)", con.FTableSchema, con.FTableName, con.FColName)
-		case "u":
-			conStr += "UNIQUE"
-		case "c":
-			conStr += strings.ReplaceAll(con.Syntax, fmt.Sprintln(), " ")
-		}
-	}
-
-	return conStr
-}
-
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
@@ -93,7 +73,7 @@ func run(cmd *cobra.Command, args []string) {
 			selectedTables = append(selectedTables, result)
 		}
 
-		dbSchema, err := db_int.GetDbSchema(currBranch)
+		dbSchema, err := db_int.GetDbSchema()
 		if err != nil {
 			return err
 		}

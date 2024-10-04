@@ -8,6 +8,7 @@ import (
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
 	"github.com/fossmedaddy/dbdaddy/types"
@@ -40,7 +41,7 @@ func run(cmd *cobra.Command, args []string) {
 			return
 		}
 	} else {
-		dbs, err := db_int.GetExistingDbs()
+		dbs, err := db_int.GetExistingDbs(false)
 		if err != nil {
 			cmd.Println("unexpected error occured", err)
 			return
@@ -87,7 +88,7 @@ func run(cmd *cobra.Command, args []string) {
 	configFilePath, _ := libUtils.FindConfigFilePath()
 	// dumps marking
 	driverDumpDir := path.Join(
-		libUtils.GetDriverDumpDir(configFilePath, viper.GetString(constants.DbConfigDriverKey)),
+		libUtils.GetDriverDumpDir(configFilePath, globals.CurrentConnConfig.Driver),
 	)
 	if dirEntries, err := os.ReadDir(driverDumpDir); err != nil {
 		cmd.PrintErrln("WARNING: database dump cleanup not possible due to unexpected error")
@@ -120,7 +121,7 @@ func run(cmd *cobra.Command, args []string) {
 	cmd.Printf("Successfully deleted db '%s'\n", delDbName)
 
 	if viper.GetString(constants.DbConfigCurrentBranchKey) == delDbName {
-		existingDbs, err := db_int.GetExistingDbs()
+		existingDbs, err := db_int.GetExistingDbs(false)
 		if err != nil {
 			panic("Something went wrong!\n" + err.Error())
 		}

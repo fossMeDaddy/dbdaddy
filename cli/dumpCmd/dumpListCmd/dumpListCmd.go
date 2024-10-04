@@ -3,13 +3,12 @@ package dumpListCmd
 import (
 	"path"
 
-	"github.com/fossmedaddy/dbdaddy/constants"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/lib"
 	"github.com/fossmedaddy/dbdaddy/lib/libUtils"
 	"github.com/fossmedaddy/dbdaddy/middlewares"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -36,7 +35,7 @@ func run(cmd *cobra.Command, args []string) {
 		panic("Unexpected error occured!\n" + err.Error())
 	}
 
-	dumpDir := libUtils.GetDriverDumpDir(configFilePath, viper.GetString(constants.DbConfigDriverKey))
+	dumpDir := libUtils.GetDriverDumpDir(configFilePath, globals.CurrentConnConfig.Driver)
 	cmd.Printf("Listing all database backups from directory: %s\n\n", dumpDir)
 	if len(dumpDbGroups) == 0 {
 		cmd.Println("No backups found.")

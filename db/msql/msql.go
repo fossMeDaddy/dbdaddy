@@ -7,7 +7,7 @@ import (
 	"github.com/fossmedaddy/dbdaddy/globals"
 )
 
-func GetExistingDbs() ([]string, error) {
+func GetExistingDbs(showHidden bool) ([]string, error) {
 	rows, err := globals.DB.Query(msqlq.QGetExistingDbs())
 	if err != nil {
 		return nil, err

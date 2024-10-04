@@ -6,26 +6,27 @@ import (
 	"github.com/fossmedaddy/dbdaddy/db/msql"
 	"github.com/fossmedaddy/dbdaddy/db/pg"
 	"github.com/fossmedaddy/dbdaddy/errs"
+	"github.com/fossmedaddy/dbdaddy/globals"
 	"github.com/fossmedaddy/dbdaddy/types"
-
-	"github.com/spf13/viper"
 )
 
-func GetExistingDbs() ([]string, error) {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	switch driver {
+func getDriver() string {
+	return globals.CurrentConnConfig.Driver
+}
+
+func GetExistingDbs(showHidden bool) ([]string, error) {
+	switch getDriver() {
 	case constants.DbDriverPostgres:
-		return pg.GetExistingDbs()
+		return pg.GetExistingDbs(showHidden)
 	case constants.DbDriverMySQL:
-		return msql.GetExistingDbs()
+		return msql.GetExistingDbs(showHidden)
 	default:
 		return []string{}, errs.ErrUnsupportedDriver
 	}
 }
 
 func DbExists(dbname string) bool {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	switch driver {
+	switch getDriver() {
 	case constants.DbDriverPostgres:
 		return pg.DbExists(dbname)
 	case constants.DbDriverMySQL:
@@ -36,8 +37,7 @@ func DbExists(dbname string) bool {
 }
 
 func CreateDb(dbname string) error {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	switch driver {
+	switch getDriver() {
 	case constants.DbDriverPostgres:
 		return pg.CreateDb(dbname)
 	case constants.DbDriverMySQL:
@@ -48,8 +48,7 @@ func CreateDb(dbname string) error {
 }
 
 func DeleteDb(dbname string) error {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	switch driver {
+	switch getDriver() {
 	case constants.DbDriverPostgres:
 		return pg.DeleteDb(dbname)
 	case constants.DbDriverMySQL:
@@ -60,8 +59,7 @@ func DeleteDb(dbname string) error {
 }
 
 func ListTablesInDb() ([]types.Table, error) {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	switch driver {
+	switch getDriver() {
 	case constants.DbDriverPostgres:
 		return pg.ListTablesInDb()
 	case constants.DbDriverMySQL:
@@ -72,8 +70,7 @@ func ListTablesInDb() ([]types.Table, error) {
 }
 
 func GetTableSchema(dbname, schema, tablename string) (*types.TableSchema, error) {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	switch driver {
+	switch getDriver() {
 	case constants.DbDriverPostgres:
 		return pg.GetTableSchema(schema, tablename)
 	case constants.DbDriverMySQL:
@@ -83,9 +80,8 @@ func GetTableSchema(dbname, schema, tablename string) (*types.TableSchema, error
 	}
 }
 
-func GetDbSchema(dbname string) (*types.DbSchema, error) {
-	driver := viper.GetString(constants.DbConfigDriverKey)
-	switch driver {
+func GetDbSchema() (*types.DbSchema, error) {
+	switch getDriver() {
 	case constants.DbDriverPostgres:
 		return pg.GetDbSchema("", "")
 	default:

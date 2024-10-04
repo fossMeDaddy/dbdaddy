@@ -15,18 +15,18 @@ import (
 
 // returns: list of migrations, the active migration index (-1 if no active migration found) and "isInit"
 // to check if the migrations directory was initialized
-func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error) {
+func Status(currentState *types.DbSchema) (MigrationStatus, error) {
 	migStat := MigrationStatus{}
 
 	configFilePath, _ := libUtils.FindConfigFilePath()
 
-	migDir := libUtils.GetMigrationsDir(path.Dir(configFilePath), dbname)
-	_, migDirErr := libUtils.EnsureDirExists(migDir)
+	migrationsDirPath := libUtils.GetMigrationsDir(path.Dir(configFilePath), currentState.DbName)
+	_, migDirErr := libUtils.EnsureDirExists(migrationsDirPath)
 	if migDirErr != nil {
 		return migStat, migDirErr
 	}
 
-	dirs, err := os.ReadDir(migDir)
+	dirs, err := os.ReadDir(migrationsDirPath)
 	if err != nil {
 		return migStat, err
 	}
@@ -37,7 +37,7 @@ func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error
 	activeI := -1
 	for i, migDirEntry := range dirs {
 		mig := DbMigration{
-			DirPath: path.Join(migDir, migDirEntry.Name()),
+			DirPath: path.Join(migrationsDirPath, migDirEntry.Name()),
 		}
 
 		state, err := mig.ReadState()
@@ -49,8 +49,6 @@ func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error
 
 		changes := DiffDBSchema(currentState, state)
 		if len(changes) == 0 {
-			mig.IsActive = true
-
 			activeI = i
 		}
 
@@ -64,7 +62,9 @@ func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error
 	}
 
 	if activeI != -1 {
-		migStat.ActiveMigration = &migStat.Migrations[activeI]
+		activeMig := &migStat.Migrations[activeI]
+		activeMig.IsActive = true
+		migStat.ActiveMigration = activeMig
 	}
 
 	migStat.IsInit = len(migStat.Migrations) == 0
@@ -73,6 +73,10 @@ func Status(dbname string, currentState *types.DbSchema) (MigrationStatus, error
 }
 
 func ApplyMigrationSQL(migStat MigrationStatus, isUpMigration bool) error {
+	if len(migStat.Migrations) == 0 {
+		return fmt.Errorf("no migrations found")
+	}
+
 	if migStat.ActiveMigration == nil {
 		return fmt.Errorf("no active migration found, please run 'migrations generate' to update migrations")
 	}
@@ -108,4 +112,83 @@ func ApplyMigrationSQL(migStat MigrationStatus, isUpMigration bool) error {
 	}
 
 	return nil
+}
+
+func GetLatestMigrationOrInit(currentState *types.DbSchema, titleIfInit string) (*DbMigration, bool, error) {
+	latestMig := &DbMigration{}
+	isInit := false
+	configFilePath, _ := libUtils.FindConfigFilePath()
+
+	migrationsDirPath := libUtils.GetMigrationsDir(path.Dir(configFilePath), currentState.DbName)
+	_, err := libUtils.EnsureDirExists(migrationsDirPath)
+	if err != nil {
+		return latestMig, isInit, err
+	}
+
+	migStat, err := Status(currentState)
+	if err != nil {
+		return latestMig, isInit, err
+	}
+
+	prevState := &types.DbSchema{}
+	if !migStat.IsInit {
+		latestMig = &migStat.Migrations[len(migStat.Migrations)-1]
+		state, err := latestMig.ReadState()
+		if err != nil {
+			return latestMig, isInit, err
+		}
+
+		prevState = state
+	} else {
+		migDirId, err := libUtils.GenerateMigrationId(migrationsDirPath, titleIfInit)
+		if err != nil {
+			return latestMig, isInit, err
+		}
+		migDirPath := path.Join(migrationsDirPath, migDirId)
+		initMig, err := NewDbMigration(migDirPath, prevState, "", "", "")
+		if err != nil {
+			return latestMig, isInit, err
+		}
+
+		latestMig = initMig
+		isInit = true
+	}
+
+	return latestMig, isInit, nil
+}
+
+func GenerateMigration(currentState *types.DbSchema, latestMig *DbMigration, title string, upSql, downSql, infoStr string) (*DbMigration, error) {
+	var mig *DbMigration
+	configFilePath, _ := libUtils.FindConfigFilePath()
+
+	migrationsDirPath := libUtils.GetMigrationsDir(path.Dir(configFilePath), currentState.DbName)
+	if _, err := libUtils.EnsureDirExists(migrationsDirPath); err != nil {
+		return mig, err
+	}
+
+	migDirId, err := libUtils.GenerateMigrationId(migrationsDirPath, title)
+	if err != nil {
+		return mig, err
+	}
+
+	migDirPath := path.Join(migrationsDirPath, migDirId)
+	if m, err := NewDbMigration(
+		migDirPath,
+		currentState,
+		"",
+		downSql,
+		infoStr,
+	); err != nil {
+		return m, err
+	} else {
+		mig = m
+	}
+
+	if latestMig != nil {
+		if err := latestMig.WriteUpQuery(upSql); err != nil {
+			return mig, err
+		}
+	}
+
+	return mig, nil
 }

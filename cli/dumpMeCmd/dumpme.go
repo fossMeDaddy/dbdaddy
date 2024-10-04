@@ -37,9 +37,15 @@ func run(cmd *cobra.Command, args []string) {
 
 	v := viper.New()
 	lib.ReadConfig(v, configFilePath)
+	viperCC, err := libUtils.GetConnConfigFromViper(v)
+	if err != nil {
+		cmd.PrintErrln("unexpected error occured!")
+		cmd.PrintErrln(err)
+		return
+	}
 
 	outputFilePath := path.Join(
-		libUtils.GetDriverDumpDir(configFilePath, v.GetString(constants.DbConfigDriverKey)),
+		libUtils.GetDriverDumpDir(configFilePath, viperCC.Driver),
 		libUtils.GetDumpFileName(v.GetString(constants.DbConfigCurrentBranchKey)),
 	)
 

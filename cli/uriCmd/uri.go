@@ -13,6 +13,7 @@ import (
 
 var (
 	useGlobalConfigFlag bool
+	useShadowConfigFlag bool
 )
 
 var cmd = &cobra.Command{
@@ -36,7 +37,7 @@ func run(cmd *cobra.Command, args []string) {
 	}
 
 	if _, err := db.ConnectDb(connConfig); err != nil {
-		cmd.PrintErrln("error occured while trying to connect to database, please check your connection uri...")
+		cmd.PrintErrln("error occured while trying to connect with your provided uri, please check your connection uri...")
 		cmd.PrintErrln(err)
 		return
 	}
@@ -52,8 +53,12 @@ func run(cmd *cobra.Command, args []string) {
 		configFilePath = libUtils.GetGlobalConfigPath()
 	}
 
-	viper.Set(constants.DbConfigConnSubkey, connConfig)
-	viper.Set(constants.DbConfigCurrentBranchKey, connConfig.Database)
+	if useShadowConfigFlag {
+		viper.Set(constants.DbConfigShadowConnKey, connConfig)
+	} else {
+		viper.Set(constants.DbConfigConnKey, connConfig)
+		viper.Set(constants.DbConfigCurrentBranchKey, connConfig.Database)
+	}
 
 	if err := viper.WriteConfigAs(configFilePath); err != nil {
 		cmd.PrintErrln("unexpected error occured while writing to config file")
@@ -67,6 +72,7 @@ func run(cmd *cobra.Command, args []string) {
 func Init() *cobra.Command {
 	// flags here
 	cmd.Flags().BoolVarP(&useGlobalConfigFlag, "global", "g", false, "explicitly use global config file")
+	cmd.Flags().BoolVar(&useShadowConfigFlag, "shadow", false, "the provided db connection uri will be used for connecting to your dedicated shadow database")
 
 	return cmd
 }

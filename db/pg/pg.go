@@ -1,13 +1,19 @@
 package pg
 
 import (
+	"strings"
+
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/pg/pgq"
 	"github.com/fossmedaddy/dbdaddy/db/sharedq"
 	"github.com/fossmedaddy/dbdaddy/globals"
 )
 
-func GetExistingDbs() ([]string, error) {
+func isHiddenDb(dbname string) bool {
+	return dbname == constants.SelfDbName || strings.HasPrefix(dbname, "__shadow")
+}
+
+func GetExistingDbs(showHidden bool) ([]string, error) {
 	rows, err := globals.DB.Query(pgq.QGetExistingDbs())
 	if err != nil {
 		return nil, err
@@ -18,7 +24,7 @@ func GetExistingDbs() ([]string, error) {
 	for rows.Next() {
 		existingDb := ""
 		_ = rows.Scan(&existingDb)
-		if existingDb == constants.SelfDbName {
+		if isHiddenDb(existingDb) && !showHidden {
 			continue
 		}
 
