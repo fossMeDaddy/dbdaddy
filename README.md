@@ -2,7 +2,7 @@
 
 A simple database management CLI tool.
 
-safe for production use when version = `v1.0.0`
+safe for production use when version = `1.0.0`
 
 stable enough for development DB use, NOW.
 
@@ -184,3 +184,8 @@ HAPPY DATABASING!
 
 > NOTE:
 > the tutorial in the quickstart guide covers only a subset of all the important commands, for more detailed info, please run `dbdaddy <COMMAND> --help` and `dbdaddy help <COMMAND>`
+
+
+---
+
+security audit will start after `1.0.0`, expect common & obvious security bugs to be fixed by `1.1.0`
