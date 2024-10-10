@@ -185,6 +185,9 @@ HAPPY DATABASING!
 > NOTE:
 > the tutorial in the quickstart guide covers only a subset of all the important commands, for more detailed info, please run `dbdaddy <COMMAND> --help` and `dbdaddy help <COMMAND>`
 
+## Contributing Guide
+
+contributors are advised to turn off their fucking copilot before writing even a single line :)
 
 ---
 
