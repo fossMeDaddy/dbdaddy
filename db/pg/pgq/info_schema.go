@@ -73,6 +73,8 @@ func QGetSchema(tableid string) string {
 
         where
             %s
+	
+	order by ordinal_position
     `, whereClause)
 }
 

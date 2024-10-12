@@ -30,8 +30,6 @@ func main() {
 		return
 	}
 
-	utils.BuildAllTargets(version.String())
-
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "--tag=") {
 			arg = strings.ReplaceAll(arg, "--tag=", "")
@@ -83,6 +81,8 @@ func main() {
 			panic("writing to version file failed")
 		}
 	}
+
+	utils.BuildAllTargets(version.String())
 
 	files, fileErr := filepath.Glob("bin/*")
 	if fileErr != nil {
