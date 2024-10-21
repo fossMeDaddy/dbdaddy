@@ -198,7 +198,7 @@ security audit will start after `1.0.0`, expect common & obvious security bugs t
 > can't make up my mind about the below section, whether to keep it in the final draft or not... but it'll be fun to see your reaction on it kek
 ## I got offended reading this, this is in no way a professional README
 
-you can go ___ yourself, cuz' this is the satire motherfucker.
+you can go fuck yourself, cuz' this is the satire motherfucker.
 
 > too far?
 >
