@@ -187,7 +187,7 @@ HAPPY DATABASING!
 
 ## Contributing Guide
 
-contributors are advised to turn off their fucking copilot before writing even a single line :)
+contributors are advised to kindly turn off their fucking copilot :)
 
 ---
 
