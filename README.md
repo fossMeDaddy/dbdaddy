@@ -47,6 +47,9 @@ I thought, well there has to be an alternative to it, you can't just recommend p
 
 jokes aside, some of the performance-related concerns were also raised by codedamn (company) in [this](https://codedamn.com/news/product/dont-use-prisma) article.
 
+Now, let's say prisma fixed these issues tomorrow, maybe even they've already fixed it, i dont monitor their project closely...
+you just can't get away with having all the advantages of a SQL abstraction without having to deal with problems that arise due to abstracting away SQL.
+
 not only prisma, but almost every ORM suffers from problems like not being performant enough, not being comprehensive enough or being a black box that external users know very little about.
 
 throw in the impatient gippidy syntax searches of the modern age and you've got yourself a flaming red hot ball of garbage queries eating away too much compute & memory on either the database or on your $2500 nodejs/deno/bun/whatever-the-fuck-next-shiny-runtime-is-gonna-be k8s cluster.
