@@ -28,6 +28,7 @@ var cmd = &cobra.Command{
 	Aliases: []string{"inspectme"},
 	Short:   "prints the schema of a selected table in current database",
 	Run:     cmdRunFn,
+	Args:    cobra.MaximumNArgs(100),
 }
 
 func getColName(name string, pk bool) string {
@@ -55,6 +56,15 @@ func run(cmd *cobra.Command, args []string) {
 
 		if showAll {
 			selectedTables = dbStrTables
+		} else if len(args) > 0 {
+			for _, tableid := range dbStrTables {
+				_, tablename := libUtils.GetTableFromId(tableid)
+				for _, arg := range args {
+					if tablename == arg || tableid == arg {
+						selectedTables = append(selectedTables, tableid)
+					}
+				}
+			}
 		} else {
 			prompt := promptui.Select{
 				Label: "Choose table to display schema of",
