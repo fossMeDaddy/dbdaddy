@@ -118,6 +118,27 @@ func GetSQLFromDiffChanges(changes []types.MigAction) (string, error) {
 				}
 				sqlFile += sqlStr
 			}
+
+		// INDEX CHANGES
+		case types.EntityTypeIndex:
+			ind := change.Entity.Ptr.(*types.DbIndex)
+			tableid := libUtils.GetTableId(ind.Schema, ind.TableName)
+			if change.ActionType == types.ActionTypeDrop {
+				sqlStr, err := sqlwriter.GetDropIndexSQL(tableid, ind.Name)
+				if err != nil {
+					return sqlFile, err
+				}
+
+				sqlFile += sqlStr
+			} else {
+				sqlStr, err := sqlwriter.GetCreateIndexSQL(ind)
+				if err != nil {
+					return sqlFile, err
+				}
+
+				sqlFile += sqlStr
+			}
+
 		default:
 			skipNewLine = true
 		}

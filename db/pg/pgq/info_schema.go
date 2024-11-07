@@ -111,3 +111,58 @@ func QGetSequences() string {
 		where sequence_schema not in ('pg_catalog', 'information_schema')
 	`
 }
+
+func QGetIndexes(tableid string) string {
+	partialWhereClause := fmt.Sprintf("relnsp.nspname not in %s", constants.PgExcludedDbsSQLStr)
+	if len(tableid) > 0 {
+		schemaname, tablename := libUtils.GetTableFromId(tableid)
+		partialWhereClause = fmt.Sprintf("and relnsp.nspname = '%s' and relcls.relname = '%s'", schemaname, tablename)
+	}
+
+	return fmt.Sprintf(`
+		select distinct on (data.indexrelid)
+			data.*
+		from (
+			select
+				ind.indexrelid,
+				relnsp.nspname as table_schema,
+				relcls.relname as table_name,
+				indrelcls.relname as name,
+				ind.indnatts,
+				ind.indisunique,
+				ind.indnullsnotdistinct,
+				unnest(ind.indkey) as indkey,
+				pg_get_indexdef(ind.indexrelid) as syntax
+			from pg_index as ind
+
+		inner join pg_class as relcls on
+			relcls.oid = ind.indrelid
+		inner join pg_class as indrelcls on
+			indrelcls.oid = ind.indexrelid
+		inner join pg_namespace as relnsp on
+			relnsp.oid = relcls.relnamespace
+
+		where
+			ind.indisprimary = false and
+			ind.indisvalid = true and
+			ind.indislive = true and
+			ind.indisready = true and
+			
+			%s
+
+		) as data
+
+		left join information_schema.columns as infcol on
+			data.table_schema = infcol.table_schema and
+			data.table_name = infcol.table_name and
+			data.indkey = infcol.ordinal_position
+
+		left join pg_constraint as relcon on
+			data.indexrelid = relcon.conindid and
+			relcon.contype = 'u'
+
+		where relcon.conindid is NULL
+
+		order by data.indexrelid, data.indkey
+	`, partialWhereClause)
+}

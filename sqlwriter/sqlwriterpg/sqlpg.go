@@ -164,3 +164,17 @@ func GetATCreateConstraintSQL(tableid string, con *types.DbConstraint) string {
 
 	return sqlStmt
 }
+
+func GetDropIndexSQL(tableid, indexName string) string {
+	sqlStmt := fmt.Sprintf(`DROP INDEX %s RESTRICT;`, indexName)
+	sqlStmt += fmt.Sprintln()
+
+	return sqlStmt
+}
+
+func GetCreateIndexSQL(ind *types.DbIndex) string {
+	sqlStmt := ind.Syntax + ";"
+	sqlStmt += fmt.Sprintln()
+
+	return sqlStmt
+}

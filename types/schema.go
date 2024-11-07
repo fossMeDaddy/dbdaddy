@@ -17,6 +17,19 @@ type DbSequence struct {
 	Cycle       bool
 }
 
+type DbIndex struct {
+	Schema    string
+	TableName string
+	Name      string
+
+	NAttributes      int
+	IsUnique         bool
+	NullsNotDistinct bool
+	KeyCols          []int
+
+	Syntax string
+}
+
 type DbConstraint struct {
 	// on table
 	TableSchema string
@@ -61,6 +74,7 @@ type TableSchema struct {
 	ViewDefSyntax string // populated for only views
 	Columns       []Column
 	Constraints   []*DbConstraint
+	Indexes       []DbIndex
 }
 
 type Table struct {

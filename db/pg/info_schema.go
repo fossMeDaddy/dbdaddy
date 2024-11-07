@@ -253,7 +253,8 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		tableSchema.Columns = append(tableSchema.Columns, column)
 	}
 
-	wg.Add(1)
+	wg.Add(2)
+
 	var (
 		viewErr error
 	)
@@ -283,19 +284,59 @@ func GetDbSchema(schema, tablename string) (*types.DbSchema, error) {
 		}
 	})()
 
+	var (
+		indErr error
+	)
+	go (func() {
+		defer wg.Done()
+
+		indexQ := pgq.QGetIndexes(tableid)
+		rows, err := globals.DB.Query(indexQ)
+		if err != nil {
+			indErr = err
+			return
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			ind := types.DbIndex{}
+			indexrelid, indkey := 0, 0
+			if err := rows.Scan(
+				&indexrelid,
+				&ind.Schema,
+				&ind.TableName,
+				&ind.Name,
+				&ind.NAttributes,
+				&ind.IsUnique,
+				&ind.NullsNotDistinct,
+				&indkey,
+				&ind.Syntax,
+			); err != nil {
+				indErr = err
+				return
+			}
+			_ = indexrelid
+			_ = indkey
+
+			tableid := libUtils.GetTableId(ind.Schema, ind.TableName)
+			tableSchema := tableSchemaMapping[tableid]
+			tableSchema.Indexes = append(tableSchema.Indexes, ind)
+		}
+	})()
+
 	wg.Wait()
 
 	if typeErr != nil {
 		return dbSchema, typeErr
+	}
+	if indErr != nil {
+		return dbSchema, indErr
 	}
 	if seqErr != nil {
 		return dbSchema, seqErr
 	}
 	if conErr != nil {
 		return dbSchema, typeErr
-	}
-	if schemaErr != nil {
-		return dbSchema, schemaErr
 	}
 	if viewErr != nil {
 		return dbSchema, viewErr

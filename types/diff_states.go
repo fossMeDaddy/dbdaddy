@@ -22,6 +22,7 @@ const (
 	EntityTypeConstraint
 	EntityTypeView
 	EntityTypeSequence
+	EntityTypeIndex
 )
 
 func (e EntityType) String() string {
@@ -43,6 +44,9 @@ func (e EntityType) String() string {
 
 	case EntityTypeSequence:
 		return "SEQUENCE"
+
+	case EntityTypeIndex:
+		return "INDEX"
 
 	default:
 		return "UNKNOWN ENTITY"
@@ -115,6 +119,18 @@ func (e *Entity) GetEntityId() []string {
 			fmt.Sprint(seqEntity.IncrementBy),
 			fmt.Sprint(seqEntity.CacheSize),
 			fmt.Sprint(seqEntity.Cycle),
+		}
+
+	case EntityTypeIndex:
+		indEntity := e.Ptr.(*DbIndex)
+		e.Id = []string{
+			indEntity.Schema,
+			indEntity.TableName,
+			indEntity.Name,
+			fmt.Sprint(indEntity.NAttributes),
+			fmt.Sprint(indEntity.IsUnique),
+			fmt.Sprint(indEntity.NullsNotDistinct),
+			indEntity.Syntax,
 		}
 	}
 

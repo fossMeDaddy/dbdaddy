@@ -151,3 +151,21 @@ func GetATCreateConstraintSQL(tableid string, con *types.DbConstraint) (string, 
 		return "", errs.ErrUnsupportedDriver
 	}
 }
+
+func GetDropIndexSQL(tableid, indexName string) (string, error) {
+	switch getDriver() {
+	case constants.DbDriverPostgres:
+		return sqlwriterpg.GetDropIndexSQL(tableid, indexName), nil
+	default:
+		return "", errs.ErrUnsupportedDriver
+	}
+}
+
+func GetCreateIndexSQL(ind *types.DbIndex) (string, error) {
+	switch getDriver() {
+	case constants.DbDriverPostgres:
+		return sqlwriterpg.GetCreateIndexSQL(ind), nil
+	default:
+		return "", nil
+	}
+}
