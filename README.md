@@ -2,7 +2,7 @@
 
 A simple database management CLI tool.
 
-safe for production use when version = `v1.0.0`
+safe for production use when version = `1.0.0`
 
 stable enough for development DB use, NOW.
 
@@ -14,8 +14,15 @@ no windows.
 why windows?
 
 dont use windows.
+
+LATEST VERSION:
 ```
 curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | bash
+```
+
+To install a specific version from the past add a `VERSION` shell variable before the bash command. Look for available releases in the releases tab.
+```
+curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | VERSION=v0.5.1 bash
 ```
 
 having doubts about installing a random binary from the internet? here's a remark from the author that might help:
@@ -40,9 +47,16 @@ I thought, well there has to be an alternative to it, you can't just recommend p
 
 jokes aside, some of the performance-related concerns were also raised by codedamn (company) in [this](https://codedamn.com/news/product/dont-use-prisma) article.
 
-this problem arises when you create leaky abstractions, over things that shouldn't have been abstracted in the first place.
+Now, let's say prisma fixed these issues tomorrow, maybe even they've already fixed it, i dont monitor their project closely...
+you just can't get away with having all the advantages of a SQL abstraction without having to deal with problems that arise due to abstracting away SQL.
 
-what do you need when working with databases?
+not only prisma, but almost every ORM suffers from problems like not being performant enough, not being comprehensive enough or being a black box that external users know very little about.
+
+throw in the impatient gippidy syntax searches of the modern age and you've got yourself a flaming red hot ball of garbage queries eating away too much compute & memory on either the database or on your $2500 nodejs/deno/bun/whatever-the-fuck-next-shiny-runtime-is-gonna-be k8s cluster.
+
+zooming out for a second...
+
+what do you really need when working with databases?
 1. a tool that gives you a good enough interface to do backups, migrations, custom one-off queries, etc. on the databases
 2. efficient SQL to query the data
 3. compile-time guard-rails when writing SQL
@@ -173,3 +187,11 @@ HAPPY DATABASING!
 
 > NOTE:
 > the tutorial in the quickstart guide covers only a subset of all the important commands, for more detailed info, please run `dbdaddy <COMMAND> --help` and `dbdaddy help <COMMAND>`
+
+## Contributing Guide
+
+contributors are advised to kindly turn off their fucking copilot :)
+
+---
+
+security audit will start after `1.0.0`, expect common & obvious security bugs to be fixed by `1.1.0`
