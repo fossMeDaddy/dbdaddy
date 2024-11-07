@@ -219,6 +219,8 @@ func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 			)
 		} else {
 			// MODIFICATION GOES HERE
+			// actually in most cases this code branch won't even reach
+			// as diff keys are HIGHLY SPECIFIC
 		}
 	}
 
