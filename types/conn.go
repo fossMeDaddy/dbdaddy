@@ -8,7 +8,7 @@ type ConnConfig struct {
 	Password string            `json:"password"`
 	Host     string            `json:"host"`
 	Port     string            `json:"port"`
-	Database string            `json:"dbname"`
+	Database string            `json:"database"`
 	Params   map[string]string `json:"params"`
 }
 

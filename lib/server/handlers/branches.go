@@ -12,7 +12,7 @@ import (
 )
 
 func HandleGetBranches(c *fiber.Ctx) error {
-	dbs, err := db_int.GetExistingDbs()
+	dbs, err := db_int.GetExistingDbs(false)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func HandlePutCurrentBranch(c *fiber.Ctx) error {
 	}
 
 	connConfig := types.ConnConfig{}
-	if err := viper.UnmarshalKey(constants.DbConfigConnSubkey, &connConfig); err != nil {
+	if err := viper.UnmarshalKey(constants.DbConfigConnKey, &connConfig); err != nil {
 		return err
 	}
 	connConfig.Database = reqBody.BranchName

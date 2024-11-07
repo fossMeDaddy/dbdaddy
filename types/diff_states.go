@@ -3,23 +3,55 @@ package types
 import "fmt"
 
 type ActionType string
-type EntityType string
 type StateTag string
 
 const (
 	ActionTypeCreate ActionType = "CREATE"
 	ActionTypeDrop   ActionType = "DROP"
 
-	EntityTypeSchema     EntityType = "SCHEMA"
-	EntityTypeTable      EntityType = "TABLE"
-	EntityTypeColumn     EntityType = "COLUMN"
-	EntityTypeConstraint EntityType = "CONST"
-	EntityTypeView       EntityType = "VIEW"
-	EntityTypeSequence   EntityType = "SEQ"
-
 	StateTagCS StateTag = "CS"
 	StateTagPS StateTag = "PS"
 )
+
+type EntityType int
+
+const (
+	EntityTypeSchema EntityType = iota
+	EntityTypeTable
+	EntityTypeColumn
+	EntityTypeConstraint
+	EntityTypeView
+	EntityTypeSequence
+	EntityTypeIndex
+)
+
+func (e EntityType) String() string {
+	switch e {
+	case EntityTypeSchema:
+		return "SCHEMA"
+
+	case EntityTypeTable:
+		return "TABLE"
+
+	case EntityTypeColumn:
+		return "COLUMN"
+
+	case EntityTypeConstraint:
+		return "CONSTRAINT"
+
+	case EntityTypeView:
+		return "VIEW"
+
+	case EntityTypeSequence:
+		return "SEQUENCE"
+
+	case EntityTypeIndex:
+		return "INDEX"
+
+	default:
+		return "UNKNOWN ENTITY"
+	}
+}
 
 type MigAction struct {
 	ActionType ActionType
@@ -52,7 +84,7 @@ func (e *Entity) GetEntityId() []string {
 		e.Id = []string{schemaEntity.Name}
 	case EntityTypeTable, EntityTypeView:
 		tableEntity := e.Ptr.(*TableSchema)
-		e.Id = []string{tableEntity.Schema, tableEntity.Name, tableEntity.DefSyntax}
+		e.Id = []string{tableEntity.Schema, tableEntity.Name, tableEntity.ViewDefSyntax}
 	case EntityTypeColumn:
 		colEntity := e.Ptr.(*Column)
 		e.Id = []string{
@@ -87,6 +119,18 @@ func (e *Entity) GetEntityId() []string {
 			fmt.Sprint(seqEntity.IncrementBy),
 			fmt.Sprint(seqEntity.CacheSize),
 			fmt.Sprint(seqEntity.Cycle),
+		}
+
+	case EntityTypeIndex:
+		indEntity := e.Ptr.(*DbIndex)
+		e.Id = []string{
+			indEntity.Schema,
+			indEntity.TableName,
+			indEntity.Name,
+			fmt.Sprint(indEntity.NAttributes),
+			fmt.Sprint(indEntity.IsUnique),
+			fmt.Sprint(indEntity.NullsNotDistinct),
+			indEntity.Syntax,
 		}
 	}
 

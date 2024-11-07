@@ -1,4 +1,4 @@
-package sqlpg
+package sqlwriterpg
 
 import (
 	"fmt"
@@ -115,7 +115,7 @@ func GetCreateViewSQL(viewSchema *types.TableSchema) string {
 	sqlStmt += fmt.Sprintln()
 
 	// in pg, apparently the viewdef has a semi-colon
-	sqlStmt += viewSchema.DefSyntax
+	sqlStmt += viewSchema.ViewDefSyntax
 	sqlStmt += fmt.Sprintln()
 
 	return sqlStmt
@@ -160,6 +160,20 @@ func GetATCreateConstraintSQL(tableid string, con *types.DbConstraint) string {
 
 	sqlStmt += constants.MigFileIndentation
 	sqlStmt += fmt.Sprintf(`ADD CONSTRAINT "%s" %s;`, con.ConName, con.Syntax)
+	sqlStmt += fmt.Sprintln()
+
+	return sqlStmt
+}
+
+func GetDropIndexSQL(tableid, indexName string) string {
+	sqlStmt := fmt.Sprintf(`DROP INDEX %s RESTRICT;`, indexName)
+	sqlStmt += fmt.Sprintln()
+
+	return sqlStmt
+}
+
+func GetCreateIndexSQL(ind *types.DbIndex) string {
+	sqlStmt := ind.Syntax + ";"
 	sqlStmt += fmt.Sprintln()
 
 	return sqlStmt

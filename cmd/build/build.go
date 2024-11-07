@@ -1,51 +1,25 @@
 package main
 
 import (
-	"sync"
+	"os"
 
 	"github.com/fossmedaddy/dbdaddy/cmd/utils"
 )
 
 func main() {
-	var wg sync.WaitGroup
+	args := os.Args[1:]
+	if len(args) > 1 {
+		panic("invalid number of args given, expected: <=1")
+	}
 
-	wg.Add(8)
+	currentV := utils.GetCurrentVersion()
+	if len(args) == 1 {
+		if v, err := utils.NewVersion(args[0]); err != nil {
+			panic("error occured in parsing version argument. " + err.Error())
+		} else {
+			currentV = v.String()
+		}
+	}
 
-	go (func() {
-		defer wg.Done()
-		utils.Build("linux", "arm64")
-	})()
-	go (func() {
-		defer wg.Done()
-		utils.Build("linux", "amd64")
-	})()
-	go (func() {
-		defer wg.Done()
-		utils.Build("linux", "386")
-	})()
-
-	go (func() {
-		defer wg.Done()
-		utils.Build("darwin", "arm64")
-	})()
-	go (func() {
-		defer wg.Done()
-		utils.Build("darwin", "amd64")
-	})()
-
-	go (func() {
-		defer wg.Done()
-		utils.Build("windows", "amd64")
-	})()
-	go (func() {
-		defer wg.Done()
-		utils.Build("windows", "386")
-	})()
-
-	go (func() {
-		defer wg.Done()
-		utils.Build("freebsd", "amd64")
-	})()
-
-	wg.Wait()
+	utils.BuildAllTargets(currentV)
 }

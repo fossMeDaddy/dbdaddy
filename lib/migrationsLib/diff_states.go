@@ -18,11 +18,12 @@ var (
 	// dropping order
 	entityTypeSortingOrder = map[types.EntityType]int{
 		types.EntityTypeView:       1,
-		types.EntityTypeConstraint: 2,
-		types.EntityTypeColumn:     3,
-		types.EntityTypeTable:      4,
-		types.EntityTypeSequence:   5,
-		types.EntityTypeSchema:     6,
+		types.EntityTypeIndex:      2,
+		types.EntityTypeConstraint: 3,
+		types.EntityTypeColumn:     4,
+		types.EntityTypeTable:      5,
+		types.EntityTypeSequence:   6,
+		types.EntityTypeSchema:     7,
 	}
 
 	conSortingOrder = map[string]int{
@@ -69,11 +70,12 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 		seqDiffKeysConcat = append(seqDiffKeysConcat, getDiffKey(&seq, types.EntityTypeSequence, types.StateTagPS))
 	}
 
-	// TABLE, VIEW, CONSTRAINT & COL KEYS
+	// TABLE, VIEW, CONSTRAINT, INDEX & COL KEYS
 	conDiffKeysConcat := []types.DiffKey{}
 	tableDiffKeysConcat := []types.DiffKey{}
 	viewDiffKeysConcat := []types.DiffKey{}
 	colDiffKeysConcat := []types.DiffKey{}
+	indexDiffKeysConcat := []types.DiffKey{}
 
 	currentStateMaxI := len(maps.Keys(currentState.Tables)) + len(maps.Keys(currentState.Views))
 	for i, dbTableMapKey := range slices.Concat(
@@ -121,6 +123,10 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 		for _, con := range dbTable.Constraints {
 			conDiffKeysConcat = append(conDiffKeysConcat, getDiffKey(con, types.EntityTypeConstraint, tableStateTag))
 		}
+
+		for _, ind := range dbTable.Indexes {
+			indexDiffKeysConcat = append(indexDiffKeysConcat, getDiffKey(&ind, types.EntityTypeIndex, tableStateTag))
+		}
 	}
 
 	diffKeys := slices.Concat(
@@ -130,6 +136,7 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 		viewDiffKeysConcat,
 		colDiffKeysConcat,
 		conDiffKeysConcat,
+		indexDiffKeysConcat,
 	)
 
 	// TODO: not using binary search, use it in future
@@ -212,6 +219,8 @@ func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 			)
 		} else {
 			// MODIFICATION GOES HERE
+			// actually in most cases this code branch won't even reach
+			// as diff keys are HIGHLY SPECIFIC
 		}
 	}
 
@@ -249,6 +258,18 @@ func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 
 				newActions = append(newActions, action)
 			}
+
+		case types.EntityTypeIndex:
+			for _, action := range actions {
+				ind := action.Entity.Ptr.(*types.DbIndex)
+				tableChange := tableChangesMapping[libUtils.GetTableId(ind.Schema, ind.TableName)]
+				if tableChange != nil && tableChange.ActionType == types.ActionTypeDrop {
+					continue
+				}
+
+				newActions = append(newActions, action)
+			}
+
 		default:
 			newActions = actions
 		}

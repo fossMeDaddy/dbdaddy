@@ -19,13 +19,13 @@ func QGetConstraints(tableid string) string {
 
 	return fmt.Sprintf(`
         select
-			relcon.conname,
-			relconnsp.nspname as connamespace,
-			relcon.contype,
-			relcon.confupdtype,
-			relcon.confdeltype,
-			pg_get_constraintdef(relcon.oid, true) as syntax,
-			infcol.table_schema,
+	    relcon.conname,
+	    relconnsp.nspname as connamespace,
+	    relcon.contype,
+	    relcon.confupdtype,
+	    relcon.confdeltype,
+	    pg_get_constraintdef(relcon.oid, true) as syntax,
+	    infcol.table_schema,
             infcol.table_name,
             infcol.column_name as column_name,
 			CASE
@@ -39,10 +39,14 @@ func QGetConstraints(tableid string) string {
             CASE
                 WHEN f_relfcol.column_name IS NULL then ''
                 ELSE f_relfcol.column_name
-            END as foreign_column_name
+            END as foreign_column_name,
+	    CASE
+		WHEN cardinality(relcon.conkey) > 1 THEN true
+		ELSE false
+	    END as multi_col_constraint
         from information_schema.columns infcol
 
-		inner join pg_namespace as relnsp on infcol.table_schema = relnsp.nspname
+	inner join pg_namespace as relnsp on infcol.table_schema = relnsp.nspname
         inner join pg_class as relcls on
             relcls.relname = infcol.table_name and
             relcls.relnamespace = relnsp.oid
@@ -53,7 +57,7 @@ func QGetConstraints(tableid string) string {
             relcon.contype in ('p', 'f', 'c', 'u')
 		inner join pg_namespace as relconnsp on relcon.connamespace = relconnsp.oid
 
-		-- FOREIGN KEYS START --
+	-- FOREIGN KEYS START --
         left join pg_class as f_relcls on relcon.conrelid = f_relcls.oid
         left join pg_namespace as f_relnsp on relcon.connamespace = f_relnsp.oid
 

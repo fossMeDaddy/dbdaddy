@@ -7,10 +7,13 @@ vet:
 	go vet cmd/main/main.go $(ARGS)
 
 build:
-	go run cmd/build/build.go
+	go run cmd/build/build.go $(ARGS)
 
 release:
 	go run cmd/release/release.go
+
+manrelease:
+	go run cmd/manrelease/manrelease.go $(ARGS)
 
 get_version:
 	go run cmd/version/version.go

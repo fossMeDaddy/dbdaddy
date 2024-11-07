@@ -28,6 +28,7 @@ var cmd = &cobra.Command{
 	Aliases: []string{"inspectme"},
 	Short:   "prints the schema of a selected table in current database",
 	Run:     cmdRunFn,
+	Args:    cobra.MaximumNArgs(100),
 }
 
 func getColName(name string, pk bool) string {
@@ -36,26 +37,6 @@ func getColName(name string, pk bool) string {
 	}
 
 	return name
-}
-
-func getConstraintString(constraints []*types.DbConstraint) string {
-	conStr := ""
-	if len(constraints) == 0 {
-		return conStr
-	}
-
-	for _, con := range constraints {
-		switch con.Type {
-		case "f":
-			conStr += fmt.Sprintf("FK(%s.%s.%s)", con.FTableSchema, con.FTableName, con.FColName)
-		case "u":
-			conStr += "UNIQUE"
-		case "c":
-			conStr += strings.ReplaceAll(con.Syntax, fmt.Sprintln(), " ")
-		}
-	}
-
-	return conStr
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -75,6 +56,15 @@ func run(cmd *cobra.Command, args []string) {
 
 		if showAll {
 			selectedTables = dbStrTables
+		} else if len(args) > 0 {
+			for _, tableid := range dbStrTables {
+				_, tablename := libUtils.GetTableFromId(tableid)
+				for _, arg := range args {
+					if tablename == arg || tableid == arg {
+						selectedTables = append(selectedTables, tableid)
+					}
+				}
+			}
 		} else {
 			prompt := promptui.Select{
 				Label: "Choose table to display schema of",
@@ -93,7 +83,7 @@ func run(cmd *cobra.Command, args []string) {
 			selectedTables = append(selectedTables, result)
 		}
 
-		dbSchema, err := db_int.GetDbSchema(currBranch)
+		dbSchema, err := db_int.GetDbSchema()
 		if err != nil {
 			return err
 		}

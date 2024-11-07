@@ -8,16 +8,9 @@ import (
 	"github.com/fossmedaddy/dbdaddy/types"
 )
 
-func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []types.MigAction) (string, error) {
+func GetSQLFromDiffChanges(changes []types.MigAction) (string, error) {
 	skipNewLine := false
-
 	sqlFile := ""
-	disableConstSqlStr, err := sqlwriter.GetDisableConstSQL()
-	if err != nil {
-		return sqlFile, err
-	}
-	sqlFile += fmt.Sprintln(disableConstSqlStr)
-	sqlFile += fmt.Sprintln()
 
 	for _, change := range changes {
 		switch change.Entity.Type {
@@ -90,7 +83,7 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 				sqlFile += sqlStr
 			}
 
-		// CREATE VIEW
+		// CREATE/DROP VIEW
 		case types.EntityTypeView:
 			viewSchema := change.Entity.Ptr.(*types.TableSchema)
 			viewid := libUtils.GetTableId(viewSchema.Schema, viewSchema.Name)
@@ -125,6 +118,27 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 				}
 				sqlFile += sqlStr
 			}
+
+		// INDEX CHANGES
+		case types.EntityTypeIndex:
+			ind := change.Entity.Ptr.(*types.DbIndex)
+			tableid := libUtils.GetTableId(ind.Schema, ind.TableName)
+			if change.ActionType == types.ActionTypeDrop {
+				sqlStr, err := sqlwriter.GetDropIndexSQL(tableid, ind.Name)
+				if err != nil {
+					return sqlFile, err
+				}
+
+				sqlFile += sqlStr
+			} else {
+				sqlStr, err := sqlwriter.GetCreateIndexSQL(ind)
+				if err != nil {
+					return sqlFile, err
+				}
+
+				sqlFile += sqlStr
+			}
+
 		default:
 			skipNewLine = true
 		}
@@ -133,13 +147,6 @@ func GetSQLFromDiffChanges(currentState, prevState *types.DbSchema, changes []ty
 			sqlFile += fmt.Sprintln()
 		}
 	}
-
-	sqlStr, err := sqlwriter.GetEnableConstSQL()
-	if err != nil {
-		return sqlFile, err
-	}
-	sqlFile += sqlStr
-	sqlFile += fmt.Sprintln()
 
 	return sqlFile, nil
 }

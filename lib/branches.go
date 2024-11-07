@@ -42,7 +42,7 @@ func NewBranchFromCurrent(dbname string, onlySchema bool) error {
 
 	configFilePath, _ := libUtils.FindConfigFilePath()
 	dumpFilePath := path.Join(
-		libUtils.GetDriverDumpDir(configFilePath, viper.GetString(constants.DbConfigDriverKey)),
+		libUtils.GetDriverDumpDir(configFilePath, globals.CurrentConnConfig.Driver),
 		libUtils.GetDumpFileName(viper.GetString(constants.DbConfigCurrentBranchKey)),
 	)
 
