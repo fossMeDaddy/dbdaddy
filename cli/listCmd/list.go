@@ -11,6 +11,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	showHiddenFlag bool
+)
+
 var cmdRunFn = middlewares.Apply(run, middlewares.CheckConnection)
 
 var cmd = &cobra.Command{
@@ -23,7 +27,7 @@ var cmd = &cobra.Command{
 func run(cmd *cobra.Command, args []string) {
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 
-	dbs, err := db_int.GetExistingDbs(false)
+	dbs, err := db_int.GetExistingDbs(showHiddenFlag)
 	if err != nil {
 		cmd.PrintErrln("Unexpected error occured!\n" + err.Error())
 		return
@@ -42,6 +46,7 @@ func run(cmd *cobra.Command, args []string) {
 
 func Init() *cobra.Command {
 	// add flags
+	cmd.Flags().BoolVarP(&showHiddenFlag, "show-hidden", "s", false, "Show hidden databases")
 
 	return cmd
 }
