@@ -82,10 +82,10 @@ Here are some features the CLI covers (PG only, for now)
 - restoring databases
 - executing raw SQL queries & exporting queries as formatted readable text & CSV
 - SQL migration file generation between schema changes
+- schema definition, introspection and updating from SQL syntax directly in DB
 
 In Progress:
-- **schema definition in dbdaddy projects**
-- **push/pull commands and merging migrations**
+- **tracking & merging migrations** and new database branches in a graph, making them truly "branches"
 
 Planned:
 - **studio UI for my fellow soydevs**, because these days nobody with a $1000 clerk subscription seems to use a CLI for more than 10s
@@ -104,61 +104,63 @@ from your database & then re-create it with SQL column definition such that the 
 
 ## Quickstart Guide
 
-The CLI requires a config file: `dbdaddy.config.json` to connect with your database. It has connection credentials like host, port, params, user, password, etc.
+the CLI requires a config file: `dbdaddy.config.json` to connect with your database. It has connection credentials like host, port, params, user, password, etc.
 
-When you first install & run `dbdaddy` it asks you for a connection uri, if not provided, default PostgreSQL credentials are used that can be changed later at any point in time.
+when you first install & run `dbdaddy` it asks you for a connection uri, if not provided, default PostgreSQL credentials are used that can be changed later at any point in time.
 
 `dbdaddy` handles multiple databases on your database server as "branches", there is always a "current branch"
 on which you perform read/write operations like `inspect`ing the schema, `exec`uting SQL statements, etc.
 
-You can `checkout` (change current branch) to different branches with the below command.
+you can `checkout` (change current branch) to different branches with the below command.
 
 ```
 dbdaddy checkout postgres2
 ```
 
-To create a new branch, copy the contents of the current branch into the new branch and checkout into it, use `checkout` with `-n`/`--new` option:
+to create a new branch, copy the contents of the current branch into the new branch and checkout into it, use `checkout` with `-n`/`--new` option:
 
 ```
 dbdaddy checkout -n my_new_db
 ```
 
-Creating a new empty branch independent of the current branch and checking out into it looks like this (using `-c`/`--clean` option combined with `-n` option):
+creating a new empty branch independent of the current branch and checking out into it looks like this (using `-c`/`--clean` option combined with `-n` option):
 
 ```
 dbdaddy checkout -nc my_fresh_new_db
 ```
 
-Let's take an example scenario:
+### Trivial scenario
 
-Your friend gave you [this pg dump file](https://gist.github.com/fossMeDaddy/60c45d0b595d9167a3bd7556c1c31332), you'd like to create a table and give it back to them, let's see how you can do this with `dbdaddy`
+let's take an example scenario:
 
-Create a new database & checkout into it
+your friend gave you [this pg dump file](https://gist.github.com/fossMeDaddy/60c45d0b595d9167a3bd7556c1c31332), you'd like to create a table and give it back to them, let's see how you can do this with `dbdaddy`
+
+create a new database & checkout into it
 ```
 dbdaddy checkout -nc friends_with_dbs
 ```
 
 > NOTE:
-> In case, `dbdaddy` hasn't been set up on your machine, you will be asked to input your local/dev database connection uri before your command is processed.
+> in case, `dbdaddy` hasn't been set up on your machine, you will be asked to input your local/dev database connection uri before your command is processed.
 
-Run the restore command with a file option
+run the restore command with a file option
 ```
 dbdaddy restore --file /path/to/dump
 ```
-This will execute & restore the dump in the current branch.
+this will execute & restore the dump in the current branch.
 
-This should've restored your newly created database with your friend's dump (if I didn't fuck up).
+this should've restored your newly created database with your friend's dump (if I didn't fuck up).
 
-Now that you both have the same DB state, let's inspect it
+now that you both have the same DB state, let's inspect it
 ```
 dbdaddy inspect --all
 ```
 > NOTE:
 > `--all` option prints everything, without this option, you're provided a searchable prompt to pick out a table/view and inspect its schema
 
-After inspecting through all the tables, you can't see the table `person` which is very important for very valid reasons in this sample e-commerce db schema and not just for this tutorial.
+after inspecting through all the tables, you can't see the table `person` which is very important for very valid reasons in this sample e-commerce db schema and not just for this tutorial.
 
-Let's write a SQL script!
+let's write a SQL script!
 ```sql
 -- FILE: ./create_person.sql
 CREATE TABLE person (
@@ -168,20 +170,372 @@ CREATE TABLE person (
 );
 ```
 
-Executing the sql script, this should run successfully (again, if I didn't fuck up)
+executing the sql script, this should run successfully (again, if I didn't fuck up)
 ```
 dbdaddy exec ./create_person.sql
 ```
 
-Running `inspect --all` again, (hopefully) there you have it! a newly created `person` table.
+running `inspect --all` again, (hopefully) there you have it! a newly created `person` table.
 
-Now run `dumpme`
+now run `dumpme`
 ```
 dbdaddy dumpme
 ```
 This will (hopefully) take a backup of your current branch and store it at a central location for all dumps near the JSON config file for future easy searching/finding.
 
 The absolute path to this dump is also printed to the console, so you can find it and send it to your friend.
+
+### Advanced scenario
+
+in this fantasy scene, we will create a table, later find out that one of its columns has a typo, and alter the table.
+(demonstrates usual db operations we do on our databases)
+
+let's first `init`ialize a workspace (or project) in dbdaddy.
+
+```bash
+$ mkdir ecom_project
+$ cd ecom_project
+
+$ dbdaddy init postgresql://postgres:postgres@127.0.0.1:5432/ecom
+
+database schema introspected successfully, explore directory '/Users/REDACTED_HEHE/tmp/ecom_project/schema' to know more
+Created project at: /Users/REDACTED_HEHE/tmp/ecom_project
+run 'help init' to know more about each of the newly created directories.
+happy databasing!
+```
+
+`init` takes in a connection uri to the database and creates a bunch of useful directories in CWD.
+
+- `migrations` - stores migration files (duh...)
+- `schema` - contains SQL files containing table & column definitions synced with DB via `schema push` & `schema pull` commands
+- `scripts` - add scripts here and run them directly with `dbdaddy exec myscript` (scripts/myscript.sql)
+
+before building the project structure, your database uri is tested against a DB ping query.
+if successful, my super smart CLI will introspect your existing database schema and pull it into the `schema/schema.sql` file.
+
+```bash
+$ tree
+
+.
+├── dbdaddy.config.json
+├── migrations
+├── schema
+│   └── schema.sql
+└── scripts
+
+4 directories, 2 files
+```
+
+hmmmmmmm... would you look at that! it works! (sorry... js dev... surprised at any & all working software...)
+
+the "schema.sql" file under the schema directory looks something like this:
+
+```sql
+CREATE SCHEMA IF NOT EXISTS "public";
+...
+CREATE SEQUENCE IF NOT EXISTS "public"."users_user_id_seq"
+    AS integer
+    INCREMENT BY 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    START WITH 1
+    CACHE 1
+    NO CYCLE;
+...
+CREATE TABLE "public"."users" (
+    "user_id" int4 DEFAULT nextval('users_user_id_seq'::regclass) NOT NULL,
+    "username" varchar(50) NOT NULL,
+    "email" varchar(100) NOT NULL,
+    "password_hash" varchar(255) NOT NULL,
+    "phone_number" varchar(15),
+    "created_at" timestamp DEFAULT CURRENT_TIMESTAMP
+);
+...
+```
+
+let's add a useless table now:
+
+```sql
+-- schema/new_table_products.sql
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  descriptio TEXT, ----------------> skillfully planted typo
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+pushing the changes to DB:
+
+```bash
+$ dbdaddy schema push
+
+WARNING: you are not at the latest migration, this is dangerous for your database, it is advised to run this operation from latest migration
+invalid operation not allowed
+```
+
+huh... look at that! because the previous "state" of the database schema wasn't saved, it won't let us push changes.
+migrating the database after each change helps us revert easily to the previous database schema state :)
+
+let's do as it says:
+
+```bash
+$ dbdaddy migrations generate
+
+migration SQL generated successfully.
+```
+
+as expected, it works... (man i am on fire today!)
+
+looking at the project structure, there are a few changes that have been made by the commands we ran above:
+
+```bash
+$ tree
+
+.
+├── dbdaddy.config.json
+├── migrations
+│   └── ecom
+│       ├── 00000
+│       │   ├── info.md
+│       │   ├── state.json
+│       │   └── up.sql
+│       └── 00001
+│           ├── down.sql
+│           ├── info.md
+│           └── state.json
+├── schema
+│   ├── new_table_products.sql
+│   └── schema.sql
+└── scripts
+
+7 directories, 9 files
+```
+
+_`migrations` directory doesn't make sense_
+
+let me break to down for ya!
+
+```bash
+$ dbdaddy migrations status
+
+Database: ecom
+database schema on latest migration change.
+
+Available migrations:
+1. 00000
+2. 00001 <--- you are here
+
+## Changes summary:
+- CREATE SCHEMA [public]
+- CREATE SEQUENCE [public orders_order_id_seq integer]
+- CREATE SEQUENCE [public payments_payment_id_seq integer]
+- CREATE SEQUENCE [public user_addresses_address_id_seq integer]
+- CREATE SEQUENCE [public users_user_id_seq integer]
+- CREATE TABLE [public orders ]
+- CREATE TABLE [public payments ]
+- CREATE TABLE [public user_addresses ]
+- CREATE TABLE [public users ]
+- CREATE CONSTRAINT [p public orders_pkey]
+- CREATE CONSTRAINT [p public users_pkey]
+- CREATE CONSTRAINT [p public user_addresses_pkey]
+- CREATE CONSTRAINT [p public payments_pkey]
+- CREATE CONSTRAINT [u public users_username_key]
+- CREATE CONSTRAINT [u public users_email_key]
+- CREATE CONSTRAINT [u public user_addresses_user_id_address_line_1_postal_code_key]
+- CREATE CONSTRAINT [c public payments_payment_method_check]
+- CREATE CONSTRAINT [c public users_username_check]
+- CREATE CONSTRAINT [c public users_phone_number_check]
+- CREATE CONSTRAINT [c public users_email_check]
+- CREATE CONSTRAINT [c public payments_payment_status_check]
+- CREATE CONSTRAINT [c public payments_amount_check]
+- CREATE CONSTRAINT [c public orders_total_amount_check]
+- CREATE CONSTRAINT [c public orders_order_status_check]
+- CREATE CONSTRAINT [f public user_addresses_user_id_fkey]
+- CREATE CONSTRAINT [f public payments_order_id_fkey]
+- CREATE CONSTRAINT [f public orders_user_id_fkey]
+- CREATE CONSTRAINT [f public orders_address_id_fkey]
+```
+
+it will help if you start thinking of migrations as "commits" as in a git commit. every "commit" in the `migrations` directory
+has it's own directory with a serial number representing the sequence of applying those "commits".
+
+now, when your database is at one of these available commits, you can either go up or down.
+
+applying the `up.sql` of a commit would send you to the next commit and applying `down.sql` of a commit would send you to the previous commit.
+
+our application is at state `00001` currently, in the corresponding `migrations/ecom/00001` directory, you'd find 3 files:
+
+- `down.sql` - apply this sql file in your DB to go the the `00000` commit
+- `info.md` - provided by you OR auto-generated at the time of running `migrations generate` to help you remember what changes occured in this commit (kinda like commit message)
+- `state.json` - please don't touch this or the entire thing would blow up. pretty please...
+
+okay! let's try pushing our new table changes to DB now:
+
+```bash
+$ dbdaddy schema push
+
+pushed schema successfully.
+```
+
+nice! inspecting the database now with `dbdaddy inspect` we can see `products` table there:
+
+```bash
+$ dbdaddy inspect
+
+✔ public.products
+--- TABLE: public.products
+CREATE TABLE "public"."products" (
+    "id" int4 DEFAULT nextval('products_id_seq'::regclass) NOT NULL,
+    "name" varchar(255) NOT NULL,
+    "price" numeric(10,2) NOT NULL,
+    "descriptio" text,      -------------------------------> look that! there is our cute little typo, never been this happy to a see a typo :)
+    "created_at" timestamp DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE "public"."products"
+    ADD CONSTRAINT "products_pkey" PRIMARY KEY (id);
+```
+
+one more thing, because `schema push` command modifies the database schema, it also auto-generates a migration (aka commit)
+for it's changes. we can see this on running `migrations status`
+
+```bash
+$ dbdaddy migrations status
+
+Database: ecom
+database schema on latest migration change.
+
+Available migrations:
+1. 00000
+2. 00001
+3. 00002 <--- you are here
+
+## Changes summary:
+- CREATE SEQUENCE [public products_id_seq integer]
+- CREATE TABLE [public products ]
+- CREATE CONSTRAINT [p public products_pkey]
+```
+
+let's try to fix our typo now:
+
+```sql
+-- schema/new_table_products.sql
+
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  description TEXT, ------------------------> fixed!
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+push the schema:
+
+```
+$ dbdaddy schema push
+
+pushed schema successfully.
+```
+
+checking migration status, we can see our changes were applied and the column was updated:
+
+```bash
+$ dbdaddy migrations status
+
+Database: ecom
+database schema on latest migration change.
+
+Available migrations:
+1. 00000
+2. 00001
+3. 00002
+4. 00003 <--- you are here
+
+## Changes summary:
+- DROP COLUMN [public products descriptio]
+- CREATE COLUMN [public products description]
+```
+
+but... butt... what if we actually _wanted_ that typo?
+
+there are 2 ways for that:
+1. we can change the schema and run `schema push`
+2. or we can use the `migrations` command to revert the change
+
+let's see how we can do that:
+
+```bash
+$ dbdaddy migrations down
+
+Down migration ran successfully.
+Currently at migration state: 00002
+
+$ dbdaddy migrations status
+
+Database: ecom
+
+Available migrations:
+1. 00000
+2. 00001
+3. 00002 <--- you are here
+4. 00003
+
+## Changes summary:
+- CREATE SEQUENCE [public products_id_seq integer]
+- CREATE TABLE [public products ]
+- CREATE CONSTRAINT [p public products_pkey]
+
+$ dbdaddy inspect
+
+✔ public.products
+--- TABLE: public.products
+CREATE TABLE "public"."products" (
+    "id" int4 DEFAULT nextval('products_id_seq'::regclass) NOT NULL,
+    "name" varchar(255) NOT NULL,
+    "price" numeric(10,2) NOT NULL,
+    "created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+    "descriptio" text
+);
+
+ALTER TABLE "public"."products"
+    ADD CONSTRAINT "products_pkey" PRIMARY KEY (id);
+```
+
+how about that!
+
+but wait, if we're not at the latest migration, CLI won't allow us to make any changes to the database schema.
+to set the currently selected migration (`00002`), just do `migrations reset` and it will be like `00003` (change "descriptio" -> "description") never happened.
+
+```
+$ dbdaddy migrations reset
+
+performed reset, removed migrations:
+[/Users/REDACTED_HEHE/ecom_project/migrations/ecom/00003]
+
+latest migration: /Users/REDACTED_HEHE/ecom_project/migrations/ecom/00002
+
+$ dbdaddy migrations status
+
+Database: ecom
+database schema on latest migration change.
+
+Available migrations:
+1. 00000
+2. 00001
+3. 00002 <--- you are here
+
+## Changes summary:
+- CREATE SEQUENCE [public products_id_seq integer]
+- CREATE TABLE [public products ]
+- CREATE CONSTRAINT [p public products_pkey]
+```
+
+and that my friend, concludes the advanced tutorial :)
+
+feel free to shoot any queries in the issues tab!
 
 HAPPY DATABASING!
 
