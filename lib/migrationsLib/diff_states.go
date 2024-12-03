@@ -77,7 +77,7 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 	colDiffKeysConcat := []types.DiffKey{}
 	indexDiffKeysConcat := []types.DiffKey{}
 
-	currentStateMaxI := len(maps.Keys(currentState.Tables)) + len(maps.Keys(currentState.Views))
+	currentStateMaxI := len(maps.Keys(currentState.Tables)) + len(maps.Keys(currentState.Views)) - 1
 	for i, dbTableMapKey := range slices.Concat(
 		maps.Keys(currentState.Tables), maps.Keys(currentState.Views),
 		maps.Keys(prevState.Tables), maps.Keys(prevState.Views),
@@ -86,25 +86,26 @@ func getDiffKeysFromStates(currentState, prevState *types.DbSchema) []types.Diff
 		var tableStateTag types.StateTag
 		var entityType types.EntityType
 
-		if i < currentStateMaxI {
+		if i <= currentStateMaxI {
 			tableStateTag = types.StateTagCS
-		} else {
-			tableStateTag = types.StateTagPS
-		}
 
-		if currentState.Tables[dbTableMapKey] != nil {
-			dbTable = currentState.Tables[dbTableMapKey]
-			entityType = types.EntityTypeTable
-		} else if prevState.Tables[dbTableMapKey] != nil {
-			dbTable = prevState.Tables[dbTableMapKey]
-			entityType = types.EntityTypeTable
-		} else if currentState.Views[dbTableMapKey] != nil {
-			dbTable = currentState.Views[dbTableMapKey]
-			entityType = types.EntityTypeView
+			if currentState.Tables[dbTableMapKey] != nil {
+				dbTable = currentState.Tables[dbTableMapKey]
+				entityType = types.EntityTypeTable
+			} else {
+				dbTable = currentState.Views[dbTableMapKey]
+				entityType = types.EntityTypeView
+			}
 		} else {
-			dbTable = prevState.Views[dbTableMapKey]
 			tableStateTag = types.StateTagPS
-			entityType = types.EntityTypeView
+
+			if prevState.Tables[dbTableMapKey] != nil {
+				dbTable = prevState.Tables[dbTableMapKey]
+				entityType = types.EntityTypeTable
+			} else {
+				dbTable = prevState.Views[dbTableMapKey]
+				entityType = types.EntityTypeView
+			}
 		}
 
 		if entityType == types.EntityTypeTable {
@@ -218,7 +219,7 @@ func DiffDBSchema(currentState, prevState *types.DbSchema) []types.MigAction {
 				action,
 			)
 		} else {
-			// MODIFICATION GOES HERE
+			// MODIFICATION & STALE KEYS GO HERE
 			// actually in most cases this code branch won't even reach
 			// as diff keys are HIGHLY SPECIFIC
 		}
