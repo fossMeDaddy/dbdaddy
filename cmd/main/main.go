@@ -21,7 +21,6 @@ import (
 	"github.com/fossmedaddy/dbdaddy/cli/restoreCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/schemaCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/statusCmd"
-	"github.com/fossmedaddy/dbdaddy/cli/studioCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/uriCmd"
 	"github.com/fossmedaddy/dbdaddy/cli/versionCmd"
 	"github.com/fossmedaddy/dbdaddy/constants"
@@ -149,7 +148,7 @@ func main() {
 	rootCmd.AddCommand(listCmd.Init())
 	rootCmd.AddCommand(restoreCmd.Init())
 	rootCmd.AddCommand(inspectMeCmd.Init())
-	rootCmd.AddCommand(studioCmd.Init())
+	// rootCmd.AddCommand(studioCmd.Init())
 	rootCmd.AddCommand(execCmd.Init())
 	rootCmd.AddCommand(migrationsCmd.Init())
 	rootCmd.AddCommand(initCmd.Init())

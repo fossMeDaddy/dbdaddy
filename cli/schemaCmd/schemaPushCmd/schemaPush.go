@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/fossmedaddy/dbdaddy/constants"
 	"github.com/fossmedaddy/dbdaddy/db/db_int"
@@ -48,7 +49,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	currBranch := viper.GetString(constants.DbConfigCurrentBranchKey)
 	if err := lib.TmpSwitchDB(currBranch, func() error {
-		// var wg sync.WaitGroup
+		var wg sync.WaitGroup
 
 		stmts := []string{}
 		schemaDirPath := path.Join(cwd, constants.SchemaDirName)
@@ -118,20 +119,20 @@ func run(cmd *cobra.Command, args []string) {
 			downSqlErr error
 		)
 		(func() {
-			// wg.Add(2)
-			// defer wg.Wait()
+			wg.Add(2)
+			defer wg.Wait()
 
-			// go (func() {
-			// 	defer wg.Done()
-			upChanges = migrationsLib.DiffDBSchema(userDefinedSchema, dbSchema)
-			upSqlScript, upSqlErr = migrationsLib.GetSQLFromDiffChanges(upChanges)
-			// })()
+			go (func() {
+				defer wg.Done()
+				upChanges = migrationsLib.DiffDBSchema(userDefinedSchema, dbSchema)
+				upSqlScript, upSqlErr = migrationsLib.GetSQLFromDiffChanges(upChanges)
+			})()
 
-			// go (func() {
-			// 	defer wg.Done()
-			downChanges := migrationsLib.DiffDBSchema(dbSchema, userDefinedSchema)
-			downSqlScript, downSqlErr = migrationsLib.GetSQLFromDiffChanges(downChanges)
-			// })()
+			go (func() {
+				defer wg.Done()
+				downChanges := migrationsLib.DiffDBSchema(dbSchema, userDefinedSchema)
+				downSqlScript, downSqlErr = migrationsLib.GetSQLFromDiffChanges(downChanges)
+			})()
 		})()
 		if upSqlErr != nil || downSqlErr != nil {
 			return fmt.Errorf(fmt.Sprintln(upSqlErr) + fmt.Sprintln(downSqlErr))
