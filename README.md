@@ -1,72 +1,25 @@
 # DBDaddy [draft]
 
-A simple database management CLI tool.
-
-safe for production use when version = `1.0.0`
-
-stable enough for development DB use, NOW.
+A (HEAVY WORK IN PROGRESS) database management CLI tool.
 
 ## Installation
-only for linux or unix-based OS.
+for linux or unix-like OSs:
 
-no windows.
-
-why windows?
-
-dont use windows.
-
-LATEST VERSION:
 ```
 curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | bash
 ```
 
-To install a specific version from the past add a `VERSION` shell variable before the bash command. Look for available releases in the releases tab.
-```
-curl https://raw.githubusercontent.com/fossMeDaddy/dbdaddy/main/installer/install.sh | VERSION=v0.5.1 bash
-```
+for windows:
 
-having doubts about installing a random binary from the internet? here's a remark from the author that might help:
-> I used to be a frontend-heavy MERN-Stack specialized Javascript developer for God's sake!
-> I am barely capable of writing software that works,
-> you really think I can bypass your anti-virus, steal your information AND get away with it?
->
-> trust me bro.
-
-## Usage Instructions
 ```
-dbdaddy --help
+delete it. use linux.
 ```
 
-## Note from the author
-
-Prisma is great from devex pov but applications dont run on developers, they run on a machine.
-
-I thought, well there has to be an alternative to it, you can't just recommend prisma to your CTO right? how will you pitch it?
-> sorry but i am a full-stack (MERN with frontend specialisation) developer and i don't know how to write SQL & definitely don't wanna learn it. Anyway,
-> here's an automagic migrations gen tool & with it comes a bloated ORM architecture deal with it.
-
-jokes aside, some of the performance-related concerns were also raised by codedamn (company) in [this](https://codedamn.com/news/product/dont-use-prisma) article.
-
-Now, let's say prisma fixed these issues tomorrow, maybe even they've already fixed it, i dont monitor their project closely...
-you just can't get away with having all the advantages of a SQL abstraction without having to deal with problems that arise due to abstracting away SQL.
-
-not only prisma, but almost every ORM suffers from problems like not being performant enough, not being comprehensive enough or being a black box that external users know very little about.
-
-throw in the impatient gippidy syntax searches of the modern age and you've got yourself a flaming red hot ball of garbage queries eating away too much compute & memory on either the database or on your $2500 nodejs/deno/bun/whatever-the-fuck-next-shiny-runtime-is-gonna-be k8s cluster.
-
-zooming out for a second...
-
-what do you really need when working with databases?
-1. a tool that gives you a good enough interface to do backups, migrations, custom one-off queries, etc. on the databases
-2. efficient SQL to query the data
-3. compile-time guard-rails when writing SQL
-
-here's how you can do it WITHOUT AN ORM:
-1. `DBDaddy` aka this tool
-2. get good at SQL, bruh
-3. amazing tools like `sqlc` for type-safe SQL queries
-
-`DBDaddy` is not just a tool, it's an opinion.
+having doubts about installing a random binary from the internet? let me help you:
+> I used to be a React Developer,
+> I am barely capable of writing software that works.
+> 
+> I am honored that you think I can bypass your anti-virus, steal your information, and get away with it but i really can't.
 
 ## Features
 supported databases:
@@ -85,7 +38,7 @@ Here are some features the CLI covers (PG only, for now)
 - schema definition, introspection and updating from SQL syntax directly in DB
 
 In Progress:
-- **tracking & merging migrations** and new database branches in a graph, making them truly "branches"
+- **tracking & merging migrations**
 
 Planned:
 - **studio UI for my fellow soydevs**, because these days nobody with a $1000 clerk subscription seems to use a CLI for more than 10s
@@ -94,7 +47,7 @@ Planned:
 - **testing suite**, everyday i push to main, i push with fear, i dont want fear
 
 ## Migrations [unstable]
-it's actually simpler than most people would think... so simple in fact that I would NOT recommend it for production use (for now).
+it's actually simpler than you'd would think... so simple in fact that I would NOT recommend it for production use (for now).
 
 indexes, triggers & custom types are not supported.
 
@@ -104,9 +57,7 @@ from your database & then re-create it with SQL column definition such that the 
 
 ## Quickstart Guide
 
-the CLI requires a config file: `dbdaddy.config.json` to connect with your database. It has connection credentials like host, port, params, user, password, etc.
-
-when you first install & run `dbdaddy` it asks you for a connection uri, if not provided, default PostgreSQL credentials are used that can be changed later at any point in time.
+when you first install & run the CLI it asks you for a connection uri, if not provided, default PostgreSQL credentials are used that can be changed with `uri` command later at any point in time.
 
 `dbdaddy` handles multiple databases on your database server as "branches", there is always a "current branch"
 on which you perform read/write operations like `inspect`ing the schema, `exec`uting SQL statements, etc.
@@ -286,8 +237,6 @@ $ dbdaddy migrations generate
 migration SQL generated successfully.
 ```
 
-as expected, it works... (man i am on fire today!)
-
 looking at the project structure, there are a few changes that have been made by the commands we ran above:
 
 ```bash
@@ -398,7 +347,7 @@ ALTER TABLE "public"."products"
     ADD CONSTRAINT "products_pkey" PRIMARY KEY (id);
 ```
 
-one more thing, because `schema push` command modifies the database schema, it also auto-generates a migration (aka commit)
+one more thing, because `schema push` command modifies the database schema, it also auto-generates a migration (or commit)
 for it's changes. we can see this on running `migrations status`
 
 ```bash
@@ -459,7 +408,7 @@ Available migrations:
 - CREATE COLUMN [public products description]
 ```
 
-but... butt... what if we actually _wanted_ that typo?
+but... what if we actually _wanted_ that typo?
 
 there are 2 ways for that:
 1. we can change the schema and run `schema push`
@@ -545,7 +494,3 @@ HAPPY DATABASING!
 ## Contributing Guide
 
 contributors are advised to kindly turn off their fucking copilot :)
-
----
-
-security audit will start after `1.0.0`, expect common & obvious security bugs to be fixed by `1.1.0`
